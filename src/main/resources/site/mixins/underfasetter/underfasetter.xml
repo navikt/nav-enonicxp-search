@@ -1,0 +1,124 @@
+<mixin>
+    <display-name>Underfasetter</display-name>
+    <items>
+    <item-set name="underfasetter">
+        <label>Underfasetter</label>
+        <items>
+            <input name="underfasettnavn" type="TextLine">
+                <label>
+                    Underfasettnavn
+                </label>
+                <occurrences maximum="1" minimum="1" />
+            </input>
+            <option-set name="facetType">
+                <label>Type</label>
+                <occurrences minimum="1" maximum="1" />
+                <options minimum="1" maximum="1">
+                    <option name="filter">
+                        <label>Filter</label>
+                        <items>
+                        <input name="type" type="ComboBox">
+                            <label>Filter</label>
+                            <config>
+                                <option value="regexp">Regulært uttrykk</option>
+                                <option value="term">Begrep</option>
+                                <option value="type">Innholdstype</option>
+                                <option value="prefix">Prefiks</option>
+                            </config>
+                        </input>
+                        </items>
+                    </option>
+                    <option name="dateRange">
+                        <label>Date range</label>
+
+                            <items>
+                                <item-set name="ranges">
+                                    <label>Inndelinger</label>
+                                    <occurrences minimum="1" maximum="0"/>
+                                    <items>
+                                <input type="TextLine" name="key">
+
+                                    <label>Navn</label>
+                                    <occurrences maximum="1" minimum="1"/>
+                                </input>
+                                <input type="TextLine" name="to">
+                                    <label>Til</label>
+                                    <occurrences maximum="1" minimum="0"/>
+                                </input>
+                                <input type="TextLine" name="from">
+                                    <label>Fra</label>
+                                    <occurrences maximum="1" minimum="0"/>
+                                </input>
+                                    </items>
+                                </item-set>
+                            </items>
+                    </option>
+                </options>
+            </option-set>
+
+            <inline mixin="keyvals"/>
+
+            <item-set name="underaggs">
+                <label>Underaggregeringer</label>
+                <items>
+                    <input name="underfasettnavn" type="TextLine">
+                        <label>
+                            Underaggregeringsnavn
+                        </label>
+                        <occurrences maximum="1" minimum="1" />
+                    </input>
+                    <option-set name="facetType">
+                        <label>Type</label>
+                        <occurrences minimum="1" maximum="1" />
+                        <options minimum="1" maximum="1">
+                            <option name="filter">
+                                <label>Filter</label>
+                                <items>
+                                    <input name="type" type="ComboBox">
+                                        <label>Filter</label>
+                                        <config>
+                                            <option value="regexp">Regulært uttrykk</option>
+                                            <option value="term">Begrep</option>
+                                            <option value="type">Innholdstype</option>
+                                            <option value="prefix">Prefiks</option>
+                                        </config>
+                                    </input>
+                                </items>
+                            </option>
+                            <option name="dateRange">
+                                <label>Date range</label>
+
+                                <items>
+                                    <item-set name="ranges">
+                                        <label>Inndelinger</label>
+                                        <occurrences minimum="1" maximum="0"/>
+                                        <items>
+                                            <input type="TextLine" name="key">
+                                                <label>Navn</label>
+                                                <occurrences maximum="1" minimum="1"/>
+                                            </input>
+                                            <input type="TextLine" name="to">
+                                                <label>Til</label>
+                                                <occurrences maximum="1" minimum="0"/>
+                                            </input>
+                                            <input type="TextLine" name="from">
+                                                <label>Fra</label>
+                                                <occurrences maximum="1" minimum="0"/>
+                                            </input>
+                                        </items>
+                                    </item-set>
+                                </items>
+                            </option>
+                        </options>
+                    </option-set>
+
+                    <inline mixin="keyvals"/>
+                </items>
+                <occurrences minimum="0" maximum="0"/>
+            </item-set>
+
+        </items>
+        <occurrences minimum="0" maximum="0" />
+    </item-set>
+    </items>
+</mixin>

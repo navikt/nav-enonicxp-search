@@ -1,0 +1,19 @@
+<content-type>
+    <dislay-name>Søk - Prioritert innhold</dislay-name>
+    <super-type>base:structured</super-type>
+    <form>
+        <item-set name="elements">
+            <label>Prioriterte elementer</label>
+            <occurrences maximum="0" minimum="0" />
+            <items>
+                <input name="content" type="ContentSelector">
+                    <label>Velg innhold</label>
+                </input>
+                <input name="keywords" type="Tag">
+                    <label>Nøkkelord</label>
+                    <occurrences minimum="0" maximum="0"/>
+                </input>
+            </items>
+        </item-set>
+    </form>
+</content-type>

@@ -1,0 +1,123 @@
+<content-type>
+    <display-name>Søkekonfigurasjon</display-name>
+    <super-type>base:structured</super-type>
+    <form>
+        <item-set name="fasetter">
+            <label>Fasetter</label>
+            <items>
+                <input name="fasettnavn" type="TextLine">
+                    <label>
+                        Fasettnavn
+                    </label>
+                    <occurrences minimum="1" maximum="1"/>
+                </input>
+
+                <inline mixin="underfasetter" />
+
+            </items>
+            <occurrences minimum="0" maximum="0" />
+        </item-set>
+        <item-set name="query-config">
+            <label>Spørring</label>
+            <items>
+                <option-set name="query">
+                    <label>Query type</label>
+                    <options minimum="1" maximum="10">
+                        <option name="bool">
+                            <label>Boolean type</label>
+                            <items>
+                                <option-set name="bool-config">
+                                    <label>Boolean konfigurasjon</label>
+                                    <options minimum="1" maximum="3">
+                                        <option name="should">
+                                            <label>Should</label>
+                                            <items>
+                                                <inline mixin="queries"/>
+                                            </items>
+                                        </option>
+                                        <option name="must">
+                                            <label>Must</label>
+                                            <items>
+                                                <inline mixin="queries"/>
+                                            </items>
+                                        </option>
+                                        <option name="must_not">
+                                            <label>Must not</label>
+                                            <items>
+                                                <inline mixin="queries"/>
+                                            </items>
+                                        </option>
+                                    </options>
+                                </option-set>
+                            </items>
+                        </option>
+                    </options>
+                </option-set>
+                <item-set name="suggest">
+                    <label>Suggestions</label>
+                    <items>
+                        <input name="name" type="TextLine">
+                            <label>Navn</label>
+                            <occurrences maximum="1" minimum="1"/>
+                        </input>
+                        <inline mixin="keyvals"/>
+                        <inline mixin="queries"/>
+                    </items>
+                </item-set>
+                <item-set name="highlight">
+                    <label>Highlights</label>
+                    <items>
+                        <inline mixin="keyvals"/>
+                        <item-set name="fields">
+                            <label>Felter</label>
+                            <items>
+                                <input type="TextLine" name="field">
+                                    <label>Feltnavn</label>
+                                    <occurrences minimum="1" maximum="1"/>
+                                </input>
+                                <input type="TextLine" name="tag">
+                                    <label>HTML tag</label>
+                                    <occurrences minimum="1" maximum="1"/>
+                                </input>
+
+                            </items>
+                            <occurrences maximum="0" minimum="0"/>
+                        </item-set>
+                    </items>
+                </item-set>
+                <item-set name="post_filter">
+                    <label>Post filter</label>
+                    <items>
+                        <inline mixin="keyvals"/>
+                        <inline mixin="queries"/>
+                        <option-set name="bool">
+                            <label>Boolean konfigurasjon</label>
+                            <options minimum="1" maximum="3">
+                                <option name="should">
+                                    <label>Should</label>
+                                    <items>
+                                        <inline mixin="queries"/>
+                                    </items>
+                                </option>
+                                <option name="must">
+                                    <label>Must</label>
+                                    <items>
+                                        <inline mixin="queries"/>
+                                    </items>
+                                </option>
+                                <option name="must_not">
+                                    <label>Must not</label>
+                                    <items>
+                                        <inline mixin="queries"/>
+                                    </items>
+                                </option>
+                            </options>
+                        </option-set>
+                    </items>
+                    <occurrences maximum="1" minimum="0"/>
+                </item-set>
+                <inline mixin="keyvals"/>
+            </items>
+        </item-set>
+    </form>
+</content-type>

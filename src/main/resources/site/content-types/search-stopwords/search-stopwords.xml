@@ -1,0 +1,17 @@
+<content-type>
+    <display-name>Søk - Stoppord</display-name>
+    <super-type>base:structured</super-type>
+    <form>
+        <input name="words" type="Tag">
+            <label>Enkeltord</label>
+            <occurrences maximum="0" minimum="0" />
+        </input>
+        <input name="csv" type="TextArea">
+            <label>Kommaseparert liste med ord</label>
+            <occurrences maximum="1" minimum="0"/>
+        </input>
+    </form>
+</content-type>
+
+
+

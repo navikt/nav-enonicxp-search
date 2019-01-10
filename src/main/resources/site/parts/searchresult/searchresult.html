@@ -1,0 +1,107 @@
+<!--div data-th-if="${mostLikely.is}">
+    <p data-th-text="'Mente du ' + ${ mostLikely.word }"> </p>
+</div>
+<div data-th-each="hit : ${hits}">
+    <p data-th-if="${ hit.dym != ''}" data-th-text="'Viser treff for ' + ${hit.dym}">
+
+    </p>
+    <a data-th-text="${hit.displayName}" data-th-href="${hit.href}"></a>
+    <p data-th-if="${hit.priority}">Innhold anbefalt av NAV</p>
+</div>
+<div class="sokeresultatContainer">
+    <div id="res"></div>
+</div-->
+
+<div class="row">
+<div class="sokeresultatContainer col-md-8">
+    <div class="clearfix">
+        <div data-th-if="${word}">
+            <div aria-live="polite" aria-atomic="true" class="pull-left">
+                <p class="treffInfo" id="id19c">
+                    <span data-th-text="${total}"></span>
+                    treff
+
+                    for:
+                    <span class="sokeord" data-th-text="${word}">ordførere</span>
+                </p>
+
+            </div>
+            <a href="https://www.nav.no/no/NAV+og+samfunn/Kontakt+NAV/Brukerstotte+nav+no/Soketips" class="soketips">
+                Søketips
+            </a>
+        </div>
+        <div data-th-unless="${word}" data-th-remove="tag">
+            <div aria-live="polite" aria-atomic="true" class="pull-left">
+                <p class="treffInfo">
+                    Søket er tomt
+                </p>
+            </div>
+            <a href="https://www.nav.no/no/NAV+og+samfunn/Kontakt+NAV/Brukerstotte+nav+no/Soketips" class="soketips">
+                Søketips
+            </a>
+        </div>
+    </div>
+<ul class="sokeresultatliste" data-th-if="${word}">
+
+    <li class="nyheter" data-th-each="hit : ${hits}">
+
+        <a data-th-href="${hit.href}">
+            <h2 data-th-text="${hit.displayName}">Ordførere skal vurderes som frilansere </h2>
+
+
+            <p class="resultattekst" data-th-utext="${hit.highlight}">
+                Høyesterett har slått fast at
+                <strong>ordførere</strong> ikke er å anse som arbeidstakere, men som frilansere.
+            </p>
+
+
+        </a>
+
+
+    </li>
+</ul>
+
+</div>
+    <div id="id38" class="col-md-4">
+        <form method="GET"><div style="width:0px;height:0px;position:absolute;left:-100px;top:-100px;overflow:hidden"><input type="hidden" name="ord" data-th-value="${word}" id="id12_hf_0"></div>
+            <div class="fasettGruppeElement"  data-th-each="ago : ${aggregations}" data-th-classappend="${ago.classname}">
+            <h2 data-th-if="${agoStat.even}" data-th-text="${ago.key}"></h2>
+                <ul class="fasettListe" data-th-classappend="${ago.ulclass}" id="id33">
+                    <li data-th-classappend="${agg.li}" data-th-each="agg : ${ago.buckets}">
+                        <input
+                                type="radio"
+                                name="fasett"
+                                onchange="this.form.submit()"
+                                data-th-classappend="${agoStat.even}? 'svart'"
+                                data-th-id="${agg.key}"
+                                data-th-value="${ago.key +','+ agg.key}"
+                                data-th-checked="${agg.checked}? 'checked'"
+                                class="wicket-id33">
+                        <label data-th-for="${agg.key}"  data-th-text="${agg.key}">Sentralt innhold</label>
+                        <span class="antallTreff" data-th-text="${agg.doc_count} "></span>
+
+                        <div  data-th-if="${agg.hasSubFacets}" data-th-style="${agg.checked}? '' : 'display: none'">
+
+                            <ul class="underFasettListe clearfix">
+                                <li class="nyheter" data-th-each="bucket : ${agg.subfacets}">
+                                    <input data-th-type="${agg.type}"
+                                           onchange="this.form.submit()"
+                                           name="fasett" data-th-id="${agg.key + bucket.key}"
+                                           data-th-value="${agg.key + ',' + bucket.key}"
+                                           class="wicket-id3c" data-th-checked="${bucket.checked} ? 'checked'">
+                                    <label data-th-text="${bucket.key}" data-th-for="${agg.key + bucket.key}" >Alt innhold</label>
+                                    <span class="antallTreff" data-th-text="${bucket.doc_count}">(2450)</span>
+                                </li>
+                            </ul>
+
+                        </div>
+
+
+                </ul>
+
+        </div>
+        </form>
+    </div>
+</div>
+
+

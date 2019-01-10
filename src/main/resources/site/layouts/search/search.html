@@ -1,0 +1,19 @@
+<main>
+    <div class="container maincontent">
+<div class="TESTBORDER search-container" >
+    <div class="search-bar" data-portal-region="searchbar">
+        <div data-th-each="component: ${regions.searchbar.components}">
+            <div data-portal-component="${component.path}" data-th-remove="tag" />
+        </div>
+    </div>
+    <div class="search-items-container">
+        <div class="result TESTBORDER margins" data-portal-region="result">
+            <div data-th-each="component: ${regions.result.components}">
+                <div data-portal-component="${component.path}" data-th-remove="tag" />
+            </div>
+        </div>
+    </div>
+</div>
+
+    </div>
+</main>
