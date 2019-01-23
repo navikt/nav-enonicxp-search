@@ -2,18 +2,20 @@ var U = require('/lib/search/searchUtils');
 var content = require('/lib/xp/content');
 var portal = require('/lib/xp/portal');
 function handleGet(req) {
-    var params = req.params;
-    log.info(JSON.stringify(params, null, 4));
-    switch (params.type) {
-        case 'content': return getContent(params, 'searchy');
-        case 'update': return getContent(params, 'update')
+   // var params = req.params;
+  //  log.info(JSON.stringify(params, null, 4));
+  //  switch (params.type) {
+  //      case 'content': return getContent(params, 'searchy');
+    //    case 'update': return getContent(params, 'update')
        // case 'app': return getApp(params);
        // case 'facettconfig': return getFacetts(req);
        // case 'priorities': return getPriorities(params);
        // case 'stopwords': return stopwords(req);
        // case 'exact': return getContent(params, true);
        // case 'ldPriorities': return getPriorities(params, true);
-    }
+   // }
+
+    return require('../../site/parts/searchresult/searchresult').get(req)
 }
 
 function getFacetts(req) {

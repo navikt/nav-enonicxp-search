@@ -185,7 +185,8 @@ module.exports = {
     computeLevensteinDistance: computeLevensteinDistance,
     search: search,
     searchBuilder: searchBuilder,
-    substituteAndSearch: substituteAndSearch
+    substituteAndSearch: substituteAndSearch,
+    enonicSearch: enonicSearch
 }
 
 function removeStopWords(word, l) {
@@ -485,6 +486,7 @@ function substituteAndSearch(conf, params) {
     log.info(JSON.stringify(config.post_filter, null, 4));
 
 
+    enonicSearch(params.ord, params.c);
     var body = JSON.stringify(config, null, 4).replace(/{{(\w*)}}/g, function (e, r) {
         return params[r];
     })
@@ -533,4 +535,376 @@ function getFacetts(fasetts) {
     if (!fasetts) return undefined;
 
     return Array.isArray(fasetts) ? R.dropWhile(function(e){return e === ''},fasetts).join(',') : R.dropWhile(function(e){return e === ''},fasetts.split(',')).join(',');
+}
+
+function getSearchWords(word) {
+    word = JSON.parse(http.request({
+        method: "GET",
+        params: {
+            analyzer: "nb_NO",
+            text: word
+        },
+        url: 'http://localhost:9200/search-cms-repo/_analyze'
+    }).body).tokens.reduce(function (t, el) {
+        if (word.split(" ").indexOf(el) === -1) t += el.token + ' ';
+        return t;
+    },'');
+    var splitWords = word.split(" ");
+    var suggestObj = splitWords.reduce(function (t, el) {
+        t[el] = {
+            text: el,
+            term: {
+                field: "_alltext._analyzed"
+            }
+        };
+        return t;
+    },{});
+    var suggest = JSON.parse(http.request({
+        method: "POST",
+        body: JSON.stringify({ size: 0, suggest: suggestObj}),
+        url: 'http://localhost:9200/search-cms-repo/_search'
+    }).body).suggest;
+
+    return splitWords.reduce(function (t, el) {
+        t += el + ' ';
+        if (suggest && suggest.hasOwnProperty(el) && suggest[el][0].options.length > 0) {
+            t += suggest[el][0].options.reduce(function(to, e) {
+                to += e.text + ' ';
+                return to;
+            }, '')
+        }
+        return t;
+    }, '');
+
+}
+function mapReducer(buckets) {
+    return function (t, el) {
+        var match = buckets.reduce(function (t, e) {
+            return t || (e.key === el.name.toLowerCase() ? e : t);
+        }, undefined);
+
+        var docCount = match ? match.docCount : 0;
+        var under = el.hasOwnProperty('underfasetter')
+            ? (Array.isArray(el.underfasetter)
+                ? el.underfasetter
+                : [el.underfasetter]).reduce(mapReducer(match ? match.underaggregeringer.buckets || [] : []), [])
+            : [];
+        t.push({key: el.name, docCount: docCount, underaggregeringer: {buckets: under}});
+        return t
+    }
+}
+
+function getAggregations(query, config) {
+    var agg = content.query(query).aggregations;
+    agg.fasetter.buckets = (Array.isArray(config.data.fasetter) ? config.data.fasetter : [config.data.fasetter]).reduce(mapReducer(agg.fasetter.buckets), []);
+    return agg;
+}
+var dateranges = [
+
+
+    {
+        "to": "now",
+        "from": "now-7d",
+        "key": "Siste 7 dager"
+    },
+    {
+        "key": "Siste 30 dager",
+        "to": "now-7d",
+        "from": "now-30d"
+    },
+    {
+        "to": "now-6M",
+        "from": "now-12M",
+        "key": "Siste 6 måneder"
+    },
+    {
+        "to": "now-12M",
+        "key": "Siste 12 måneder"
+    }
+]
+function getQuery(mapWords, params) {
+    var navApp = 'no.nav.navno:';
+    var count = params.c ? !isNaN(Number(params.c)) ? Number(params.c) : 0 : 0;
+    count = count ? count * 20 : 20;
+
+    return {
+        start: 0,
+        count: count,
+        query: 'fulltext("data.text, data.ingress, displayName, data.keywords, data.interface.*" ,"' + mapWords + '", "OR") ' ,
+        contentTypes: [
+            navApp + 'main-article',
+            navApp + 'oppslagstavle',
+            navApp + 'tavleliste',
+            'media:document',
+            app.name + ':search-api'
+        ],
+        aggregations: {
+            "fasetter": {
+                "terms": {
+                    "field": "x.no-nav-navno.fasetter.fasett"
+                },
+                aggregations: {
+                    "underaggregeringer": {
+                        terms: {
+                            field: "x.no-nav-navno.fasetter.underfasett",
+                            size: 20
+                        },
+
+                    }
+                }
+            }/*,
+            "Tidsperiode": {
+                "dateRange": {
+                    "ranges": dateranges,
+                    "field": "modifiedTime",
+                    "format": "dd-MM-yyyy"
+                }
+            }*/
+        }
+    }
+}
+
+function getDateRange(daterange, buckets) {
+    if (!daterange || !buckets || isNaN(Number(daterange)) || !buckets[Number(daterange)]) return '';
+    var s = '';
+    var e = buckets[buckets.length - 1 - Number(daterange)];
+    if (e.hasOwnProperty('to')) {
+        s += ' And modifiedTime < dateTime("' + e.to + '")';
+    }
+    if (e.hasOwnProperty('from')) {
+        s+= ' And modifiedTime > dateTime("' + e.from + '")';
+    }
+    return s
+}
+
+function enonicSearch(params) {
+    var s = Date.now();
+    var mapWords = getSearchWords(params.ord);
+    log.info(mapWords);
+    var query = getQuery(mapWords, params);
+    var config = cache.get('config2', function() {
+        return content.query({
+            start: 0,
+            count: 1,
+            query: 'type = "' + app.name + ':search-config2"'
+        }).hits[0];
+    });
+    var aggregations = getAggregations(query, config);
+    if (params.f) {
+        var filters = {
+            boolean: {
+                must:
+                    {
+                        hasValue: {
+                            field: 'x.no-nav-navno.fasetter.fasett',
+                            values: [
+                                config.data.fasetter[Number(params.f)].name
+                            ]
+                        }
+                    }
+
+            }
+
+        }
+        if (params.uf) {
+            var values = [];
+            (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(function (uf) {
+                var undf = Array.isArray(config.data.fasetter[Number(params.f)].underfasetter) ? config.data.fasetter[Number(params.f)].underfasetter : [config.data.fasetter[Number(params.f)].underfasetter]
+                values.push(undf[Number(uf)].name);
+            });
+            filters.boolean.must = {
+                hasValue: {
+                    field: 'x.no-nav-navno.fasetter.underfasett',
+                    values: values
+                }
+            };
+        }
+        query.filters = filters;
+    }
+    else {
+        query.filters = {
+            boolean: {
+                must:
+                    {
+                        hasValue: {
+                            field: 'x.no-nav-navno.fasetter.fasett',
+                            values: [
+                                config.data.fasetter[0].name
+                            ]
+                        }
+                    }
+
+            }
+        }
+    }
+    query.aggregations.Tidsperiode =
+        {
+        "dateRange": {
+            "ranges": dateranges,
+                "field": "modifiedTime",
+                "format": "dd-MM-yyyy"
+        }
+    };
+    aggregations.Tidsperiode = content.query(query).aggregations.Tidsperiode;
+    if (params.daterange) {
+        var dateRange = getDateRange(params.daterange, aggregations.Tidsperiode.buckets);
+        query.query += dateRange;
+    }
+    //aggregations = getAggregations(query, config);
+    var sort = params.s && params.s !== '0' ? 'modifiedTime DESC' : '_score DESC';
+    query.sort = sort;
+    var res = content.query(query);
+
+    var hits = res.hits.map(function (el) {
+        var highLight = getHighLight(el, mapWords);
+        var href = getHref(el);
+        var className = getClassName(el);
+        return {
+            displayName: el.displayName,
+            href: href,
+            highlight: highLight.ingress || highLight.text || highLight.displayName,
+            publish: el.publish,
+            modifiedTime: el.modifiedTime,
+            className: className
+        }
+    });
+
+   log.info(Date.now() - s);
+   return {
+       total: res.total,
+       hits: hits,
+       aggregations: aggregations
+   }
+}
+
+function getClassName(el) {
+    var className = 'pdf';
+    if (el.hasOwnProperty('x') && el.x.hasOwnProperty('no-nav-navno') && el.x['no-nav-navno'].hasOwnProperty('fasetter')) {
+        className = el.x['no-nav-navno'].fasetter.className;
+    }
+    return className;
+}
+
+function getHref(el) {
+    if (el.type === app.name + ':search-api') {
+        return el.data.host
+    }
+    return portal.pageUrl({
+        id: el._id
+    })
+}
+
+function getHighLight(el, words) {
+    //log.info(JSON.stringify(el, null, 4));
+    return {
+        text: el.data.text ? highLight(el.data.text, words) : false,
+        ingress: el.data.ingress ? highLight(el.data.ingress, words) : false,
+        displayName: el.displayName
+    }
+}
+
+function highLight(text, words) {
+    return words.split(" ").reduce(function (t, el) {
+        if (el.length < 2) return t;
+        if (!t) t = findSubstring(el, text)
+        else {
+            var res = findSubstring(el, t);
+            t = res ? res : t;
+        }
+        return t;
+    }, false)
+}
+
+function findSubstring(word, text) {
+
+    //  if (obj.value > LevensteinRange) return substreng(e.ingress, 0, 200);
+  //  var replaceText = replaceWord(word);
+    text = text.replace(/<(?:[\/0-9a-zA-ZøæåÅØÆ\s\\="\-:;+%&.?@#()_]*)>[\r\n]*/g, function (e) {
+        return e === '</b>' || e === '<b>' ? e : '';
+    });
+    var replaceText = test(word, text);
+    var index = text.indexOf(word);
+    if (index === -1) return false;
+    if (index < 100) {
+        return text.length > 200 ? substreng(replaceText,0, 200) + ' (...)' : replaceText ;
+    }
+    else if (index > text.length - 100) {
+        return text.length > 200 ? substreng(replaceText,-200) + ' (...)' : replaceText;
+    }
+    else return text.length > 200 ? substreng(replaceText,index - 100, index + 100) + ' (...)' : replaceText;
+}
+
+
+function substreng(text, start, stopp) {
+    var trueStart = start >= 0 ? start : text.length + start;
+    var trueStop = stopp;
+    var tstopc = text.charAt(trueStop);
+    var tc = text.charAt(trueStart);
+    while (tc && tc !== ' ') {
+        trueStart--;
+        tc = text.charAt(trueStart);
+    }
+    while (tstopc !== ' ' && trueStop < text.length) {
+        trueStop++;
+        tstopc = text.charAt(trueStop);
+    }
+    return start >= 0 ? text.substring(trueStart, trueStop) : text.substring(trueStart);
+
+}
+
+function replaceWord(word) {
+    return R.replace(new RegExp(word, 'gi'), '<strong>' + word + '</strong>');
+}
+
+function test(word, text) {
+   return text.replace(new RegExp("\\w*" + word + "\\w*", "gi"), function (e, r) {
+        return '<b>' + e + '</b>'
+    })
+}
+
+
+if (!Array.prototype.findIndex) {
+    Object.defineProperty(Array.prototype, 'findIndex', {
+        value: function(predicate) {
+            // 1. Let O be ? ToObject(this value).
+            if (this == null) {
+                throw new TypeError('"this" is null or not defined');
+            }
+
+            var o = Object(this);
+
+            // 2. Let len be ? ToLength(? Get(O, "length")).
+            var len = o.length >>> 0;
+
+            // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+            if (typeof predicate !== 'function') {
+                throw new TypeError('predicate must be a function');
+            }
+
+            // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
+            var thisArg = arguments[1];
+
+            // 5. Let k be 0.
+            var k = 0;
+
+            // 6. Repeat, while k < len
+            while (k < len) {
+                // a. Let Pk be ! ToString(k).
+                // b. Let kValue be ? Get(O, Pk).
+                // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
+                // d. If testResult is true, return k.
+                var kValue = o[k];
+                if (predicate.call(thisArg, kValue, k, o)) {
+                    return k;
+                }
+                // e. Increase k by 1.
+                k++;
+            }
+
+            // 7. Return -1.
+            return -1;
+        },
+        configurable: true,
+        writable: true
+    });
 }

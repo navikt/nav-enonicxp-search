@@ -518,7 +518,7 @@ input[type=radio]:focus + label {
 }
 
 .fasettListe li.utvidbar input[type=radio]:disabled + label {
-    background: url(../img/minus_graa.svg) 4px 5px no-repeat;
+    background: url(../gfx/minus_graa.svg) 4px 5px no-repeat;
 }
 
 .fasettListe li.utvidbar label {
@@ -1152,7 +1152,7 @@ input[type=checkbox]:checked + label {
     font-weight: bold;
 }
 
-.defaultFasett input[type=checkbox]:checked + label {
+.defaultFasett * input[type=checkbox]:checked + label {
     background: url(../gfx/hake.svg) 0 0 no-repeat;
 }
 
@@ -1223,4 +1223,7 @@ button.mobile-toggler {
         border: 0 !important;
         padding: 0 !important;
     }
+}
+#sres {
+    width: 100%;
 }

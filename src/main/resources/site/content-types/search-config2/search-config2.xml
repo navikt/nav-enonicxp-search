@@ -1,0 +1,51 @@
+<content-type>
+    <display-name>Søkekonfigurasjon (fasetter)</display-name>
+    <super-type>base:structured</super-type>
+    <form>
+        <item-set name="fasetter">
+            <display-name>Fasetter</display-name>
+            <items>
+                <input type="TextLine" name="name">
+                    <label>Navn</label>
+                </input>
+                <input name="rulekey" type="TextLine">
+                    <label>Regelnøkkel</label>
+                </input>
+                <input name="rulevalue" type="TextLine">
+                    <label>Regelverdi</label>
+                </input>
+                <item-set name="underfasetter">
+                    <display-name>Underfasetter</display-name>
+                    <items>
+                        <input type="TextLine" name="name">
+                            <label>Navn</label>
+                        </input>
+                        <input name="rulekey" type="TextLine">
+                            <label>Regelnøkkel</label>
+                        </input>
+                        <input name="rulevalue" type="TextLine">
+                            <label>Regelverdi</label>
+                        </input>
+                        <input name="className" type="RadioButton">
+                            <label>Fasettikon</label>
+                            <config>
+                                <option value="lokalt">Lokalt</option>
+                                <option value="tjenester">Tjenester</option>
+                                <option value="nyheter">Nyheter</option>
+                                <option value="statistikk">Statistikk</option>
+                                <option value="pdf">PDF</option>
+                                <option value="excel">Excel</option>
+                                <option value="informasjon">Informasjon</option>
+                                <option value="kontor">Kontor</option>
+                                <option value="skjema">Skjema</option>
+                            </config>
+                        </input>
+                    </items>
+                    <occurrences minimum="0" maximum="0"/>
+                </item-set>
+
+            </items>
+            <occurrences minimum="0" maximum="0"/>
+        </item-set>
+    </form>
+</content-type>

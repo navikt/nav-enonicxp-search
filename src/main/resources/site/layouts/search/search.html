@@ -8,7 +8,7 @@
     </div>
     <div class="search-items-container">
         <div class="result TESTBORDER margins" data-portal-region="result">
-            <div data-th-each="component: ${regions.result.components}">
+            <div data-th-each="component: ${regions.result.components}" id="sres">
                 <div data-portal-component="${component.path}" data-th-remove="tag" />
             </div>
         </div>
