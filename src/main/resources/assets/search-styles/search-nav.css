@@ -170,6 +170,7 @@ input[type=radio]:focus + label {
     padding: 20px 0;
     background: #fff;
     border-top: 1px solid #ddd;
+
 }
 
 .sokeresultatContainer h1 {
@@ -243,6 +244,7 @@ input[type=radio]:focus + label {
 .sokeresultatContainer .sokeresultatliste li {
     border-top: 1px solid #c8c5c4;
     padding: 15px 0;
+
 }
 
 .sokeresultatContainer .sokeresultatliste li:last-child {
@@ -252,6 +254,7 @@ input[type=radio]:focus + label {
 .sokeresultatContainer .sokeresultatliste li a {
     color: #3e3832;
     display: block;
+
 }
 
 .sokeresultatContainer .sokeresultatliste li a:hover {

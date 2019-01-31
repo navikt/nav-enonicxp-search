@@ -630,13 +630,14 @@ function getQuery(mapWords, params) {
     return {
         start: 0,
         count: count,
-        query: 'fulltext("data.text, data.ingress, displayName, data.keywords, data.interface.*" ,"' + mapWords + '", "OR") ' ,
+        query: 'fulltext("data.text, data.ingress, displayName, data.abstract, data.keywords, data.interface.*" ,"' + mapWords + '", "OR") ' ,
         contentTypes: [
             navApp + 'main-article',
             navApp + 'oppslagstavle',
             navApp + 'tavleliste',
             'media:document',
-            app.name + ':search-api'
+            app.name + ':search-api',
+            app.name + ':search-api2'
         ],
         aggregations: {
             "fasetter": {
@@ -677,10 +678,41 @@ function getDateRange(daterange, buckets) {
     return s
 }
 
+function getPrioritiesedElements(words) {
+    var priority = content.get({
+        key: '/www.nav.no/prioriterte-elementer'
+    });
+    var priArr = (Array.isArray(priority.data.elements) ? priority.data.elements : [priority.data.elements]).reduce(function (t, el) {
+        t.arr.push(el.content);
+        if (el.keywords && (Array.isArray(el.keywords) ? el.keywords : [el.keywords]).reduce(function(t, el) {
+            return t || words.split(" ").reduce(function (to, e) {
+                return to || e.toLowerCase() === el.toLowerCase();
+            }, false)
+        }, false))  {
+            t.keyWords.push(el.content);
+        }
+        return t;
+    },{ arr: [], keyWords: [] });
+    log.info(JSON.stringify(priArr));
+    var hasKeyWord = priArr.keyWords;
+    return { ids: priArr.arr, hits: hasKeyWord.map(function(el) { return content.get({key: el}) }).concat(content.query({
+        query: 'fulltext("data.text, data.ingress, displayName, *.keywords, data.interface.*" ,"' + words + '", "OR") ' ,
+        filters: {
+            ids: {
+                values: priArr.arr
+            }
+        }
+    }).hits).map(function(el) {
+            el.priority = true;
+            return el;
+        }) };
+}
+
 function enonicSearch(params) {
     var s = Date.now();
     var mapWords = getSearchWords(params.ord);
     log.info(mapWords);
+    var prioritiesItems = getPrioritiesedElements(mapWords);
     var query = getQuery(mapWords, params);
     var config = cache.get('config2', function() {
         return content.query({
@@ -753,13 +785,23 @@ function enonicSearch(params) {
     //aggregations = getAggregations(query, config);
     var sort = params.s && params.s !== '0' ? 'modifiedTime DESC' : '_score DESC';
     query.sort = sort;
+    if (prioritiesItems.ids.length > 0) {
+        log.info(JSON.stringify(prioritiesItems, null, 4));
+        query.filters.boolean.mustNot = {
+            hasValue: {
+                field: '_id',
+                values: prioritiesItems.ids
+            }
+        }
+    }
     var res = content.query(query);
 
-    var hits = res.hits.map(function (el) {
+    var hits = prioritiesItems.hits.concat(res.hits).map(function (el) {
         var highLight = getHighLight(el, mapWords);
         var href = getHref(el);
         var className = getClassName(el);
         return {
+            priority: !!el.priority,
             displayName: el.displayName,
             href: href,
             highlight: highLight.ingress || highLight.text || highLight.displayName,
@@ -771,14 +813,17 @@ function enonicSearch(params) {
 
    log.info(Date.now() - s);
    return {
-       total: res.total,
+       total: res.total + prioritiesItems.hits.length,
        hits: hits,
        aggregations: aggregations
    }
 }
 
 function getClassName(el) {
-    var className = 'pdf';
+    var className = 'informasjon';
+    if (el.type.startsWith('media')) {
+        className = 'pdf';
+    }
     if (el.hasOwnProperty('x') && el.x.hasOwnProperty('no-nav-navno') && el.x['no-nav-navno'].hasOwnProperty('fasetter')) {
         className = el.x['no-nav-navno'].fasetter.className;
     }
@@ -786,8 +831,8 @@ function getClassName(el) {
 }
 
 function getHref(el) {
-    if (el.type === app.name + ':search-api') {
-        return el.data.host
+    if (el.type === app.name + ':search-api' || el.type === app.name + ':search-api2') {
+        return el.data.host || el.data.url
     }
     return portal.pageUrl({
         id: el._id

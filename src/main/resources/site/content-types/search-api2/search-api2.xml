@@ -1,0 +1,23 @@
+<content-type>
+    <display-name>Søkegrensesnitt2</display-name>
+    <super-type>base:structured</super-type>
+    <form>
+        <input type="TextLine" name="applicationName">
+            <label>Applikasjonsnavn</label>
+        </input>
+        <input type="Tag" name="keywords">
+            <label>Nøkkelord</label>
+            <occurrences minimum="0" maximum="0"/>
+        </input>
+        <input name="url" type="TextLine">
+            <label>Tjenernavn</label>
+            <occurrences maximum="1" minimum="1"/>
+        </input>
+        <input name="text" type="TextArea">
+            <label>Fritekst</label>
+        </input>
+        <input name="ingress" type="TextArea">
+            <label>Ingress</label>
+        </input>
+    </form>
+</content-type>

@@ -68,7 +68,7 @@ function get(req)  {
         isMore: isMore,
         form: portal.serviceUrl({service: 'search'}),
         word: params.ord,
-        total: result.total,
+        total: result.total.toString(10),
         fasett: aggregations.fasetter.buckets.reduce(function (t, el) {
             if (el.checked) t = el.key;
             return t;
@@ -141,6 +141,16 @@ function bucket(type, params, parent) {
         return el;
     }
 }
+
+
+
+
+
+
+
+
+
+
 
 function getAggregations(aggregations, fasett) {
     var resArr = [];

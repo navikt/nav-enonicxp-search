@@ -7,7 +7,8 @@ var view = resolve('./searchbar.html');
 function get(req)  {
     var ord = req.params.ord || '';
     var model = {
-        ord: ord
+        ord: ord,
+        form: portal.serviceUrl({service: 'search'}),
     }
     var body = thymeleaf.render(view, model);
 

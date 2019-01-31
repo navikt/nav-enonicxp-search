@@ -43,7 +43,7 @@
         </div>
     </div>
     <div>
-        <form action="?" method="get">
+        <form data-th-action="${form}" id="sort" method="get">
         <div class="alternativerForSortering" id="ida0"><input data-th-checked="${isSortDate}" id="ida0-0" name="s" type="radio" value="0"><label for="ida0-0">Beste treff</label>&nbsp;&nbsp;&nbsp;&nbsp;<input data-th-checked="${!isSortDate}" id="ida0-1" name="s" type="radio" value="1"><label for="ida0-1">Dato</label>&nbsp;&nbsp;&nbsp;&nbsp;</div>
             <input type="hidden" name="ord" data-th-value="${word}">
 
@@ -62,8 +62,7 @@
                 Høyesterett har slått fast at
                 <strong>ordførere</strong> ikke er å anse som arbeidstakere, men som frilansere.
             </p>
-
-
+            <p data-th-if="${hit.priority}">Innhold anbefalt av NAV</p>
         </a>
 
 

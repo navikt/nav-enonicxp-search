@@ -1,24 +1,8 @@
 (function() {
     function init() {
-        $('#fasettform').submit(function (e) {
-            var th = $(this);
-            e.preventDefault();
-            console.log(th.serialize());
-            $.ajax({
-                type: th.attr('method'),
-                url: th.attr('action'),
-                data: th.serialize(),
-                success: function (data) {
-
-                    window.history.pushState(null, window.title, location.origin + location.pathname + '?' + th.serialize());
-                    $('#sres').html(data);
-                    init();
-                },
-                error: function (error) {
-                    console.log(error);
-                }
-            })
-        });
+        $('#searchbar').submit(update);
+        $('#fasettform').submit(update);
+        $('#sort').submit(update);
         $('input[name=s]').on('change', function() {
             $(this.form).submit();
         });
@@ -56,5 +40,25 @@
     init();
     function setC(n) {
         $('input[name=c]').val(n);
+    }
+    function update(e) {
+        console.log(e);
+        var th = $(this);
+        e.preventDefault();
+        console.log(th.serialize());
+        $.ajax({
+            type: th.attr('method'),
+            url: th.attr('action'),
+            data: th.serialize(),
+            success: function (data) {
+
+                window.history.pushState(null, window.title, location.origin + location.pathname + '?' + th.serialize());
+                $('#sres').html(data);
+                init();
+            },
+            error: function (error) {
+                console.log(error);
+            }
+        })
     }
 })();

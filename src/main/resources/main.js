@@ -1,6 +1,7 @@
 
 var event = require('/lib/xp/event');
 var content = require('/lib/xp/content');
+var contextLib = require('/lib/xp/context');
 var nodeLib = require('/lib/xp/node');
 var checked = [];
 
@@ -9,13 +10,36 @@ var repo = nodeLib.connect({
     branch: 'draft',
     principals: ['role:system.admin']
 })
-
+event.listener({
+    type: '*',
+    callback: function (e) {
+        log.info(JSON.stringify(e, null, 4))
+    }
+})
+contextLib.run({
+    repository: 'cms-repo',
+    branch: 'draft',
+    user: {
+        login: 'pad',
+        userStore: 'system'
+    },
+    principals: ["role:system.admin"]
+}, function () {
+    event.listener({
+        type: 'custom.appcreated',
+        callback: checkFasettConfiguration
+    })
+});
 event.listener({
     type: 'node.updated',
     callback: checkFasettConfiguration
 });
 
+
+
+
 function checkFasettConfiguration(event) {
+    log.info(JSON.stringify(event, null, 4));
     var node = repo.get(event.data.nodes[0].id);
     if (node && node.type.endsWith('search-config2')) tagAll(node);
     else checkIfUpdateNeeded(node);
