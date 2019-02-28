@@ -10,12 +10,7 @@ var repo = nodeLib.connect({
     branch: 'draft',
     principals: ['role:system.admin']
 })
-event.listener({
-    type: '*',
-    callback: function (e) {
-        log.info(JSON.stringify(e, null, 4))
-    }
-})
+
 contextLib.run({
     repository: 'cms-repo',
     branch: 'draft',
@@ -29,11 +24,13 @@ contextLib.run({
         type: 'custom.appcreated',
         callback: checkFasettConfiguration
     })
+    event.listener({
+        type: 'node.updated',
+        callback: checkFasettConfiguration
+    });
+
 });
-event.listener({
-    type: 'node.updated',
-    callback: checkFasettConfiguration
-});
+
 
 
 

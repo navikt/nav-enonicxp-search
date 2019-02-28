@@ -6,7 +6,6 @@ exports.get = function(req) {
     var asset = portal.assetUrl({path: 'search-styles/search.css'});
     var asset2 = portal.assetUrl({path: 'search-styles/search-nav.css'});
     var asset3 = portal.assetUrl({path: 'search-styles/search-appres.css'});
-    var js = portal.assetUrl({path: 'search-js/elastic.js'});
     var js2 = portal.assetUrl({path: 'search-js/search-appres.js'});
     return {
         body: thymeleaf.render(view, portal.getComponent()),
