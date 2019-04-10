@@ -1,7 +1,6 @@
 var content = require('/lib/xp/content');
 var portal = require('/lib/xp/portal');
 var http = require('/lib/http-client');
-var R = require('/lib/ramda');
 var cacheLib = require('/lib/cache');
 var cache = cacheLib.newCache({
     size: 1000,
