@@ -12,24 +12,24 @@ var cache = cacheLib.newCache({
  */
 var dateranges = [
     {
-        "key": "Siste 7 dager",
-        "from": "now-7d",
+        key: 'Siste 7 dager',
+        from: 'now-7d'
     },
     {
-        "key": "Siste 30 dager",
-        "to": "now-7d",
-        "from": "now-30d"
+        key: 'Siste 30 dager',
+        to: 'now-7d',
+        from: 'now-30d'
     },
     {
-        "key": "Siste 12 måneder",
-        "to": "now-30d",
-        "from": "now-12M",
+        key: 'Siste 12 måneder',
+        to: 'now-30d',
+        from: 'now-12M'
     },
     {
-        "key": "Eldre enn 12 måneder",
-        "to": "now-12M",
-    },
-]
+        key: 'Eldre enn 12 måneder',
+        to: 'now-12M'
+    }
+];
 
 module.exports = {
     enonicSearch: enonicSearch
@@ -52,39 +52,32 @@ module.exports = {
 
  */
 
-
-
-
-
-
 function enonicSearch(params) {
     var s = Date.now();
-    var mapWords = getSearchWords(params.ord);                      // 1. 2.
+    var mapWords = getSearchWords(params.ord); // 1. 2.
     log.info(mapWords);
-    var prioritiesItems = getPrioritiesedElements(mapWords);        // 3.
-    var query = getQuery(mapWords, params);                         // 4.
-    var config = content.get({key: '/www.nav.no/fasetter'});
-    var aggregations = getAggregations(query, config);              // 5.
-    if (params.f) {                                                 // 6.
+    var prioritiesItems = getPrioritiesedElements(mapWords); // 3.
+    var query = getQuery(mapWords, params); // 4.
+    var config = content.get({ key: '/www.nav.no/fasetter' });
+    var aggregations = getAggregations(query, config); // 5.
+    if (params.f) {
+        // 6.
         var filters = {
             boolean: {
-                must:
-                    {
-                        hasValue: {
-                            field: 'x.no-nav-navno.fasetter.fasett',
-                            values: [
-                                config.data.fasetter[Number(params.f)].name
-                            ]
-                        }
+                must: {
+                    hasValue: {
+                        field: 'x.no-nav-navno.fasetter.fasett',
+                        values: [config.data.fasetter[Number(params.f)].name]
                     }
-
+                }
             }
-
-        }
+        };
         if (params.uf) {
             var values = [];
-            (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(function (uf) {
-                var undf = Array.isArray(config.data.fasetter[Number(params.f)].underfasetter) ? config.data.fasetter[Number(params.f)].underfasetter : [config.data.fasetter[Number(params.f)].underfasetter]
+            (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(function(uf) {
+                var undf = Array.isArray(config.data.fasetter[Number(params.f)].underfasetter)
+                    ? config.data.fasetter[Number(params.f)].underfasetter
+                    : [config.data.fasetter[Number(params.f)].underfasetter];
                 values.push(undf[Number(uf)].name);
             });
             filters.boolean.must = {
@@ -95,52 +88,47 @@ function enonicSearch(params) {
             };
         }
         query.filters = filters;
-    }
-    else {
+    } else {
         query.filters = {
             boolean: {
-                must:
-                    {
-                        hasValue: {
-                            field: 'x.no-nav-navno.fasetter.fasett',
-                            values: [
-                                config.data.fasetter[0].name
-                            ]
-                        }
+                must: {
+                    hasValue: {
+                        field: 'x.no-nav-navno.fasetter.fasett',
+                        values: [config.data.fasetter[0].name]
                     }
-
+                }
             }
-        }
+        };
     }
-    query.aggregations.Tidsperiode =
-        {
-        "dateRange": {
-            "ranges": dateranges,
-                "field": "modifiedTime",
-                "format": "dd-MM-yyyy"
+    query.aggregations.Tidsperiode = {
+        dateRange: {
+            ranges: dateranges,
+            field: 'modifiedTime',
+            format: 'dd-MM-yyyy'
         }
     };
     var q = content.query(query);
-    aggregations.Tidsperiode = q.aggregations.Tidsperiode;   // 7.
+    aggregations.Tidsperiode = q.aggregations.Tidsperiode; // 7.
     // log.info(JSON.stringify(q, null, 4));
-    if (params.daterange) {                                                     // 8.
+    if (params.daterange) {
+        // 8.
         var dateRange = getDateRange(params.daterange, aggregations.Tidsperiode.buckets);
         query.query += dateRange;
     }
-    var sort = params.s && params.s !== '0' ? 'modifiedTime DESC' : '_score DESC';  // 9.
+    var sort = params.s && params.s !== '0' ? 'modifiedTime DESC' : '_score DESC'; // 9.
     query.sort = sort;
     if (prioritiesItems.ids.length > 0) {
-
         query.filters.boolean.mustNot = {
             hasValue: {
                 field: '_id',
                 values: prioritiesItems.ids
             }
-        }
+        };
     }
-    var res = content.query(query);                                             // 10.
+    var res = content.query(query); // 10.
 
-    var hits = prioritiesItems.hits.concat(res.hits).map(function (el) { // 11.
+    var hits = prioritiesItems.hits.concat(res.hits).map(function(el) {
+        // 11.
         var highLight = getHighLight(el, mapWords);
         var href = getHref(el);
         var className = getClassName(el);
@@ -152,16 +140,16 @@ function enonicSearch(params) {
             publish: el.publish,
             modifiedTime: el.modifiedTime,
             className: className
-        }
+        };
     });
 
-   log.info(Date.now() - s);
-   log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
-   return {
-       total: res.total + prioritiesItems.hits.length,
-       hits: hits,
-       aggregations: aggregations
-   }
+    log.info(Date.now() - s);
+    log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
+    return {
+        total: res.total + prioritiesItems.hits.length,
+        hits: hits,
+        aggregations: aggregations
+    };
 }
 /*
        -------- Coarse algorithm for setting class name to an result element -------
@@ -189,11 +177,11 @@ function getClassName(el) {
  */
 function getHref(el) {
     if (el.type === app.name + ':search-api' || el.type === app.name + ':search-api2') {
-        return el.data.host || el.data.url
+        return el.data.host || el.data.url;
     }
     return portal.pageUrl({
         id: el._id
-    })
+    });
 }
 
 function getHighLight(el, words) {
@@ -202,7 +190,7 @@ function getHighLight(el, words) {
         text: el.data.text ? highLight(el.data.text, words) : false,
         ingress: el.data.ingress ? highLight(el.data.ingress, words) : false,
         displayName: el.displayName
-    }
+    };
 }
 
 /*
@@ -213,15 +201,16 @@ function getHighLight(el, words) {
      11.4. Return a highlighted fragment of text or false
  */
 function highLight(text, words) {
-    return words.split(" ").reduce(function (t, el) {
+    return words.split(' ').reduce(function(t, el) {
         if (el.length < 2) return t;
-        if (!t) t = findSubstring(el, text); // 11.2
+        if (!t) t = findSubstring(el, text);
+        // 11.2
         else {
             var res = findSubstring(el, t); // 11.3
             t = res ? res : t;
         }
-        return t;                           // 11.4
-    }, false)
+        return t; // 11.4
+    }, false);
 }
 
 /*
@@ -234,19 +223,19 @@ function highLight(text, words) {
     TODO multiple (...) is added for multiparsed highlights
  */
 function findSubstring(word, text) {
-    text = text.replace(/<(?:[\/0-9a-zA-ZøæåÅØÆ\s\\="\-:;+%&.?@#()_]*)>[\r\n]*/g, function (e) { // 11.2.1.
+    text = text.replace(/<(?:[\/0-9a-zA-ZøæåÅØÆ\s\\="\-:;+%&.?@#()_]*)>[\r\n]*/g, function(e) {
+        // 11.2.1.
         return e === '</b>' || e === '<b>' ? e : '';
     });
-    var replaceText = test(word, text);                 // 11.2.2.
-    var index = text.indexOf(word);                     // 11.2.3.
-    if (index === -1) return false;                     // 11.2.4.
-    if (index < 100) {                                  // 11.2.5.
-        return text.length > 200 ? substreng(replaceText,0, 200) + ' (...)' : replaceText ;
-    }
-    else if (index > text.length - 100) {
-        return text.length > 200 ? substreng(replaceText,-200) + ' (...)' : replaceText;
-    }
-    else return text.length > 200 ? substreng(replaceText,index - 100, index + 100) + ' (...)' : replaceText;
+    var replaceText = test(word, text); // 11.2.2.
+    var index = text.indexOf(word); // 11.2.3.
+    if (index === -1) return false; // 11.2.4.
+    if (index < 100) {
+        // 11.2.5.
+        return text.length > 200 ? substreng(replaceText, 0, 200) + ' (...)' : replaceText;
+    } else if (index > text.length - 100) {
+        return text.length > 200 ? substreng(replaceText, -200) + ' (...)' : replaceText;
+    } else return text.length > 200 ? substreng(replaceText, index - 100, index + 100) + ' (...)' : replaceText;
 }
 
 /*
@@ -268,7 +257,6 @@ function substreng(text, start, stopp) {
         tstopc = text.charAt(trueStop);
     }
     return start >= 0 ? text.substring(trueStart, trueStop) : text.substring(trueStart);
-
 }
 
 /*
@@ -276,9 +264,9 @@ function substreng(text, start, stopp) {
    Find the match from any word character + word + any word character and surround the hits with <b> tag
  */
 function test(word, text) {
-   return text.replace(new RegExp("\\w*" + word + "\\w*", "gi"), function (e) {
-        return '<b>' + e + '</b>'
-    })
+    return text.replace(new RegExp('\\w*' + word + '\\w*', 'gi'), function(e) {
+        return '<b>' + e + '</b>';
+    });
 }
 
 /*
@@ -289,44 +277,50 @@ function test(word, text) {
     3. Return result
  */
 function getSearchWords(word) {
-    word = JSON.parse(http.request({ // 1.
-        method: "GET",
-        params: {
-            analyzer: "nb_NO",
-            text: word
-        },
-        url: 'http://localhost:9200/search-cms-repo/_analyze'
-    }).body).tokens.reduce(function (t, el) {
-        if (word.split(" ").indexOf(el) === -1) t += el.token + ' ';
+    word = JSON.parse(
+        http.request({
+            // 1.
+            method: 'GET',
+            params: {
+                analyzer: 'nb_NO',
+                text: word
+            },
+            url: 'http://localhost:9200/search-cms-repo/_analyze'
+        }).body
+    ).tokens.reduce(function(t, el) {
+        if (word.split(' ').indexOf(el) === -1) t += el.token + ' ';
         return t;
-    },'');
-    var splitWords = word.split(" ");
-    var suggestObj = splitWords.reduce(function (t, el) { // 2.1
+    }, '');
+    var splitWords = word.split(' ');
+    var suggestObj = splitWords.reduce(function(t, el) {
+        // 2.1
         t[el] = {
             text: el,
             term: {
-                field: "_alltext._analyzed"
+                field: '_alltext._analyzed'
             }
         };
         return t;
-    },{});
-    var suggest = JSON.parse(http.request({
-        method: "POST",
-        body: JSON.stringify({ size: 0, suggest: suggestObj}),
-        url: 'http://localhost:9200/search-cms-repo/_search'
-    }).body).suggest;
+    }, {});
+    var suggest = JSON.parse(
+        http.request({
+            method: 'POST',
+            body: JSON.stringify({ size: 0, suggest: suggestObj }),
+            url: 'http://localhost:9200/search-cms-repo/_search'
+        }).body
+    ).suggest;
 
-    return splitWords.reduce(function (t, el) { // 3.
+    return splitWords.reduce(function(t, el) {
+        // 3.
         t += el + ' ';
         if (suggest && suggest.hasOwnProperty(el) && suggest[el][0].options.length > 0) {
             t += suggest[el][0].options.reduce(function(to, e) {
                 to += e.text + ' ';
                 return to;
-            }, '')
+            }, '');
         }
         return t;
     }, '');
-
 }
 
 /*
@@ -335,20 +329,21 @@ function getSearchWords(word) {
     aggregation result as a bucket with docCount = 0
  */
 function mapReducer(buckets) {
-    return function (t, el) {
-        var match = buckets.reduce(function (t, e) {
+    return function(t, el) {
+        var match = buckets.reduce(function(t, e) {
             return t || (e.key === el.name.toLowerCase() ? e : t);
         }, undefined);
 
         var docCount = match ? match.docCount : 0;
         var under = el.hasOwnProperty('underfasetter')
-            ? (Array.isArray(el.underfasetter)
-                ? el.underfasetter
-                : [el.underfasetter]).reduce(mapReducer(match ? match.underaggregeringer.buckets || [] : []), [])
+            ? (Array.isArray(el.underfasetter) ? el.underfasetter : [el.underfasetter]).reduce(
+                  mapReducer(match ? match.underaggregeringer.buckets || [] : []),
+                  []
+              )
             : [];
-        t.push({key: el.name, docCount: docCount, underaggregeringer: {buckets: under}});
-        return t
-    }
+        t.push({ key: el.name, docCount: docCount, underaggregeringer: { buckets: under } });
+        return t;
+    };
 }
 
 /*
@@ -357,9 +352,7 @@ function mapReducer(buckets) {
  */
 function getAggregations(query, config) {
     var agg = content.query(query).aggregations;
-    agg.fasetter.buckets = (Array.isArray(config.data.fasetter) ?
-        config.data.fasetter : [config.data.fasetter])
-        .reduce(mapReducer(agg.fasetter.buckets), []);
+    agg.fasetter.buckets = (Array.isArray(config.data.fasetter) ? config.data.fasetter : [config.data.fasetter]).reduce(mapReducer(agg.fasetter.buckets), []);
     return agg;
 }
 
@@ -374,53 +367,100 @@ function getDateRange(daterange, buckets) {
         s += ' And modifiedTime < dateTime("' + e.to + '")';
     }
     if (e.hasOwnProperty('from')) {
-        s+= ' And modifiedTime > dateTime("' + e.from + '")';
+        s += ' And modifiedTime > dateTime("' + e.from + '")';
     }
-    return s
+    return s;
 }
 /*
     ----------- Retrieve the list of prioritised elements and check if the search would hit any of the elements -----
  */
 function getPrioritiesedElements(words) {
-    var priority = content.get({
-        key: '/www.nav.no/prioriterte-elementer'
+    var priority = [];
+    var start = 0;
+    var count = 100;
+    while (count === 100) {
+        var q = content.query({
+            start: start,
+            count: 100,
+            query: 'type = "navno.nav.no.search:search-priority"'
+        });
+
+        start += 100;
+        count = q.count;
+        priority = priority.concat(q.hits);
+    }
+
+    var priWithMatchingKeyword = [];
+    var priWithoutMatchingKeyword = [];
+    // list of search words in lower case
+    var wordSplit = words.split(' ').map(function(w) {
+        return w.toLowerCase();
     });
-    var priArr = (Array.isArray(priority.data.elements) ? priority.data.elements : [priority.data.elements]).reduce(function (t, el) {
-        t.arr.push(el.content);
-        if (el.keywords && (Array.isArray(el.keywords) ? el.keywords : [el.keywords]).reduce(function(t, el) {
-            return t || words.split(" ").reduce(function (to, e) {
-                return to || e.toLowerCase() === el.toLowerCase();
-            }, false)
-        }, false))  {
-            t.keyWords.push(el.content);
+    priority.forEach(function(el) {
+        //list of keywords in lower case
+        var keywords = el.data.keywords ? (Array.isArray(el.data.keywords) ? el.data.keywords : [el.data.keywords]) : [];
+        keywords = keywords.map(function(kw) {
+            return kw.toLowerCase();
+        });
+
+        // check if the list of searchwords match the keywords
+        var hasMatchingKeyword = false;
+        for (var i = 0; i < keywords.length; i += 1) {
+            if (wordSplit.indexOf(keywords[i]) > -1) {
+                hasMatchingKeyword = true;
+                break;
+            }
         }
-        return t;
-    },{ arr: [], keyWords: [] });
-    var hasKeyWord = priArr.keyWords;
-    return { ids: priArr.arr, hits: hasKeyWord.map(function(el) { return content.get({key: el}) }).concat(content.query({
-            query: 'fulltext("data.text, data.ingress, displayName, *.keywords, data.interface.*" ,"' + words + '", "OR") ' ,
+
+        if (hasMatchingKeyword) {
+            priWithMatchingKeyword.push(el.data.content);
+        } else {
+            priWithoutMatchingKeyword.push(el.data.content);
+        }
+    });
+
+    // list if hits with hit on keyword
+    var hits = priWithMatchingKeyword.map(function(priContentId) {
+        return content.get({ key: priContentId });
+    });
+
+    log.info('KEYWORD HITS :: ' + hits.length);
+
+    // add hits on pri content and not keyword
+    hits = hits.concat(
+        content.query({
+            query: 'fulltext("data.text, data.ingress, displayName, *.keywords, data.interface.*" ,"' + words + '", "OR") ',
             filters: {
                 ids: {
-                    values: priArr.arr
+                    values: priWithoutMatchingKeyword
                 }
             }
-        }).hits).map(function(el) {
+        }).hits
+    );
+
+    log.info('TOTAL HITS :: ' + hits.length);
+
+    // return hits, and full list pri items
+    return {
+        ids: priWithMatchingKeyword.concat(priWithoutMatchingKeyword),
+        hits: hits.map(function(el) {
             el.priority = true;
             return el;
-        }) };
+        })
+    };
 }
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
 function getQuery(mappedWords, params) {
     var navApp = 'no.nav.navno:';
-    var count = params.c ? !isNaN(Number(params.c)) ? Number(params.c) : 0 : 0;
+    var count = params.c ? (!isNaN(Number(params.c)) ? Number(params.c) : 0) : 0;
     count = count ? count * 20 : 20;
 
     return {
         start: 0,
         count: count,
-        query: 'fulltext("data.text, data.ingress, displayName, data.abstract, data.keywords, data.interface.*" ,"' + mappedWords + '", "OR") ' ,
+        query: 'fulltext("data.text, data.ingress, displayName, data.abstract, data.keywords, data.interface.*" ,"' + mappedWords + '", "OR") ',
         contentTypes: [
             navApp + 'main-article',
             navApp + 'oppslagstavle',
@@ -430,20 +470,19 @@ function getQuery(mappedWords, params) {
             app.name + ':search-api2'
         ],
         aggregations: {
-            "fasetter": {
-                "terms": {
-                    "field": "x.no-nav-navno.fasetter.fasett"
+            fasetter: {
+                terms: {
+                    field: 'x.no-nav-navno.fasetter.fasett'
                 },
                 aggregations: {
-                    "underaggregeringer": {
+                    underaggregeringer: {
                         terms: {
-                            field: "x.no-nav-navno.fasetter.underfasett",
+                            field: 'x.no-nav-navno.fasetter.underfasett',
                             size: 20
-                        },
-
+                        }
                     }
                 }
-            }/*,
+            } /*,
             "Tidsperiode": {
                 "dateRange": {
                     "ranges": dateranges,
@@ -452,9 +491,8 @@ function getQuery(mappedWords, params) {
                 }
             }*/
         }
-    }
+    };
 }
-
 
 if (!Array.prototype.findIndex) {
     Object.defineProperty(Array.prototype, 'findIndex', {
