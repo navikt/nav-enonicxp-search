@@ -13,9 +13,8 @@ var cache = cacheLib.newCache({
  */
 var dateranges = [
     {
-        "to": "now",
+        "key": "Siste 7 dager",
         "from": "now-7d",
-        "key": "Siste 7 dager"
     },
     {
         "key": "Siste 30 dager",
@@ -23,14 +22,14 @@ var dateranges = [
         "from": "now-30d"
     },
     {
-        "to": "now-6M",
+        "key": "Siste 12 måneder",
+        "to": "now-30d",
         "from": "now-12M",
-        "key": "Siste 6 måneder"
     },
     {
+        "key": "Eldre enn 12 måneder",
         "to": "now-12M",
-        "key": "Siste 12 måneder"
-    }
+    },
 ]
 
 module.exports = {
@@ -122,7 +121,9 @@ function enonicSearch(params) {
                 "format": "dd-MM-yyyy"
         }
     };
-    aggregations.Tidsperiode = content.query(query).aggregations.Tidsperiode;   // 7.
+    var q = content.query(query);
+    aggregations.Tidsperiode = q.aggregations.Tidsperiode;   // 7.
+    // log.info(JSON.stringify(q, null, 4));
     if (params.daterange) {                                                     // 8.
         var dateRange = getDateRange(params.daterange, aggregations.Tidsperiode.buckets);
         query.query += dateRange;
@@ -156,6 +157,7 @@ function enonicSearch(params) {
     });
 
    log.info(Date.now() - s);
+   log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
    return {
        total: res.total + prioritiesItems.hits.length,
        hits: hits,
