@@ -55,7 +55,7 @@ module.exports = {
 function enonicSearch(params) {
     var s = Date.now();
     var mapWords = getSearchWords(params.ord); // 1. 2.
-    log.info(mapWords);
+    // log.info(mapWords);
     var prioritiesItems = getPrioritiesedElements(mapWords); // 3.
     var query = getQuery(mapWords, params); // 4.
     var config = content.get({ key: '/www.nav.no/fasetter' });
@@ -285,7 +285,7 @@ function getSearchWords(word) {
                 analyzer: 'nb_NO',
                 text: word
             },
-            url: 'http://localhost:9200/search-cms-repo/_analyze'
+            url: 'http://localhost:9200/search-com.enonic.cms.default/_analyze'
         }).body
     ).tokens.reduce(function(t, el) {
         if (word.split(' ').indexOf(el) === -1) t += el.token + ' ';
@@ -306,14 +306,14 @@ function getSearchWords(word) {
         http.request({
             method: 'POST',
             body: JSON.stringify({ size: 0, suggest: suggestObj }),
-            url: 'http://localhost:9200/search-cms-repo/_search'
+            url: 'http://localhost:9200/search-com.enonic.cms.default/_search'
         }).body
     ).suggest;
 
     return splitWords.reduce(function(t, el) {
         // 3.
         t += el + ' ';
-        if (suggest && suggest.hasOwnProperty(el) && suggest[el][0].options.length > 0) {
+        if (suggest && suggest.hasOwnProperty(el) && suggest[el][0] && suggest[el][0].options.length > 0) {
             t += suggest[el][0].options.reduce(function(to, e) {
                 to += e.text + ' ';
                 return to;

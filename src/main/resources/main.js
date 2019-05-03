@@ -5,14 +5,14 @@ var nodeLib = require('/lib/xp/node');
 var checked = [];
 
 var repo = nodeLib.connect({
-    repoId: 'cms-repo',
+    repoId: 'com.enonic.cms.default',
     branch: 'draft',
     principals: ['role:system.admin']
 });
 
 contextLib.run(
     {
-        repository: 'cms-repo',
+        repository: 'com.enonic.cms.default',
         branch: 'draft',
         user: {
             login: 'pad',
@@ -33,7 +33,7 @@ contextLib.run(
 );
 
 function checkFasettConfiguration(event) {
-    log.info(JSON.stringify(event, null, 4));
+    // log.info(JSON.stringify(event, null, 4));
     var node = repo.get(event.data.nodes[0].id);
     if (node && node.type.endsWith('search-config2')) tagAll(node);
     else checkIfUpdateNeeded(node);
@@ -44,15 +44,16 @@ function checkIfUpdateNeeded(node) {
         checked.splice(checked.indexOf(node._id), 1);
         return;
     }
-    var fasettConfig = repo.get(
-        repo.query({
-            start: 0,
-            count: 1,
-            query: 'type = "' + app.name + ':search-config2"'
-        }).hits[0].id
-    );
+    var hits = repo.query({
+        start: 0,
+        count: 1,
+        query: 'type = "' + app.name + ':search-config2"'
+    }).hits;
+    var fasettConfig = hits.length > 0 ? repo.get(hits[0]._id) : null;
     // log.info(JSON.stringify(fasettConfig, null, 4));
-    tagAll(fasettConfig, node._id);
+    if (fasettConfig) {
+        tagAll(fasettConfig, node._id);
+    }
 }
 
 function newAgg(fasetter, id) {

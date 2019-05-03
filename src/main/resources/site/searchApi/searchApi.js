@@ -28,7 +28,7 @@ function handlePost(req) {
     var data = JSON.parse(req.body);
     return contextLib.run(
         {
-            repository: 'cms-repo',
+            repository: 'com.enonic.cms.default',
             branch: 'draft',
             user: {
                 login: 'pad',
