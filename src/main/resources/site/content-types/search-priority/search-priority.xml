@@ -1,9 +1,10 @@
 <content-type>
-    <dislay-name>Søk - Prioritert innhold</dislay-name>
+    <display-name>Prioritert søk intern</display-name>
     <super-type>base:structured</super-type>
     <form>
         <input name="content" type="ContentSelector">
             <label>Velg innhold</label>
+            <occurrences minimum="1" maximum="1"/>
         </input>
         <input name="keywords" type="Tag">
             <label>Nøkkelord</label>
