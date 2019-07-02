@@ -1,9 +1,10 @@
 <content-type>
-    <display-name>Søkegrensesnitt2</display-name>
+    <display-name>Prioritert søk ekstern</display-name>
     <super-type>base:structured</super-type>
     <form>
         <input type="TextLine" name="applicationName">
             <label>Applikasjonsnavn</label>
+            <help-text>For eksempel www.nav.no eller www.helfo.no</help-text>
         </input>
         <input type="Tag" name="keywords">
             <label>Nøkkelord</label>
@@ -12,12 +13,15 @@
         <input name="url" type="TextLine">
             <label>Tjenernavn</label>
             <occurrences maximum="1" minimum="1"/>
+            <help-text>Lim inn url til nettsted</help-text>
         </input>
         <input name="text" type="TextArea">
             <label>Fritekst</label>
+            <occurrences minimum="0" maximum="0"/>
         </input>
         <input name="ingress" type="TextArea">
             <label>Ingress</label>
+            <occurrences minimum="1" maximum="1"/>
         </input>
     </form>
 </content-type>
