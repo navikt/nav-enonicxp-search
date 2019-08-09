@@ -1,11 +1,9 @@
-var content = require('/lib/xp/content');
-var portal = require('/lib/xp/portal');
-var http = require('/lib/http-client');
-var cacheLib = require('/lib/cache');
-var cache = cacheLib.newCache({
-    size: 1000,
-    expire: 3600 * 24 /* One day */
-});
+var libs = {
+    content: require('/lib/xp/content'),
+    portal: require('/lib/xp/portal'),
+    http: require('/lib/http-client'),
+    priorityCache: require('/lib/search/priorityCache')
+};
 /*
     ----------- The date ranges for date range aggregations -----
     The key property is currently ignored
@@ -54,11 +52,15 @@ module.exports = {
 
 function enonicSearch(params) {
     var s = Date.now();
-    var mapWords = getSearchWords(params.ord); // 1. 2.
-    // log.info(mapWords);
-    var prioritiesItems = getPrioritiesedElements(mapWords); // 3.
-    var query = getQuery(mapWords, params); // 4.
-    var config = content.get({ key: '/www.nav.no/fasetter' });
+    var wordList = getSearchWords(params.ord); // 1. 2.
+    log.info('***** WORDS *****');
+    wordList.forEach(function(word) {
+        log.info(word);
+    });
+    log.info('*****************');
+    var prioritiesItems = getPrioritiesedElements(wordList); // 3.
+    var query = getQuery(wordList, params); // 4.
+    var config = libs.content.get({ key: '/www.nav.no/fasetter' });
     var aggregations = getAggregations(query, config); // 5.
     if (params.f) {
         // 6.
@@ -107,7 +109,7 @@ function enonicSearch(params) {
             format: 'dd-MM-yyyy'
         }
     };
-    var q = content.query(query);
+    var q = libs.content.query(query);
     aggregations.Tidsperiode = q.aggregations.Tidsperiode; // 7.
     // log.info(JSON.stringify(q, null, 4));
     if (params.daterange) {
@@ -125,26 +127,61 @@ function enonicSearch(params) {
             }
         };
     }
-    var res = content.query(query); // 10.
+    var res = libs.content.query(query); // 10.
 
-    var hits = prioritiesItems.hits.concat(res.hits).map(function(el) {
+    var hits = res.hits;
+    // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
+    if ((!params.f || (params.f === '0' && (!params.uf || params.uf === '0'))) && (!params.start || params.start === '0')) {
+        hits = prioritiesItems.hits.concat(hits);
+    }
+    // add pri count to aggregations as well
+    aggregations.fasetter.buckets[0].docCount += prioritiesItems.hits.length;
+    aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += prioritiesItems.hits.length;
+    hits = hits.map(function(el) {
         // 11.
-        var highLight = getHighLight(el, mapWords);
+        var highLight = getHighLight(el, wordList);
         var href = getHref(el);
         var className = getClassName(el);
+
+        var highlightText = '';
+        if (highLight.ingress.highlighted) {
+            highlightText = highLight.ingress.text;
+        } else if (highLight.text.highlighted) {
+            highlightText = highLight.text.text;
+        } else if (highLight.ingress.text) {
+            highlightText = highLight.ingress.text;
+        } else if (highLight.text.text) {
+            highlightText = highLight.text.text;
+        }
+
+        var officeInformation;
+        if (el.type === 'no.nav.navno:office-information') {
+            officeInformation = {
+                phone: el.data.kontaktinformasjon && el.data.kontaktinformasjon.telefonnummer ? el.data.kontaktinformasjon.telefonnummer : '',
+                audienceReceptions:
+                    el.data.kontaktinformasjon && el.data.kontaktinformasjon.publikumsmottak && el.data.kontaktinformasjon.publikumsmottak.length > 0
+                        ? el.data.kontaktinformasjon.publikumsmottak.map(function(a) {
+                              return a.besoeksadresse && a.besoeksadresse.poststed ? a.besoeksadresse.poststed : '';
+                          })
+                        : []
+            };
+        }
+
         return {
             priority: !!el.priority,
             displayName: el.displayName,
             href: href,
-            highlight: highLight.ingress || highLight.text || highLight.displayName,
+            highlight: highlightText,
             publish: el.publish,
             modifiedTime: el.modifiedTime,
-            className: className
+            className: className,
+            officeInformation: officeInformation
         };
     });
 
-    log.info(Date.now() - s);
+    log.info('SEARCH TIME :: ' + Date.now() - s);
     log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
+
     return {
         total: res.total + prioritiesItems.hits.length,
         hits: hits,
@@ -164,8 +201,12 @@ function getClassName(el) {
     if (el.type.startsWith('media')) {
         className = 'pdf';
     }
-    if (el.hasOwnProperty('x') && el.x.hasOwnProperty('no-nav-navno') && el.x['no-nav-navno'].hasOwnProperty('fasetter')) {
-        className = el.x['no-nav-navno'].fasetter.className;
+    if (el.x && el.x['no-nav-navno'] && el.x['no-nav-navno'].fasetter) {
+        if (el.x['no-nav-navno'].fasetter.className) {
+            className = el.x['no-nav-navno'].fasetter.className;
+        } else if (el.x['no-nav-navno'].fasetter.fasett === 'Statistikk') {
+            className = 'statistikk';
+        }
     }
     return className;
 }
@@ -179,17 +220,15 @@ function getHref(el) {
     if (el.type === app.name + ':search-api' || el.type === app.name + ':search-api2') {
         return el.data.host || el.data.url;
     }
-    return portal.pageUrl({
+    return libs.portal.pageUrl({
         id: el._id
     });
 }
 
-function getHighLight(el, words) {
-    //log.info(JSON.stringify(el, null, 4));
+function getHighLight(el, wordList) {
     return {
-        text: el.data.text ? highLight(el.data.text, words) : false,
-        ingress: el.data.ingress ? highLight(el.data.ingress, words) : false,
-        displayName: el.displayName
+        text: highLight(el.data.text || '', wordList),
+        ingress: highLight(el.data.ingress || '', wordList)
     };
 }
 
@@ -200,17 +239,37 @@ function getHighLight(el, words) {
      11.3. If there is an occurrence of a word in text, do the rest of the highlighting from that fragment of text
      11.4. Return a highlighted fragment of text or false
  */
-function highLight(text, words) {
-    return words.split(' ').reduce(function(t, el) {
-        if (el.length < 2) return t;
-        if (!t) t = findSubstring(el, text);
+function highLight(text, wordList) {
+    var highligthedText = wordList.reduce(function(t, word) {
+        if (word.length < 2) return t;
+        if (!t) t = findSubstring(word, text);
         // 11.2
         else {
-            var res = findSubstring(el, t); // 11.3
+            var res = findSubstring(word, t); // 11.3
             t = res ? res : t;
         }
         return t; // 11.4
     }, false);
+
+    if (highligthedText) {
+        return {
+            highlighted: true,
+            text: highligthedText
+        };
+    } else {
+        var htmlStrippedText = removeHTMLTagsExeptBold(text);
+        return {
+            highlighted: false,
+            text: htmlStrippedText ? (htmlStrippedText.length > 200 ? htmlStrippedText.substring(0, 200) + ' (...)' : htmlStrippedText) : ''
+        };
+    }
+}
+
+function removeHTMLTagsExeptBold(text) {
+    return text.replace(/<(?:[\/0-9a-zA-ZøæåÅØÆ\s\\="\-:;+%&.?@#()_]*)>[\r\n]*/g, function(e) {
+        // 11.2.1.
+        return e === '</b>' || e === '<b>' ? e : '';
+    });
 }
 
 /*
@@ -223,10 +282,7 @@ function highLight(text, words) {
     TODO multiple (...) is added for multiparsed highlights
  */
 function findSubstring(word, text) {
-    text = text.replace(/<(?:[\/0-9a-zA-ZøæåÅØÆ\s\\="\-:;+%&.?@#()_]*)>[\r\n]*/g, function(e) {
-        // 11.2.1.
-        return e === '</b>' || e === '<b>' ? e : '';
-    });
+    text = removeHTMLTagsExeptBold(text);
     var replaceText = test(word, text); // 11.2.2.
     var index = text.indexOf(word); // 11.2.3.
     if (index === -1) return false; // 11.2.4.
@@ -277,8 +333,8 @@ function test(word, text) {
     3. Return result
  */
 function getSearchWords(word) {
-    word = JSON.parse(
-        http.request({
+    var wordList = JSON.parse(
+        libs.http.request({
             // 1.
             method: 'GET',
             params: {
@@ -288,39 +344,46 @@ function getSearchWords(word) {
             url: 'http://localhost:9200/search-com.enonic.cms.default/_analyze'
         }).body
     ).tokens.reduce(function(t, el) {
-        if (word.split(' ').indexOf(el) === -1) t += el.token + ' ';
+        // only keep unique words from the analyzer
+        if (t.indexOf(el.token) === -1) {
+            t.push(el.token);
+        }
         return t;
-    }, '');
-    var splitWords = word.split(' ');
-    var suggestObj = splitWords.reduce(function(t, el) {
+    }, []);
+    var suggestObj = wordList.reduce(function(suggestMap, word) {
         // 2.1
-        t[el] = {
-            text: el,
+        suggestMap[word] = {
+            text: word,
             term: {
                 field: '_alltext._analyzed'
             }
         };
-        return t;
+        return suggestMap;
     }, {});
+    // get word suggestions
     var suggest = JSON.parse(
-        http.request({
+        libs.http.request({
             method: 'POST',
             body: JSON.stringify({ size: 0, suggest: suggestObj }),
             url: 'http://localhost:9200/search-com.enonic.cms.default/_search'
         }).body
     ).suggest;
 
-    return splitWords.reduce(function(t, el) {
-        // 3.
-        t += el + ' ';
-        if (suggest && suggest.hasOwnProperty(el) && suggest[el][0] && suggest[el][0].options.length > 0) {
-            t += suggest[el][0].options.reduce(function(to, e) {
-                to += e.text + ' ';
-                return to;
-            }, '');
+    var fullWordList = [];
+    wordList.forEach(function(word) {
+        // add main word to list
+        fullWordList.push(word.toLowerCase());
+        // loop over all options and add the suggestions to the full list of words
+        if (suggest && suggest[word] && suggest[word][0] && suggest[word][0].options.length > 0) {
+            suggest[word][0].options.forEach(function(option) {
+                if (fullWordList.indexOf(option.text) === -1) {
+                    fullWordList.push(option.text.toLowerCase());
+                }
+            });
         }
-        return t;
-    }, '');
+    });
+
+    return fullWordList;
 }
 
 /*
@@ -351,7 +414,7 @@ function mapReducer(buckets) {
 
  */
 function getAggregations(query, config) {
-    var agg = content.query(query).aggregations;
+    var agg = libs.content.query(query).aggregations;
     agg.fasetter.buckets = (Array.isArray(config.data.fasetter) ? config.data.fasetter : [config.data.fasetter]).reduce(mapReducer(agg.fasetter.buckets), []);
     return agg;
 }
@@ -374,75 +437,47 @@ function getDateRange(daterange, buckets) {
 /*
     ----------- Retrieve the list of prioritised elements and check if the search would hit any of the elements -----
  */
-function getPrioritiesedElements(words) {
-    var priority = [];
-    var start = 0;
-    var count = 100;
-    while (count === 100) {
-        var q = content.query({
-            start: start,
-            count: 100,
-            query: 'type = "navno.nav.no.search:search-priority"'
-        });
+function getPrioritiesedElements(wordList) {
+    var priority = libs.priorityCache.getPriorities();
+    var priorityContent = libs.priorityCache.getPriorityContent();
 
-        start += 100;
-        count = q.count;
-        priority = priority.concat(q.hits);
-    }
-
-    var priWithMatchingKeyword = [];
-    var priWithoutMatchingKeyword = [];
-    // list of search words in lower case
-    var wordSplit = words.split(' ').map(function(w) {
-        return w.toLowerCase();
-    });
-    priority.forEach(function(el) {
-        //list of keywords in lower case
-        var keywords = el.data.keywords ? (Array.isArray(el.data.keywords) ? el.data.keywords : [el.data.keywords]) : [];
-        keywords = keywords.map(function(kw) {
-            return kw.toLowerCase();
-        });
-
-        // check if the list of searchwords match the keywords
-        var hasMatchingKeyword = false;
-        for (var i = 0; i < keywords.length; i += 1) {
-            if (wordSplit.indexOf(keywords[i]) > -1) {
-                hasMatchingKeyword = true;
-                break;
-            }
-        }
-
-        if (hasMatchingKeyword) {
-            priWithMatchingKeyword.push(el.data.content);
-        } else {
-            priWithoutMatchingKeyword.push(el.data.content);
-        }
-    });
-
-    // list if hits with hit on keyword
-    var hits = priWithMatchingKeyword.map(function(priContentId) {
-        return content.get({ key: priContentId });
-    });
-
-    log.info('KEYWORD HITS :: ' + hits.length);
+    var allPriorityIds = priority.concat(priorityContent);
 
     // add hits on pri content and not keyword
-    hits = hits.concat(
-        content.query({
-            query: 'fulltext("data.text, data.ingress, displayName, *.keywords, data.interface.*" ,"' + words + '", "OR") ',
-            filters: {
-                ids: {
-                    values: priWithoutMatchingKeyword
-                }
+    var hits = libs.content.query({
+        query:
+            'fulltext("data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
+            wordList.join(' ') +
+            '", "OR") ',
+        filters: {
+            ids: {
+                values: allPriorityIds
             }
-        }).hits
-    );
+        }
+    }).hits;
 
-    log.info('TOTAL HITS :: ' + hits.length);
+    // remove search-priority and add the content it points to instead
+    hits = hits.reduce(function(list, el) {
+        if (el.type == 'navno.nav.no.search:search-priority') {
+            var missingContent =
+                hits.filter(function(a) {
+                    return a._id === el.data.content;
+                }).length === 0;
+
+            if (missingContent) {
+                list.push(libs.content.get({ key: el.data.content }));
+            }
+        } else {
+            list.push(el);
+        }
+        return list;
+    }, []);
+
+    log.info('TOTAL PRIORITY HITS :: ' + hits.length + ' of ' + priority.length);
 
     // return hits, and full list pri items
     return {
-        ids: priWithMatchingKeyword.concat(priWithoutMatchingKeyword),
+        ids: allPriorityIds,
         hits: hits.map(function(el) {
             el.priority = true;
             return el;
@@ -452,22 +487,31 @@ function getPrioritiesedElements(words) {
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
-function getQuery(mappedWords, params) {
+function getQuery(wordList, params) {
     var navApp = 'no.nav.navno:';
     var count = params.c ? (!isNaN(Number(params.c)) ? Number(params.c) : 0) : 0;
     count = count ? count * 20 : 20;
-
+    var start = params.start ? (!isNaN(Number(params.start)) ? Number(params.start) : 0) : 0;
+    start = start * 20;
+    count -= start;
     return {
-        start: 0,
+        start: start,
         count: count,
-        query: 'fulltext("data.text, data.ingress, displayName, data.abstract, data.keywords, data.interface.*" ,"' + mappedWords + '", "OR") ',
+        query:
+            'fulltext("data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
+            wordList.join(' ') +
+            '", "OR") ',
         contentTypes: [
             navApp + 'main-article',
-            navApp + 'oppslagstavle',
-            navApp + 'tavleliste',
+            navApp + 'section-page',
+            navApp + 'page-list',
+            navApp + 'office-information',
+            navApp + 'main-article-chapter',
+            navApp + 'Ekstra_stor_tabell',
             'media:document',
-            app.name + ':search-api',
-            app.name + ':search-api2'
+            'media:spreadsheet'
+            // app.name + ':search-api',
+            // app.name + ':search-api2'
         ],
         aggregations: {
             fasetter: {
