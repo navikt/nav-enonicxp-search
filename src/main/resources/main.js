@@ -2,6 +2,7 @@ var event = require('/lib/xp/event');
 var content = require('/lib/xp/content');
 var contextLib = require('/lib/xp/context');
 var nodeLib = require('/lib/xp/node');
+var priorityCache = require('/lib/search/priorityCache');
 var checked = [];
 
 var repo = nodeLib.connect({
@@ -29,6 +30,7 @@ contextLib.run(
             type: 'node.updated',
             callback: checkFasettConfiguration
         });
+        priorityCache.activateEventListener();
     }
 );
 
@@ -37,7 +39,7 @@ function checkFasettConfiguration(event) {
         return node.repo === 'com.enonic.cms.default';
     });
     // stop fasett update if the node change is in another repo
-    if(cmsNodesChanged.length === 0) return;
+    if (cmsNodesChanged.length === 0) return;
     // log.info(JSON.stringify(event, null, 4));
     var node = repo.get(event.data.nodes[0].id);
     if (node && node.type.endsWith('search-config2')) tagAll(node);
