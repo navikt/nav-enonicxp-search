@@ -51,6 +51,9 @@ module.exports = {
  */
 
 function enonicSearch(params) {
+    if (!app.config && app.config.elasticUrl) {
+        log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
+    }
     var s = Date.now();
     var wordList = getSearchWords(params.ord); // 1. 2.
     log.info('***** WORDS *****');
@@ -179,7 +182,7 @@ function enonicSearch(params) {
         };
     });
 
-    log.info('SEARCH TIME :: ' + Date.now() - s);
+    log.info('SEARCH TIME :: ' + (Date.now() - s));
     log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
 
     return {
@@ -341,7 +344,7 @@ function getSearchWords(word) {
                 analyzer: 'nb_NO',
                 text: word
             },
-            url: 'http://localhost:9200/search-com.enonic.cms.default/_analyze'
+            url: app.config.elasticUrl + '/search-com.enonic.cms.default/_analyze'
         }).body
     ).tokens.reduce(function(t, el) {
         // only keep unique words from the analyzer
@@ -365,7 +368,7 @@ function getSearchWords(word) {
         libs.http.request({
             method: 'POST',
             body: JSON.stringify({ size: 0, suggest: suggestObj }),
-            url: 'http://localhost:9200/search-com.enonic.cms.default/_search'
+            url: app.config.elasticUrl + '/search-com.enonic.cms.default/_search'
         }).body
     ).suggest;
 
