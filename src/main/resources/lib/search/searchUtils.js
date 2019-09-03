@@ -204,7 +204,7 @@ function getClassName(el) {
     if (el.type.startsWith('media')) {
         className = 'pdf';
     }
-    if (el.x && el.x['no-nav-navno'] && el.x['no-nav-navno'].fasetter) {
+    if (el.x && el.x['no-nav-navno'] && el.x['no-nav-navno'].fasetter && !el.priority) {
         if (el.x['no-nav-navno'].fasetter.className) {
             className = el.x['no-nav-navno'].fasetter.className;
         } else if (el.x['no-nav-navno'].fasetter.fasett === 'Statistikk') {
