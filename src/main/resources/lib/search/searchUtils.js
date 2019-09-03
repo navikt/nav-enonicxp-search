@@ -511,6 +511,7 @@ function getQuery(wordList, params) {
             navApp + 'office-information',
             navApp + 'main-article-chapter',
             navApp + 'large-table',
+            navApp + 'external-link',
             'media:document',
             'media:spreadsheet'
             // app.name + ':search-api',
