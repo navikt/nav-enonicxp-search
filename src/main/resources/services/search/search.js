@@ -27,11 +27,15 @@ function handleGet(req) {
     var model = {
         word: false
     };
-    if(!params.ord) {
+    if (!params.ord) {
         params.ord = '';
     }
 
-    var result = runInContext(searchUtils.enonicSearch, params)
+    if (params.ord.length > 200) {
+        params.ord = params.ord.substring(0, 200);
+    }
+
+    var result = runInContext(searchUtils.enonicSearch, params);
     // var result = searchUtils.enonicSearch(params);
     //   log.info(JSON.stringify(result.aggregations, null, 4));
     var aggregations = parseAggs(result.aggregations, params);
