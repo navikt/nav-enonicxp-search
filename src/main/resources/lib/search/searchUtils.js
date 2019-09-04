@@ -55,7 +55,7 @@ function enonicSearch(params) {
         log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
     }
     var s = Date.now();
-    var wordList = getSearchWords(params.ord); // 1. 2.
+    var wordList = params.ord ? getSearchWords(params.ord) : [] // 1. 2.
     log.info('***** WORDS *****');
     wordList.forEach(function(word) {
         log.info(word);
