@@ -9,7 +9,7 @@ function runInContext(func, params) {
             repository: 'com.enonic.cms.default',
             branch: 'master',
             user: {
-                login: 'pad',
+                login: 'su',
                 userStore: 'system'
             },
             principals: ['role:system.admin']
