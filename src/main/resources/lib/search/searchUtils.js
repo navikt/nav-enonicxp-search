@@ -186,7 +186,7 @@ function enonicSearch(params) {
     log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
 
     return {
-        total: res.total + prioritiesItems.hits.length,
+        total: res.total,
         hits: hits,
         aggregations: aggregations
     };
