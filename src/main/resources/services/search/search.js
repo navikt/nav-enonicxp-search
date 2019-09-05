@@ -23,7 +23,6 @@ function runInContext(func, params) {
 function handleGet(req) {
     var params = req.params || {};
 
-    // log.info(JSON.stringify(params, null, 4));
     var model = {
         word: false
     };
@@ -36,10 +35,7 @@ function handleGet(req) {
     }
 
     var result = runInContext(searchUtils.enonicSearch, params);
-    // var result = searchUtils.enonicSearch(params);
-    //   log.info(JSON.stringify(result.aggregations, null, 4));
     var aggregations = parseAggs(result.aggregations, params);
-    //  log.info(JSON.stringify(result, null, 4));
     var c = params.c ? (!isNaN(Number(params.c)) ? Number(params.c) : 1) : 1;
     var isMore = c * 20 < result.total;
     var isSortDate = !params.s || params.s === '0';

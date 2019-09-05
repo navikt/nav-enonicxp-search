@@ -339,11 +339,11 @@ function getSearchWords(word) {
     var wordList = JSON.parse(
         libs.http.request({
             // 1.
-            method: 'GET',
-            params: {
+            method: 'POST',
+            body: JSON.stringify({
                 analyzer: 'nb_NO',
                 text: word
-            },
+            }),
             url: app.config.elasticUrl + '/search-com.enonic.cms.default/_analyze'
         }).body
     ).tokens.reduce(function(t, el) {
