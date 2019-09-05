@@ -55,7 +55,7 @@ function enonicSearch(params) {
         log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
     }
     var s = Date.now();
-    var wordList = params.ord ? getSearchWords(params.ord) : [] // 1. 2.
+    var wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
     log.info('***** WORDS *****');
     wordList.forEach(function(word) {
         log.info(word);
@@ -351,6 +351,10 @@ function getSearchWords(word) {
         if (t.indexOf(el.token) === -1) {
             t.push(el.token);
         }
+        const oldWord = word.substring(el.start_offset, el.end_offset);
+        if(t.indexOf(oldWord) === -1) {
+            t.push(oldWord);
+        }
         return t;
     }, []);
     var suggestObj = wordList.reduce(function(suggestMap, word) {
@@ -377,12 +381,17 @@ function getSearchWords(word) {
         // add main word to list
         fullWordList.push(word.toLowerCase());
         // loop over all options and add the suggestions to the full list of words
-        if (suggest && suggest[word] && suggest[word][0] && suggest[word][0].options.length > 0) {
-            suggest[word][0].options.forEach(function(option) {
-                if (fullWordList.indexOf(option.text) === -1) {
-                    fullWordList.push(option.text.toLowerCase());
-                }
-            });
+        if (suggest && suggest[word] && suggest[word][0]) {
+            if (fullWordList.indexOf(suggest[word][0].text) === -1) {
+                fullWordList.push(suggest[word][0].text);
+            }
+            if (suggest[word][0].options.length > 0) {
+                suggest[word][0].options.forEach(function(option) {
+                    if (fullWordList.indexOf(option.text) === -1) {
+                        fullWordList.push(option.text.toLowerCase());
+                    }
+                });
+            }
         }
     });
 
