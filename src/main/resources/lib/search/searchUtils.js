@@ -2,8 +2,14 @@ var libs = {
     content: require('/lib/xp/content'),
     portal: require('/lib/xp/portal'),
     http: require('/lib/http-client'),
-    priorityCache: require('/lib/search/priorityCache')
+    priorityCache: require('/lib/search/priorityCache'),
+    node: require('/lib/xp/node')
 };
+var repo = libs.node.connect({
+    repoId: 'com.enonic.cms.default',
+    branch: 'master',
+    principals: ['role:system.admin']
+});
 /*
     ----------- The date ranges for date range aggregations -----
     The key property is currently ignored
@@ -229,6 +235,15 @@ function getHref(el) {
 }
 
 function getHighLight(el, wordList) {
+    if (el.type === 'media:document') {
+        var media = repo.get(el._id);
+        if (media && media.attachment) {
+            return {
+                text: highLight(media.attachment.text || '', wordList),
+                ingress: highLight('', wordList)
+            };
+        }
+    }
     return {
         text: highLight(el.data.text || '', wordList),
         ingress: highLight(el.data.ingress || '', wordList)
@@ -352,7 +367,7 @@ function getSearchWords(word) {
             t.push(el.token);
         }
         const oldWord = word.substring(el.start_offset, el.end_offset);
-        if(t.indexOf(oldWord) === -1) {
+        if (t.indexOf(oldWord) === -1) {
             t.push(oldWord);
         }
         return t;
