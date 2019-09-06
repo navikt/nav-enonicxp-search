@@ -510,7 +510,7 @@ function getQuery(wordList, params) {
         start: start,
         count: count,
         query:
-            'fulltext("data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
+            'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
             wordList.join(' ') +
             '", "OR") ',
         contentTypes: [
