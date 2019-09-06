@@ -150,6 +150,7 @@ function enonicSearch(params) {
         // 11.
         var highLight = getHighLight(el, wordList);
         var href = getHref(el);
+        var displayPath = getDisplayPath(href);
         var className = getClassName(el);
 
         var highlightText = '';
@@ -180,6 +181,7 @@ function enonicSearch(params) {
             priority: !!el.priority,
             displayName: el.displayName,
             href: href,
+            displayPath: displayPath,
             highlight: highlightText,
             publish: el.publish,
             modifiedTime: el.modifiedTime,
@@ -232,6 +234,14 @@ function getHref(el) {
     return libs.portal.pageUrl({
         id: el._id
     });
+}
+
+function getDisplayPath(href) {
+    if(href.indexOf('http') === 0) {
+        return href;
+    } else {
+        return href.split('/').slice(0, -1).join('/');
+    }
 }
 
 function getHighLight(el, wordList) {
