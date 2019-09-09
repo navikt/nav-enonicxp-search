@@ -237,10 +237,13 @@ function getHref(el) {
 }
 
 function getDisplayPath(href) {
-    if(href.indexOf('http') === 0) {
+    if (href.indexOf('http') === 0) {
         return href;
     } else {
-        return href.split('/').slice(0, -1).join('/');
+        return href
+            .split('/')
+            .slice(0, -1)
+            .join('/');
     }
 }
 
@@ -475,10 +478,7 @@ function getDateRange(daterange, buckets) {
     ----------- Retrieve the list of prioritised elements and check if the search would hit any of the elements -----
  */
 function getPrioritiesedElements(wordList) {
-    var priority = libs.priorityCache.getPriorities();
-    var priorityContent = libs.priorityCache.getPriorityContent();
-
-    var allPriorityIds = priority.concat(priorityContent);
+    var priorityIds = libs.priorityCache.getPriorities();
 
     // add hits on pri content and not keyword
     var hits = libs.content.query({
@@ -488,7 +488,7 @@ function getPrioritiesedElements(wordList) {
             '", "OR") ',
         filters: {
             ids: {
-                values: allPriorityIds
+                values: priorityIds
             }
         }
     }).hits;
@@ -496,13 +496,14 @@ function getPrioritiesedElements(wordList) {
     // remove search-priority and add the content it points to instead
     hits = hits.reduce(function(list, el) {
         if (el.type == 'navno.nav.no.search:search-priority') {
+            var content = getSearchPriorityContent(el.data.content);
             var missingContent =
                 hits.filter(function(a) {
-                    return a._id === el.data.content;
+                    return a._id === content._id;
                 }).length === 0;
 
             if (missingContent) {
-                list.push(libs.content.get({ key: el.data.content }));
+                list.push(content);
             }
         } else {
             list.push(el);
@@ -510,17 +511,30 @@ function getPrioritiesedElements(wordList) {
         return list;
     }, []);
 
-    log.info('TOTAL PRIORITY HITS :: ' + hits.length + ' of ' + priority.length);
+    log.info('TOTAL PRIORITY HITS :: ' + hits.length + ' of ' + priorityIds.length);
 
     // return hits, and full list pri items
     return {
-        ids: allPriorityIds,
+        ids: priorityIds,
         hits: hits.map(function(el) {
             el.priority = true;
             return el;
         })
     };
 }
+
+function getSearchPriorityContent(id) {
+    var content = libs.content.get({
+        key: id
+    });
+
+    if (content && content.type === 'no.nav.navno:internal-link') {
+        return getSearchPriorityContent(content.data.target);
+    }
+
+    return content;
+}
+
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */

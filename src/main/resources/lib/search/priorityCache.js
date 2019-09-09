@@ -41,24 +41,6 @@ function getPriorities() {
     });
 }
 
-module.exports.getPriorityContent = getPriorityContent;
-function getPriorityContent() {
-    return priorityCache.get('priorityContent', function() {
-        var priorityContent = [];
-        getPriorities().forEach(function(el) {
-            if (el.type === 'navno.nav.no.search:search-priority' && el.data.content) {
-                var content = libs.content.get({
-                    key: el.data.content
-                });
-                if (content) {
-                    priorityContent.push(content._id);
-                }
-            }
-        });
-        return priorityContent;
-    });
-}
-
 module.exports.activateEventListener = activateEventListener;
 function activateEventListener() {
     wipeAll();
