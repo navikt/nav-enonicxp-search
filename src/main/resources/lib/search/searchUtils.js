@@ -2,8 +2,14 @@ var libs = {
     content: require('/lib/xp/content'),
     portal: require('/lib/xp/portal'),
     http: require('/lib/http-client'),
-    priorityCache: require('/lib/search/priorityCache')
+    priorityCache: require('/lib/search/priorityCache'),
+    node: require('/lib/xp/node')
 };
+var repo = libs.node.connect({
+    repoId: 'com.enonic.cms.default',
+    branch: 'master',
+    principals: ['role:system.admin']
+});
 /*
     ----------- The date ranges for date range aggregations -----
     The key property is currently ignored
@@ -55,7 +61,7 @@ function enonicSearch(params) {
         log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
     }
     var s = Date.now();
-    var wordList = getSearchWords(params.ord); // 1. 2.
+    var wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
     log.info('***** WORDS *****');
     wordList.forEach(function(word) {
         log.info(word);
@@ -144,6 +150,7 @@ function enonicSearch(params) {
         // 11.
         var highLight = getHighLight(el, wordList);
         var href = getHref(el);
+        var displayPath = getDisplayPath(href);
         var className = getClassName(el);
 
         var highlightText = '';
@@ -174,6 +181,7 @@ function enonicSearch(params) {
             priority: !!el.priority,
             displayName: el.displayName,
             href: href,
+            displayPath: displayPath,
             highlight: highlightText,
             publish: el.publish,
             modifiedTime: el.modifiedTime,
@@ -186,7 +194,7 @@ function enonicSearch(params) {
     log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
 
     return {
-        total: res.total + prioritiesItems.hits.length,
+        total: res.total,
         hits: hits,
         aggregations: aggregations
     };
@@ -204,7 +212,7 @@ function getClassName(el) {
     if (el.type.startsWith('media')) {
         className = 'pdf';
     }
-    if (el.x && el.x['no-nav-navno'] && el.x['no-nav-navno'].fasetter) {
+    if (el.x && el.x['no-nav-navno'] && el.x['no-nav-navno'].fasetter && !el.priority) {
         if (el.x['no-nav-navno'].fasetter.className) {
             className = el.x['no-nav-navno'].fasetter.className;
         } else if (el.x['no-nav-navno'].fasetter.fasett === 'Statistikk') {
@@ -228,7 +236,27 @@ function getHref(el) {
     });
 }
 
+function getDisplayPath(href) {
+    if (href.indexOf('http') === 0) {
+        return href;
+    } else {
+        return href
+            .split('/')
+            .slice(0, -1)
+            .join('/');
+    }
+}
+
 function getHighLight(el, wordList) {
+    if (el.type === 'media:document') {
+        var media = repo.get(el._id);
+        if (media && media.attachment) {
+            return {
+                text: highLight(media.attachment.text || '', wordList),
+                ingress: highLight('', wordList)
+            };
+        }
+    }
     return {
         text: highLight(el.data.text || '', wordList),
         ingress: highLight(el.data.ingress || '', wordList)
@@ -339,17 +367,21 @@ function getSearchWords(word) {
     var wordList = JSON.parse(
         libs.http.request({
             // 1.
-            method: 'GET',
-            params: {
+            method: 'POST',
+            body: JSON.stringify({
                 analyzer: 'nb_NO',
                 text: word
-            },
+            }),
             url: app.config.elasticUrl + '/search-com.enonic.cms.default/_analyze'
         }).body
     ).tokens.reduce(function(t, el) {
         // only keep unique words from the analyzer
         if (t.indexOf(el.token) === -1) {
             t.push(el.token);
+        }
+        const oldWord = word.substring(el.start_offset, el.end_offset);
+        if (t.indexOf(oldWord) === -1) {
+            t.push(oldWord);
         }
         return t;
     }, []);
@@ -377,12 +409,17 @@ function getSearchWords(word) {
         // add main word to list
         fullWordList.push(word.toLowerCase());
         // loop over all options and add the suggestions to the full list of words
-        if (suggest && suggest[word] && suggest[word][0] && suggest[word][0].options.length > 0) {
-            suggest[word][0].options.forEach(function(option) {
-                if (fullWordList.indexOf(option.text) === -1) {
-                    fullWordList.push(option.text.toLowerCase());
-                }
-            });
+        if (suggest && suggest[word] && suggest[word][0]) {
+            if (fullWordList.indexOf(suggest[word][0].text) === -1) {
+                fullWordList.push(suggest[word][0].text);
+            }
+            if (suggest[word][0].options.length > 0) {
+                suggest[word][0].options.forEach(function(option) {
+                    if (fullWordList.indexOf(option.text) === -1) {
+                        fullWordList.push(option.text.toLowerCase());
+                    }
+                });
+            }
         }
     });
 
@@ -441,10 +478,7 @@ function getDateRange(daterange, buckets) {
     ----------- Retrieve the list of prioritised elements and check if the search would hit any of the elements -----
  */
 function getPrioritiesedElements(wordList) {
-    var priority = libs.priorityCache.getPriorities();
-    var priorityContent = libs.priorityCache.getPriorityContent();
-
-    var allPriorityIds = priority.concat(priorityContent);
+    var priorityIds = libs.priorityCache.getPriorities();
 
     // add hits on pri content and not keyword
     var hits = libs.content.query({
@@ -454,7 +488,7 @@ function getPrioritiesedElements(wordList) {
             '", "OR") ',
         filters: {
             ids: {
-                values: allPriorityIds
+                values: priorityIds
             }
         }
     }).hits;
@@ -462,13 +496,14 @@ function getPrioritiesedElements(wordList) {
     // remove search-priority and add the content it points to instead
     hits = hits.reduce(function(list, el) {
         if (el.type == 'navno.nav.no.search:search-priority') {
+            var content = getSearchPriorityContent(el.data.content);
             var missingContent =
                 hits.filter(function(a) {
-                    return a._id === el.data.content;
+                    return a._id === content._id;
                 }).length === 0;
 
             if (missingContent) {
-                list.push(libs.content.get({ key: el.data.content }));
+                list.push(content);
             }
         } else {
             list.push(el);
@@ -476,17 +511,30 @@ function getPrioritiesedElements(wordList) {
         return list;
     }, []);
 
-    log.info('TOTAL PRIORITY HITS :: ' + hits.length + ' of ' + priority.length);
+    log.info('TOTAL PRIORITY HITS :: ' + hits.length + ' of ' + priorityIds.length);
 
     // return hits, and full list pri items
     return {
-        ids: allPriorityIds,
+        ids: priorityIds,
         hits: hits.map(function(el) {
             el.priority = true;
             return el;
         })
     };
 }
+
+function getSearchPriorityContent(id) {
+    var content = libs.content.get({
+        key: id
+    });
+
+    if (content && content.type === 'no.nav.navno:internal-link') {
+        return getSearchPriorityContent(content.data.target);
+    }
+
+    return content;
+}
+
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
@@ -501,7 +549,7 @@ function getQuery(wordList, params) {
         start: start,
         count: count,
         query:
-            'fulltext("data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
+            'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
             wordList.join(' ') +
             '", "OR") ',
         contentTypes: [
@@ -511,6 +559,7 @@ function getQuery(wordList, params) {
             navApp + 'office-information',
             navApp + 'main-article-chapter',
             navApp + 'large-table',
+            navApp + 'external-link',
             'media:document',
             'media:spreadsheet'
             // app.name + ':search-api',
