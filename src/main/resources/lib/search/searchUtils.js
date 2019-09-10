@@ -95,12 +95,12 @@ function enonicSearch(params) {
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
 
     var aggregations = getAggregations(query, config); // 5.
-    query.filters = getFilters(params, config, prioritiesItems, true); // 6.
+    query.filters = getFilters(params, config, prioritiesItems); // 6.
+
     query.aggregations.Tidsperiode = tidsperiode;
     var q = libs.content.query(query);
     aggregations.Tidsperiode = q.aggregations.Tidsperiode; // 7.
     // log.info(JSON.stringify(q, null, 4));
-
     if (params.daterange) {
         var dateRange = getDateRange(params.daterange, aggregations.Tidsperiode.buckets); // 8.
         query.query += dateRange;
@@ -155,7 +155,7 @@ function enonicSearch(params) {
     log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
 
     return {
-        total: res.total,
+        total: res.total + prioritiesItems.hits.length,
         hits: hits,
         aggregations: aggregations
     };
@@ -168,7 +168,7 @@ function enonicSearchWithoutAggregations(params) {
     var prioritiesItems = getPrioritiesedElements(wordList); // 3.
     var query = getQuery(wordList, params); // 4.
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
-    query.filters = getFilters(params, config, prioritiesItems, false); // 6.
+    query.filters = getFilters(params, config, prioritiesItems); // 6.
     query.sort = '_score DESC'; // 9.
 
     var res = libs.content.query(query); // 10.
@@ -195,7 +195,7 @@ function enonicSearchWithoutAggregations(params) {
         };
     });
     return {
-        total: res.total,
+        total: res.total + prioritiesItems.hits.length,
         hits: hits
     };
 }
@@ -208,9 +208,9 @@ function logWordList (wordList) {
     log.info('*****************');
 }
 
-function getFilters(params, config, prioritiesItems, searchWithAggregations) {
+function getFilters(params, config, prioritiesItems) {
     var filters;
-    if (params.f && searchWithAggregations) {
+    if (params.f) {
         filters = {
             boolean: {
                 must: {
