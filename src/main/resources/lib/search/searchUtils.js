@@ -1,6 +1,7 @@
 var libs = {
     content: require('/lib/xp/content'),
     portal: require('/lib/xp/portal'),
+    context: require('/lib/xp/context'),
     http: require('/lib/http-client'),
     priorityCache: require('/lib/search/priorityCache'),
     node: require('/lib/xp/node')
@@ -10,10 +11,29 @@ var repo = libs.node.connect({
     branch: 'master',
     principals: ['role:system.admin']
 });
+
+function runInContext(func, params) {
+    return libs.context.run(
+        {
+            repository: 'com.enonic.cms.default',
+            branch: 'master',
+            user: {
+                login: 'su',
+                userStore: 'system'
+            },
+            principals: ['role:system.admin']
+        },
+        function() {
+            return func(params);
+        }
+    );
+}
+
 /*
     ----------- The date ranges for date range aggregations -----
     The key property is currently ignored
  */
+
 var dateranges = [
     {
         key: 'Siste 7 dager',
@@ -35,8 +55,18 @@ var dateranges = [
     }
 ];
 
+var tidsperiode = {
+    dateRange: {
+        ranges: dateranges,
+        field: 'modifiedTime',
+        format: 'dd-MM-yyyy'
+    }
+};
+
 module.exports = {
-    enonicSearch: enonicSearch
+    enonicSearch: enonicSearch,
+    enonicSearchWithoutAggregations: enonicSearchWithoutAggregations,
+    runInContext: runInContext
 };
 
 /*
@@ -53,92 +83,33 @@ module.exports = {
     9. If the search is sorted by date, apply it to the query
     10. Run the query and store it
     11. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
-
  */
 
 function enonicSearch(params) {
-    if (!app.config && app.config.elasticUrl) {
-        log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
-    }
     var s = Date.now();
     var wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
-    log.info('***** WORDS *****');
-    wordList.forEach(function(word) {
-        log.info(word);
-    });
-    log.info('*****************');
+    logWordList(wordList);
     var prioritiesItems = getPrioritiesedElements(wordList); // 3.
+
     var query = getQuery(wordList, params); // 4.
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
+
     var aggregations = getAggregations(query, config); // 5.
-    if (params.f) {
-        // 6.
-        var filters = {
-            boolean: {
-                must: {
-                    hasValue: {
-                        field: 'x.no-nav-navno.fasetter.fasett',
-                        values: [config.data.fasetter[Number(params.f)].name]
-                    }
-                }
-            }
-        };
-        if (params.uf) {
-            var values = [];
-            (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(function(uf) {
-                var undf = Array.isArray(config.data.fasetter[Number(params.f)].underfasetter)
-                    ? config.data.fasetter[Number(params.f)].underfasetter
-                    : [config.data.fasetter[Number(params.f)].underfasetter];
-                values.push(undf[Number(uf)].name);
-            });
-            filters.boolean.must = {
-                hasValue: {
-                    field: 'x.no-nav-navno.fasetter.underfasett',
-                    values: values
-                }
-            };
-        }
-        query.filters = filters;
-    } else {
-        query.filters = {
-            boolean: {
-                must: {
-                    hasValue: {
-                        field: 'x.no-nav-navno.fasetter.fasett',
-                        values: [config.data.fasetter[0].name]
-                    }
-                }
-            }
-        };
-    }
-    query.aggregations.Tidsperiode = {
-        dateRange: {
-            ranges: dateranges,
-            field: 'modifiedTime',
-            format: 'dd-MM-yyyy'
-        }
-    };
+    query.filters = getFilters(params, config, prioritiesItems, true); // 6.
+    query.aggregations.Tidsperiode = tidsperiode;
     var q = libs.content.query(query);
     aggregations.Tidsperiode = q.aggregations.Tidsperiode; // 7.
     // log.info(JSON.stringify(q, null, 4));
+
     if (params.daterange) {
-        // 8.
-        var dateRange = getDateRange(params.daterange, aggregations.Tidsperiode.buckets);
+        var dateRange = getDateRange(params.daterange, aggregations.Tidsperiode.buckets); // 8.
         query.query += dateRange;
     }
-    var sort = params.s && params.s !== '0' ? 'modifiedTime DESC' : '_score DESC'; // 9.
-    query.sort = sort;
-    if (prioritiesItems.ids.length > 0) {
-        query.filters.boolean.mustNot = {
-            hasValue: {
-                field: '_id',
-                values: prioritiesItems.ids
-            }
-        };
-    }
-    var res = libs.content.query(query); // 10.
 
+    query.sort = params.s && params.s !== '0' ? 'modifiedTime DESC' : '_score DESC'; // 9.
+    var res = libs.content.query(query); // 10.
     var hits = res.hits;
+
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
     if ((!params.f || (params.f === '0' && (!params.uf || params.uf === '0'))) && (!params.start || params.start === '0')) {
         hits = prioritiesItems.hits.concat(hits);
@@ -146,23 +117,14 @@ function enonicSearch(params) {
     // add pri count to aggregations as well
     aggregations.fasetter.buckets[0].docCount += prioritiesItems.hits.length;
     aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += prioritiesItems.hits.length;
+
     hits = hits.map(function(el) {
         // 11.
         var highLight = getHighLight(el, wordList);
+        var highlightText = calculateHighlightText(highLight);
         var href = getHref(el);
         var displayPath = getDisplayPath(href);
         var className = getClassName(el);
-
-        var highlightText = '';
-        if (highLight.ingress.highlighted) {
-            highlightText = highLight.ingress.text;
-        } else if (highLight.text.highlighted) {
-            highlightText = highLight.text.text;
-        } else if (highLight.ingress.text) {
-            highlightText = highLight.ingress.text;
-        } else if (highLight.text.text) {
-            highlightText = highLight.text.text;
-        }
 
         var officeInformation;
         if (el.type === 'no.nav.navno:office-information') {
@@ -176,7 +138,6 @@ function enonicSearch(params) {
                         : []
             };
         }
-
         return {
             priority: !!el.priority,
             displayName: el.displayName,
@@ -199,6 +160,116 @@ function enonicSearch(params) {
         aggregations: aggregations
     };
 }
+
+function enonicSearchWithoutAggregations(params) {
+
+    var wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
+    logWordList(wordList);
+    var prioritiesItems = getPrioritiesedElements(wordList); // 3.
+    var query = getQuery(wordList, params); // 4.
+    var config = libs.content.get({ key: '/www.nav.no/fasetter' });
+    query.filters = getFilters(params, config, prioritiesItems, false); // 6.
+    query.sort = '_score DESC'; // 9.
+
+    var res = libs.content.query(query); // 10.
+    var hits = res.hits;
+
+    // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
+    if ((!params.f || (params.f === '0' && (!params.uf || params.uf === '0'))) && (!params.start || params.start === '0')) {
+        hits = prioritiesItems.hits.concat(hits);
+    }
+
+    hits = hits.map(function(el) {
+        // 11.
+        var highLight = getHighLight(el, wordList);
+        var highlightText = calculateHighlightText(highLight);
+        var href = getHref(el);
+
+        return {
+            priority: !!el.priority,
+            displayName: el.displayName,
+            href: href,
+            highlight: highlightText,
+            publish: el.publish,
+            modifiedTime: el.modifiedTime,
+        };
+    });
+    return {
+        total: res.total,
+        hits: hits
+    };
+}
+
+function logWordList (wordList) {
+    log.info('***** WORDS *****');
+    wordList.forEach(function(word) {
+        log.info(word);
+    });
+    log.info('*****************');
+}
+
+function getFilters(params, config, prioritiesItems, searchWithAggregations) {
+    var filters;
+    if (params.f && searchWithAggregations) {
+        filters = {
+            boolean: {
+                must: {
+                    hasValue: {
+                        field: 'x.no-nav-navno.fasetter.fasett',
+                        values: [config.data.fasetter[Number(params.f)].name]
+                    }
+                }
+            }
+        };
+
+        if (params.uf) {
+            var values = [];
+            (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(function (uf) {
+                var undf = Array.isArray(config.data.fasetter[Number(params.f)].underfasetter)
+                    ? config.data.fasetter[Number(params.f)].underfasetter
+                    : [config.data.fasetter[Number(params.f)].underfasetter];
+                values.push(undf[Number(uf)].name);
+            });
+            filters.boolean.must = {
+                hasValue: {
+                    field: 'x.no-nav-navno.fasetter.underfasett',
+                    values: values
+                }
+            };
+        }
+
+        if (prioritiesItems.ids.length > 0) {
+            filters.boolean.mustNot = {
+                hasValue: {
+                    field: '_id',
+                    values: prioritiesItems.ids
+                }
+            }
+        }
+        return filters;
+    } else {
+        filters = {
+            boolean: {
+                must: {
+                    hasValue: {
+                        field: 'x.no-nav-navno.fasetter.fasett',
+                        values: [config.data.fasetter[0].name]
+                    }
+                }
+            }
+        };
+        if (prioritiesItems.ids.length > 0) {
+            filters.boolean.mustNot = {
+                hasValue: {
+                    field: '_id',
+                    values: prioritiesItems.ids
+                }
+            }
+        }
+        return filters;
+    }
+}
+
 /*
        -------- Coarse algorithm for setting class name to an result element -------
        1. Assume the classname is information, many prioritised elements dont have class names
@@ -296,6 +367,18 @@ function highLight(text, wordList) {
     }
 }
 
+function calculateHighlightText (highLight) {
+    if (highLight.ingress.highlighted) {
+        return highLight.ingress.text;
+    } else if (highLight.text.highlighted) {
+        return highLight.text.text;
+    } else if (highLight.ingress.text) {
+        return highLight.ingress.text;
+    } else if (highLight.text.text) {
+        return highLight.text.text;
+    } else return '';
+}
+
 function removeHTMLTagsExeptBold(text) {
     return text.replace(/<(?:[\/0-9a-zA-ZøæåÅØÆ\s\\="\-:;+%&.?@#()_]*)>[\r\n]*/g, function(e) {
         // 11.2.1.
@@ -364,6 +447,10 @@ function test(word, text) {
     3. Return result
  */
 function getSearchWords(word) {
+    if (!app.config && app.config.elasticUrl) {
+        log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
+    }
+
     var wordList = JSON.parse(
         libs.http.request({
             // 1.
@@ -379,7 +466,7 @@ function getSearchWords(word) {
         if (t.indexOf(el.token) === -1) {
             t.push(el.token);
         }
-        const oldWord = word.substring(el.start_offset, el.end_offset);
+        var oldWord = word.substring(el.start_offset, el.end_offset);
         if (t.indexOf(oldWord) === -1) {
             t.push(oldWord);
         }
@@ -422,7 +509,6 @@ function getSearchWords(word) {
             }
         }
     });
-
     return fullWordList;
 }
 
@@ -531,7 +617,6 @@ function getSearchPriorityContent(id) {
     if (content && content.type === 'no.nav.navno:internal-link') {
         return getSearchPriorityContent(content.data.target);
     }
-
     return content;
 }
 
