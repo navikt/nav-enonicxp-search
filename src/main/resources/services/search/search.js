@@ -1,24 +1,6 @@
 var searchUtils = require('/lib/search/searchUtils');
-var context = require('/lib/xp/context');
 
 exports.get = handleGet;
-
-function runInContext(func, params) {
-    return context.run(
-        {
-            repository: 'com.enonic.cms.default',
-            branch: 'master',
-            user: {
-                login: 'su',
-                userStore: 'system'
-            },
-            principals: ['role:system.admin']
-        },
-        function() {
-            return func(params);
-        }
-    );
-}
 
 function handleGet(req) {
     var params = req.params || {};
@@ -34,7 +16,7 @@ function handleGet(req) {
         params.ord = params.ord.substring(0, 200);
     }
 
-    var result = runInContext(searchUtils.enonicSearch, params);
+    var result = searchUtils.runInContext(searchUtils.enonicSearch, params);
     var aggregations = parseAggs(result.aggregations, params);
     var c = params.c ? (!isNaN(Number(params.c)) ? Number(params.c) : 1) : 1;
     var isMore = c * 20 < result.total;
