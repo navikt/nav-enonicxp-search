@@ -81,8 +81,6 @@ function newAgg(fasetter, id) {
     // log.info(JSON.stringify(resolver, null, 4));
     resolver.forEach(function(value) {
         var query = {
-            start: 0,
-            count: 100000,
             query: value.query
         };
         if (id) query.filters = { ids: { values: [id] } };
@@ -91,7 +89,17 @@ function newAgg(fasetter, id) {
         };
         if (value.underfasett) fasett.underfasett = value.underfasett;
         if (value.className) fasett.className = value.className;
-        var hits = repo.query(query).hits;
+        var start = 0;
+        var count = 1000;
+        var hits = [];
+        while (count === 1000) {
+            query.start = start;
+            query.count = count;
+            var res = repo.query(query).hits;
+            count = res.length;
+            start += count;
+            hits = hits.concat(res);
+        }
         hits.forEach(function(hit) {
             checked.push(hit.id);
             repo.modify({
