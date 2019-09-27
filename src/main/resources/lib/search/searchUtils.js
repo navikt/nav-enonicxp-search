@@ -451,9 +451,10 @@ function getSearchWords(word) {
         log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
     }
 
-    var bean = __.newBean('no.nav.search.elastic.Analyze');
-    bean.text = __.nullOrValue(word);
-    var wordList = __.toNativeObject(bean.analyze()).reduce(function(t, token) {
+    // run analyzer to remove stopwords
+    var analyze = __.newBean('no.nav.search.elastic.Analyze');
+    analyze.text = __.nullOrValue(word);
+    var wordList = __.toNativeObject(analyze.analyze()).reduce(function(t, token) {
         // only keep unique words from the analyzer
         if (t.indexOf(token.term) === -1) {
             t.push(token.term);
@@ -465,44 +466,15 @@ function getSearchWords(word) {
         return t;
     }, []);
 
-    var suggestObj = wordList.reduce(function(suggestMap, word) {
-        // 2.1
-        suggestMap[word] = {
-            text: word,
-            term: {
-                field: '_alltext._analyzed'
-            }
-        };
-        return suggestMap;
-    }, {});
-    // get word suggestions
-    var suggest = JSON.parse(
-        libs.http.request({
-            method: 'POST',
-            body: JSON.stringify({ size: 0, suggest: suggestObj }),
-            url: app.config.elasticUrl + '/search-com.enonic.cms.default/_search'
-        }).body
-    ).suggest;
-
-    var fullWordList = [];
-    wordList.forEach(function(word) {
-        // add main word to list
-        fullWordList.push(word.toLowerCase());
-        // loop over all options and add the suggestions to the full list of words
-        if (suggest && suggest[word] && suggest[word][0]) {
-            if (fullWordList.indexOf(suggest[word][0].text) === -1) {
-                fullWordList.push(suggest[word][0].text);
-            }
-            if (suggest[word][0].options.length > 0) {
-                suggest[word][0].options.forEach(function(option) {
-                    if (fullWordList.indexOf(option.text) === -1) {
-                        fullWordList.push(option.text.toLowerCase());
-                    }
-                });
-            }
+    // get suggestions
+    var suggest = __.newBean('no.nav.search.elastic.Suggest');
+    suggest.texts = __.nullOrValue(wordList);
+    __.toNativeObject(suggest.suggest()).forEach(function(suggestion) {
+        if(wordList.indexOf(suggestion) === -1) {
+            wordList.push(suggestion);
         }
     });
-    return fullWordList;
+    return wordList;
 }
 
 /*

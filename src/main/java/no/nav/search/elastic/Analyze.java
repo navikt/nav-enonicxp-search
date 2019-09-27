@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import no.nav.search.elastic.Token;
 
+// DOCUMENTATION http://javadoc.kyubu.de/elasticsearch/v1.7.3/
+
 @Component(immediate = true)
 public class Analyze {
     private final static Logger LOG = LoggerFactory.getLogger( Analyze.class );
