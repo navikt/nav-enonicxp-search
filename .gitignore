@@ -89,3 +89,7 @@ crashlytics-build.properties
 
 ### Enonic ###
 .enonic
+eclipse-formatter.xml
+.settings/org.eclipse.buildship.core.prefs
+.vscode/settings.json
+.project

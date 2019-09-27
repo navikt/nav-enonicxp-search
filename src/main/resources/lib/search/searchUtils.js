@@ -451,27 +451,20 @@ function getSearchWords(word) {
         log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
     }
 
-    var wordList = JSON.parse(
-        libs.http.request({
-            // 1.
-            method: 'POST',
-            body: JSON.stringify({
-                analyzer: 'nb_NO',
-                text: word
-            }),
-            url: app.config.elasticUrl + '/search-com.enonic.cms.default/_analyze'
-        }).body
-    ).tokens.reduce(function(t, el) {
+    var bean = __.newBean('no.nav.search.elastic.Analyze');
+    bean.text = __.nullOrValue(word);
+    var wordList = __.toNativeObject(bean.analyze()).reduce(function(t, token) {
         // only keep unique words from the analyzer
-        if (t.indexOf(el.token) === -1) {
-            t.push(el.token);
+        if (t.indexOf(token.term) === -1) {
+            t.push(token.term);
         }
-        var oldWord = word.substring(el.start_offset, el.end_offset);
+        var oldWord = word.substring(token.startOffset, token.endOffset);
         if (t.indexOf(oldWord) === -1) {
             t.push(oldWord);
         }
         return t;
     }, []);
+
     var suggestObj = wordList.reduce(function(suggestMap, word) {
         // 2.1
         suggestMap[word] = {
