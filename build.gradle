@@ -32,6 +32,7 @@ app {
 }
 
 dependencies {
+    compile 'org.elasticsearch:elasticsearch:2.4.6'
     compile "com.enonic.xp:core-api:${xpVersion}"
     compile "com.enonic.xp:portal-api:${xpVersion}"
     include "com.enonic.xp:lib-content:${xpVersion}"
