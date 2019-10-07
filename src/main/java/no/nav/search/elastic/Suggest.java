@@ -1,29 +1,25 @@
 package no.nav.search.elastic;
 
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-// import org.elasticsearch.search.suggest.Suggest;
 import org.elasticsearch.search.suggest.Suggest.Suggestion;
-import org.elasticsearch.search.suggest.Suggest.Suggestion.Entry;
-import org.elasticsearch.search.suggest.Suggest.Suggestion.Entry.Option;
 import org.elasticsearch.action.suggest.SuggestRequest;
+import org.elasticsearch.search.suggest.term.TermSuggestion.Entry;
+import org.elasticsearch.search.suggest.term.TermSuggestion.Entry.Option;
 import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
-import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 
 // DOCUMENTATION http://javadoc.kyubu.de/elasticsearch/v1.7.3/
 
 @Component(immediate = true)
 public class Suggest {
-    private final static Logger LOG = LoggerFactory.getLogger( Suggest.class );
+    // private final static Logger LOG = LoggerFactory.getLogger( Suggest.class );
 
     private List<String> texts;
 
@@ -35,7 +31,7 @@ public class Suggest {
         return this.texts;
     }
 
-    public List<String> suggest() {
+    private SuggestBuilder createSuggestBuilder() {
         SuggestBuilder suggestBuild = new SuggestBuilder();
         for(String text : this.texts) {
             TermSuggestionBuilder termSuggestionBuilder = SuggestBuilders.termSuggestion(text)
@@ -44,15 +40,25 @@ public class Suggest {
             .suggestMode("always");
             suggestBuild = suggestBuild.addSuggestion(termSuggestionBuilder);
         }
+        return suggestBuild;
+    }
+
+    private org.elasticsearch.search.suggest.Suggest getSuggest() {
+        SuggestBuilder suggestBuild = createSuggestBuilder();
+        
         SuggestRequest request = new SuggestRequest().suggest(suggestBuild);
-        org.elasticsearch.search.suggest.Suggest suggest = ClientHolder.client
+        return ClientHolder.client
             .suggest(request)
             .actionGet()
             .getSuggest();
-        LOG.info(Integer.toString(suggest.size()));
+    }
+
+    public List<String> suggest() {
+        org.elasticsearch.search.suggest.Suggest suggest = getSuggest();
+
         List<String> suggestions = new ArrayList<String>();
         for(String text: this.texts) {
-            Suggestion s = suggest.getSuggestion(text);
+            Suggestion<Entry> s = suggest.getSuggestion(text);
             List<Entry> entries = s.getEntries();
             for(Entry entry : entries) {
                 List<Option> options = entry.getOptions();
@@ -69,9 +75,8 @@ public class Suggest {
         public static Client client;
     
         @Reference
-        public void setClient( final Client client )
-        {
-            this.client = client;
+        public void setClient(final Client client) {
+            ClientHolder.client = client;
         }
     }
 }

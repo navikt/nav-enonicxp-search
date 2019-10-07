@@ -3,7 +3,6 @@ package no.nav.search.elastic;
 import com.enonic.xp.script.serializer.MapGenerator;
 import com.enonic.xp.script.serializer.MapSerializable;
 import org.elasticsearch.action.admin.indices.analyze.AnalyzeResponse.AnalyzeToken;
-import java.util.List;
 
 public final class Token
 implements MapSerializable {
