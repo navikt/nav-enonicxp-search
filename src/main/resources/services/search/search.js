@@ -16,6 +16,10 @@ function handleGet(req) {
         params.ord = params.ord.substring(0, 200);
     }
 
+    if(params.uf && params.uf.indexOf('[') !== -1) {
+        params.uf = JSON.parse(params.uf);
+    }
+
     var result = searchUtils.runInContext(searchUtils.enonicSearch, params);
     var aggregations = parseAggs(result.aggregations, params);
     var c = params.c ? (!isNaN(Number(params.c)) ? Number(params.c) : 1) : 1;
