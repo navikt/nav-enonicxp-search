@@ -111,8 +111,10 @@ function enonicSearch(params) {
     var hits = res.hits;
 
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
+    let total = res.total;
     if ((!params.f || (params.f === '0' && (!params.uf || params.uf === '0'))) && (!params.start || params.start === '0')) {
         hits = prioritiesItems.hits.concat(hits);
+        total += prioritiesItems.hits.length;
     }
     // add pri count to aggregations as well
     aggregations.fasetter.buckets[0].docCount += prioritiesItems.hits.length;
@@ -155,14 +157,13 @@ function enonicSearch(params) {
     log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
 
     return {
-        total: res.total + prioritiesItems.hits.length,
+        total: total,
         hits: hits,
         aggregations: aggregations
     };
 }
 
 function enonicSearchWithoutAggregations(params) {
-
     var wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
     logWordList(wordList);
     var prioritiesItems = getPrioritiesedElements(wordList); // 3.
@@ -175,8 +176,10 @@ function enonicSearchWithoutAggregations(params) {
     var hits = res.hits;
 
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
+    let total = res.total;
     if ((!params.f || (params.f === '0' && (!params.uf || params.uf === '0'))) && (!params.start || params.start === '0')) {
         hits = prioritiesItems.hits.concat(hits);
+        total += prioritiesItems.hits.length;
     }
 
     hits = hits.map(function(el) {
@@ -191,16 +194,16 @@ function enonicSearchWithoutAggregations(params) {
             href: href,
             highlight: highlightText,
             publish: el.publish,
-            modifiedTime: el.modifiedTime,
+            modifiedTime: el.modifiedTime
         };
     });
     return {
-        total: res.total + prioritiesItems.hits.length,
+        total: total,
         hits: hits
     };
 }
 
-function logWordList (wordList) {
+function logWordList(wordList) {
     log.info('***** WORDS *****');
     wordList.forEach(function(word) {
         log.info(word);
@@ -223,8 +226,9 @@ function getFilters(params, config, prioritiesItems) {
         };
 
         if (params.uf) {
+            log.info(JSON.stringify(params.uf));
             var values = [];
-            (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(function (uf) {
+            (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(function(uf) {
                 var undf = Array.isArray(config.data.fasetter[Number(params.f)].underfasetter)
                     ? config.data.fasetter[Number(params.f)].underfasetter
                     : [config.data.fasetter[Number(params.f)].underfasetter];
@@ -244,7 +248,7 @@ function getFilters(params, config, prioritiesItems) {
                     field: '_id',
                     values: prioritiesItems.ids
                 }
-            }
+            };
         }
         return filters;
     } else {
@@ -264,7 +268,7 @@ function getFilters(params, config, prioritiesItems) {
                     field: '_id',
                     values: prioritiesItems.ids
                 }
-            }
+            };
         }
         return filters;
     }
@@ -367,7 +371,7 @@ function highLight(text, wordList) {
     }
 }
 
-function calculateHighlightText (highLight) {
+function calculateHighlightText(highLight) {
     if (highLight.ingress.highlighted) {
         return highLight.ingress.text;
     } else if (highLight.text.highlighted) {
@@ -470,7 +474,7 @@ function getSearchWords(word) {
     var suggest = __.newBean('no.nav.search.elastic.Suggest');
     suggest.texts = __.nullOrValue(wordList);
     __.toNativeObject(suggest.suggest()).forEach(function(suggestion) {
-        if(wordList.indexOf(suggestion) === -1) {
+        if (wordList.indexOf(suggestion) === -1) {
             wordList.push(suggestion);
         }
     });
