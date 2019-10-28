@@ -31,14 +31,20 @@ public class Suggest {
         return this.texts;
     }
 
+    private boolean isNumeric(String str) {
+        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+    }
+
     private SuggestBuilder createSuggestBuilder() {
         SuggestBuilder suggestBuild = new SuggestBuilder();
         for(String text : this.texts) {
-            TermSuggestionBuilder termSuggestionBuilder = SuggestBuilders.termSuggestion(text)
-            .text(text)
-            .field("_alltext._analyzed")
-            .suggestMode("always");
-            suggestBuild = suggestBuild.addSuggestion(termSuggestionBuilder);
+            if(!isNumeric(text)) {
+                TermSuggestionBuilder termSuggestionBuilder = SuggestBuilders.termSuggestion(text)
+                .text(text)
+                .field("_alltext._analyzed")
+                .suggestMode("always");
+                suggestBuild = suggestBuild.addSuggestion(termSuggestionBuilder);
+            }
         }
         return suggestBuild;
     }
@@ -59,11 +65,13 @@ public class Suggest {
         List<String> suggestions = new ArrayList<String>();
         for(String text: this.texts) {
             Suggestion<Entry> s = suggest.getSuggestion(text);
-            List<Entry> entries = s.getEntries();
-            for(Entry entry : entries) {
-                List<Option> options = entry.getOptions();
-                for(Option option: options) {
-                    suggestions.add(option.getText().string());
+            if(s != null) {
+                List<Entry> entries = s.getEntries();
+                for(Entry entry : entries) {
+                    List<Option> options = entry.getOptions();
+                    for(Option option: options) {
+                        suggestions.add(option.getText().string());
+                    }
                 }
             }
         }
