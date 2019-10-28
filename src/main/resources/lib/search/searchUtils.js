@@ -451,10 +451,7 @@ function test(word, text) {
     3. Return result
  */
 function getSearchWords(word) {
-    if (!app.config && app.config.elasticUrl) {
-        log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
-    }
-
+    word = word.replace(/æ/g, 'ae').replace(/ø/g, 'o');
     // run analyzer to remove stopwords
     var analyze = __.newBean('no.nav.search.elastic.Analyze');
     analyze.text = __.nullOrValue(word);
