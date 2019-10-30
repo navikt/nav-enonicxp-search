@@ -91,7 +91,7 @@ function enonicSearch(params) {
     logWordList(wordList);
     var prioritiesItems = getPrioritiesedElements(wordList); // 3.
 
-    var query = getQuery(wordList, params); // 4.
+    var query = getQuery(wordList); // 4.
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
     
     var aggregations = getAggregations(query, config); // 5.
@@ -100,13 +100,15 @@ function enonicSearch(params) {
     query.aggregations.Tidsperiode = tidsperiode;
     var q = libs.content.query(query);
     aggregations.Tidsperiode = q.aggregations.Tidsperiode; // 7.
-    // log.info(JSON.stringify(q, null, 4));
+
     if (params.daterange) {
         var dateRange = getDateRange(params.daterange, aggregations.Tidsperiode.buckets); // 8.
         query.query += dateRange;
     }
 
     query.sort = params.s && params.s !== '0' ? 'modifiedTime DESC' : '_score DESC'; // 9.
+    query = addCountAndStart(params, query);
+
     var res = libs.content.query(query); // 10.
     var hits = res.hits;
 
@@ -167,10 +169,11 @@ function enonicSearchWithoutAggregations(params) {
     var wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
     logWordList(wordList);
     var prioritiesItems = getPrioritiesedElements(wordList); // 3.
-    var query = getQuery(wordList, params); // 4.
+    var query = getQuery(wordList); // 4.
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
     query.filters = getFilters(params, config, prioritiesItems); // 6.
     query.sort = '_score DESC'; // 9.
+    query = addCountAndStart(params, query);
 
     var res = libs.content.query(query); // 10.
     var hits = res.hits;
@@ -201,6 +204,17 @@ function enonicSearchWithoutAggregations(params) {
         total: total,
         hits: hits
     };
+}
+
+function addCountAndStart(params, query) {
+    var count = params.c ? (!isNaN(Number(params.c)) ? Number(params.c) : 0) : 0;
+    count = count ? count * 20 : 20;
+    var start = params.start ? (!isNaN(Number(params.start)) ? Number(params.start) : 0) : 0;
+    start = start * 20;
+    count -= start;
+    query.start = start;
+    query.count = count;
+    return query;
 }
 
 function logWordList(wordList) {
@@ -603,16 +617,11 @@ function getSearchPriorityContent(id) {
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
-function getQuery(wordList, params) {
+function getQuery(wordList) {
     var navApp = 'no.nav.navno:';
-    var count = params.c ? (!isNaN(Number(params.c)) ? Number(params.c) : 0) : 0;
-    count = count ? count * 20 : 20;
-    var start = params.start ? (!isNaN(Number(params.start)) ? Number(params.start) : 0) : 0;
-    start = start * 20;
-    count -= start;
     return {
-        start: start,
-        count: count,
+        start: 0,
+        count: 0,
         query:
             'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
             wordList.join(' ') +
