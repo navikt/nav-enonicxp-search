@@ -1,0 +1,17 @@
+<content-type>
+    <display-name>Synonymer</display-name>
+    <description>Synonymer for søket</description>
+    <super-type>base:unstructured</super-type>
+    <form>
+        <item-set name="synonyms">
+            <label>Synonymer</label>
+            <occurrences maximum="0" minimum="0"/>
+            <items>
+                <input name="synonym" type="TextLine">
+                    <label>Liste over synonymer</label>
+                    <occurrences maximum="0" minimum="2"/>
+                </input>
+            </items>
+        </item-set>
+    </form>
+</content-type>

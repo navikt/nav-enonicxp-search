@@ -3,7 +3,7 @@ var libs = {
     portal: require('/lib/xp/portal'),
     context: require('/lib/xp/context'),
     http: require('/lib/http-client'),
-    priorityCache: require('/lib/search/priorityCache'),
+    searchCache: require('/lib/search/searchCache'),
     node: require('/lib/xp/node')
 };
 var repo = libs.node.connect({
@@ -93,7 +93,7 @@ function enonicSearch(params) {
 
     var query = getQuery(wordList, params); // 4.
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
-
+    
     var aggregations = getAggregations(query, config); // 5.
     query.filters = getFilters(params, config, prioritiesItems); // 6.
 
@@ -451,10 +451,7 @@ function test(word, text) {
     3. Return result
  */
 function getSearchWords(word) {
-    if (!app.config && app.config.elasticUrl) {
-        log.info('MISSING/INVALID APP CONFIG FOR navno.nav.no.search');
-    }
-
+    word = word.replace(/æ/g, 'ae').replace(/ø/g, 'o');
     // run analyzer to remove stopwords
     var analyze = __.newBean('no.nav.search.elastic.Analyze');
     analyze.text = __.nullOrValue(word);
@@ -478,6 +475,20 @@ function getSearchWords(word) {
             wordList.push(suggestion);
         }
     });
+
+    // synonyms
+    var synonymMap = libs.searchCache.getSynonyms();
+    wordList = wordList.reduce(function(list, word){
+        if(synonymMap[word]) {
+            synonymMap[word].forEach(function(synonym) {
+                if(list.indexOf(synonym) === -1) {
+                    list.push(synonym);
+                }
+            });
+        }
+        return list;
+    }, wordList);
+
     return wordList;
 }
 
@@ -533,7 +544,7 @@ function getDateRange(daterange, buckets) {
     ----------- Retrieve the list of prioritised elements and check if the search would hit any of the elements -----
  */
 function getPrioritiesedElements(wordList) {
-    var priorityIds = libs.priorityCache.getPriorities();
+    var priorityIds = libs.searchCache.getPriorities();
 
     // add hits on pri content and not keyword
     var hits = libs.content.query({

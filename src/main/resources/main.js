@@ -2,7 +2,7 @@ var event = require('/lib/xp/event');
 var content = require('/lib/xp/content');
 var contextLib = require('/lib/xp/context');
 var nodeLib = require('/lib/xp/node');
-var priorityCache = require('/lib/search/priorityCache');
+var searchCache = require('/lib/search/searchCache');
 var checked = [];
 
 var repo = nodeLib.connect({
@@ -30,7 +30,7 @@ contextLib.run(
             type: 'node.updated',
             callback: checkFasettConfiguration
         });
-        priorityCache.activateEventListener();
+        searchCache.activateEventListener();
     }
 );
 
