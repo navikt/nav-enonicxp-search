@@ -93,7 +93,7 @@ function enonicSearch(params) {
 
     var query = getQuery(wordList); // 4.
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
-    
+
     var aggregations = getAggregations(query, config); // 5.
     query.filters = getFilters(params, config, prioritiesItems); // 6.
 
@@ -126,8 +126,9 @@ function enonicSearch(params) {
         // 11.
         var highLight = getHighLight(el, wordList);
         var highlightText = calculateHighlightText(highLight);
-        var href = getHref(el);
-        var displayPath = getDisplayPath(href);
+        var paths = getPaths(el);
+        var href = paths.href;
+        var displayPath = paths.displayPath;
         var className = getClassName(el);
 
         var officeInformation;
@@ -189,7 +190,7 @@ function enonicSearchWithoutAggregations(params) {
         // 11.
         var highLight = getHighLight(el, wordList);
         var highlightText = calculateHighlightText(highLight);
-        var href = getHref(el);
+        var href = getPaths(el).href;
 
         return {
             priority: !!el.priority,
@@ -316,24 +317,49 @@ function getClassName(el) {
      If it is a service or application, return the given url or host
      else do a portal lookup and return the url
  */
-function getHref(el) {
+function getPaths(el) {
+    const paths = {
+        href: '',
+        displayPath: ''
+    };
+    // find href for prioritised items
     if (el.type === app.name + ':search-api' || el.type === app.name + ':search-api2') {
-        return el.data.host || el.data.url;
-    }
-    return libs.portal.pageUrl({
-        id: el._id
-    });
-}
-
-function getDisplayPath(href) {
-    if (href.indexOf('http') === 0) {
-        return href;
+        paths.href = el.data.host || el.data.url;
+        // href for media/files
+    } else if (el.type === 'media:document' || el.type === 'media:spreadsheet' || el.type === 'media:image') {
+        paths.href = libs.portal.attachmentUrl({
+            id: el._id
+        });
     } else {
-        return href
+        // href for everything else
+        paths.href = libs.portal.pageUrl({
+            id: el._id
+        });
+    }
+
+    // find display path for media/files
+    if (el.type === 'media:document' || el.type === 'media:spreadsheet' || el.type === 'media:image') {
+        paths.displayPath = libs.portal
+            .pageUrl({
+                id: el._id
+            })
             .split('/')
             .slice(0, -1)
             .join('/');
+    } else {
+        // find display path for absolute urls
+        if (paths.href.indexOf('http') === 0) {
+            paths.displayPath = paths.href;
+        } else {
+            // display path for everything else
+            paths.displayPath = paths.href
+                .split('/')
+                .slice(0, -1)
+                .join('/');
+        }
     }
+
+    return paths;
 }
 
 function getHighLight(el, wordList) {
@@ -492,10 +518,10 @@ function getSearchWords(word) {
 
     // synonyms
     var synonymMap = libs.searchCache.getSynonyms();
-    wordList = wordList.reduce(function(list, word){
-        if(synonymMap[word]) {
+    wordList = wordList.reduce(function(list, word) {
+        if (synonymMap[word]) {
             synonymMap[word].forEach(function(synonym) {
-                if(list.indexOf(synonym) === -1) {
+                if (list.indexOf(synonym) === -1) {
                     list.push(synonym);
                 }
             });
