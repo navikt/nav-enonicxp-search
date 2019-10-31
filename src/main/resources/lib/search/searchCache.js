@@ -15,6 +15,11 @@ function wipeAll() {
     log.info('search cache wiped');
 }
 
+module.exports.getEmptyAggregation = getEmptyAggregation;
+function getEmptyAggregation(fallback) {
+    return searchCache.get('emptyaggs', fallback);
+}
+
 module.exports.getSynonyms = getSynonyms;
 function getSynonyms() {
     return searchCache.get('synonyms', function() {
@@ -80,6 +85,7 @@ function activateEventListener() {
         type: 'node.*',
         localOnly: false,
         callback: function(event) {
+            searchCache.remove('emptyaggs');
             event.data.nodes.forEach(function(node) {
                 if (node.branch === 'master' && node.repo === 'com.enonic.cms.default') {
                     var content = libs.content.get({ key: node.id });

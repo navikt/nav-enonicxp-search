@@ -94,7 +94,14 @@ function enonicSearch(params) {
     var query = getQuery(wordList); // 4.
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
 
-    var aggregations = getAggregations(query, config); // 5.
+    var aggregations;
+    if(wordList.length > 0) {
+        aggregations = getAggregations(query, config); // 5.
+    } else {
+        aggregations = libs.searchCache.getEmptyAggregation(function() {
+            return getAggregations(query, config);
+        });
+    }
     query.filters = getFilters(params, config, prioritiesItems); // 6.
 
     query.aggregations.Tidsperiode = tidsperiode;
