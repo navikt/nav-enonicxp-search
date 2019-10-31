@@ -4,7 +4,8 @@ var libs = {
     context: require('/lib/xp/context'),
     http: require('/lib/http-client'),
     searchCache: require('/lib/search/searchCache'),
-    node: require('/lib/xp/node')
+    node: require('/lib/xp/node'),
+    navUtils: require('/lib/nav-utils')
 };
 var repo = libs.node.connect({
     repoId: 'com.enonic.cms.default',
@@ -143,6 +144,12 @@ function enonicSearch(params) {
                         : []
             };
         }
+
+        let publishedString = null;
+        if(el.type === 'no.nav.navno:main-article') {
+            publishedString = libs.navUtils.dateTimePublished(el, el.language || 'no');
+        }
+
         return {
             priority: !!el.priority,
             displayName: el.displayName,
@@ -152,7 +159,8 @@ function enonicSearch(params) {
             publish: el.publish,
             modifiedTime: el.modifiedTime,
             className: className,
-            officeInformation: officeInformation
+            officeInformation: officeInformation,
+            publishedString: publishedString,
         };
     });
 
@@ -241,7 +249,6 @@ function getFilters(params, config, prioritiesItems) {
         };
 
         if (params.uf) {
-            log.info(JSON.stringify(params.uf));
             var values = [];
             (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(function(uf) {
                 var undf = Array.isArray(config.data.fasetter[Number(params.f)].underfasetter)
