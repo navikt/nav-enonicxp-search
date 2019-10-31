@@ -44,6 +44,8 @@ dependencies {
     include 'com.enonic.lib:lib-http-client:1.0.4'
     include 'com.enonic.lib:lib-cache:1.1.0'
     include "com.enonic.xp:lib-repo:${xpVersion}"
+    include "com.enonic.xp:lib-i18n:${xpVersion}"
+    webjar "org.webjars:momentjs:2.14.1"
 }
 
 repositories {
