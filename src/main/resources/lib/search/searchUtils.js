@@ -145,7 +145,7 @@ function enonicSearch(params) {
         }
 
         let publishedString = null;
-        if(el.type === 'no.nav.navno:main-article' && (el.data.contentType === 'pressRelease' || el.data.contentType === 'news')) {
+        if(el.type === 'no.nav.navno:main-article') {
             publishedString = libs.navUtils.dateTimePublished(el, el.language || 'no');
         }
 
