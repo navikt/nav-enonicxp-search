@@ -85,17 +85,26 @@ module.exports = {
     11. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
  */
 
-function enonicSearch(params) {
+function enonicSearch(params, skipCache) {
     var s = Date.now();
     var wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
     logWordList(wordList);
+
+    // get empty search from cache, or fallback to trying again but with forced skip cache bit
+    if (wordList.length === 0 && !skipCache) {
+        return libs.searchCache.getEmptySearchResult(JSON.stringify(params), function() {
+            return enonicSearch(params, true);
+        });
+    }
+
     var prioritiesItems = getPrioritiesedElements(wordList); // 3.
 
     var query = getQuery(wordList); // 4.
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
 
+    // get aggregations or just fetch it from cache if its any empty search
     var aggregations;
-    if(wordList.length > 0) {
+    if (wordList.length > 0) {
         aggregations = getAggregations(query, config); // 5.
     } else {
         aggregations = libs.searchCache.getEmptyAggregation(function() {
@@ -105,7 +114,15 @@ function enonicSearch(params) {
     query.filters = getFilters(params, config, prioritiesItems); // 6.
 
     query.aggregations.Tidsperiode = tidsperiode;
-    var q = libs.content.query(query);
+    // run time period query, or fetch from cache if its an empty search with an earlier used combination on facet and subfacet
+    var q;
+    if (wordList.length > 0) {
+        q = libs.content.query(query);
+    } else {
+        q = libs.searchCache.getEmptyTimePeriod(params.f + '_' + JSON.stringify(params.uf), function() {
+            return libs.content.query(query);
+        });
+    }
     aggregations.Tidsperiode = q.aggregations.Tidsperiode; // 7.
 
     if (params.daterange) {
@@ -652,11 +669,12 @@ function getSearchPriorityContent(id) {
  */
 function getQuery(wordList) {
     var navApp = 'no.nav.navno:';
-    let query = ''
-    if(wordList.length > 0) {
-        query = 'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
-        wordList.join(' ') +
-        '", "OR") '
+    let query = '';
+    if (wordList.length > 0) {
+        query =
+            'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
+            wordList.join(' ') +
+            '", "OR") ';
     }
     return {
         start: 0,
