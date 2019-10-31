@@ -645,13 +645,16 @@ function getSearchPriorityContent(id) {
  */
 function getQuery(wordList) {
     var navApp = 'no.nav.navno:';
+    let query = ''
+    if(wordList.length > 0) {
+        query = 'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
+        wordList.join(' ') +
+        '", "OR") '
+    }
     return {
         start: 0,
         count: 0,
-        query:
-            'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
-            wordList.join(' ') +
-            '", "OR") ',
+        query: query,
         contentTypes: [
             navApp + 'main-article',
             navApp + 'section-page',
@@ -674,7 +677,7 @@ function getQuery(wordList) {
                     underaggregeringer: {
                         terms: {
                             field: 'x.no-nav-navno.fasetter.underfasett',
-                            size: 20
+                            size: 30
                         }
                     }
                 }
