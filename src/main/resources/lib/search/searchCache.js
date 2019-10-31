@@ -104,6 +104,7 @@ function activateEventListener() {
             emptySearchKeys.forEach(function(key) {
                 searchCache.remove(key);
             });
+            emptySearchKeys = [];
             // clear full cache if prioritized items or synonyms have changed
             event.data.nodes.forEach(function(node) {
                 if (node.branch === 'master' && node.repo === 'com.enonic.cms.default') {
