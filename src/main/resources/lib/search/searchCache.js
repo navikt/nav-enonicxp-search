@@ -8,11 +8,29 @@ var standardCache = {
     expire: 3600 * 24 /* One day */
 };
 
+var emptySearchKeys = [];
 var searchCache = libs.cache.newCache(standardCache);
 
 function wipeAll() {
     searchCache.clear();
     log.info('search cache wiped');
+}
+
+module.exports.getEmptyAggregation = getEmptyAggregation;
+function getEmptyAggregation(fallback) {
+    return searchCache.get('emptyaggs', fallback);
+}
+
+module.exports.getEmptyTimePeriod = getEmptyTimePeriod;
+function getEmptyTimePeriod(key, fallback) {
+    emptySearchKeys.push(key);
+    return searchCache.get(key, fallback);
+}
+
+module.exports.getEmptySearchResult = getEmptySearchResult;
+function getEmptySearchResult(key, fallback) {
+    emptySearchKeys.push(key);
+    return searchCache.get(key, fallback);
 }
 
 module.exports.getSynonyms = getSynonyms;
@@ -23,7 +41,7 @@ function getSynonyms() {
             count: 100,
             query: 'type = "' + app.name + ':synonyms"'
         }).hits;
-    
+
         var synonymMap = {};
         synonymLists.forEach(function(synonymList) {
             synonymList.data.synonyms.forEach(function(s) {
@@ -80,14 +98,18 @@ function activateEventListener() {
         type: 'node.*',
         localOnly: false,
         callback: function(event) {
+            // clear aggregation cache
+            searchCache.remove('emptyaggs');
+            // clear other empty search caches
+            emptySearchKeys.forEach(function(key) {
+                searchCache.remove(key);
+            });
+            emptySearchKeys = [];
+            // clear full cache if prioritized items or synonyms have changed
             event.data.nodes.forEach(function(node) {
                 if (node.branch === 'master' && node.repo === 'com.enonic.cms.default') {
                     var content = libs.content.get({ key: node.id });
-                    var typesToClear = [
-                        app.name + ':search-priority',
-                        app.name + ':search-api2',
-                        app.name + ':synonyms',
-                    ];
+                    var typesToClear = [app.name + ':search-priority', app.name + ':search-api2', app.name + ':synonyms'];
                     if (typesToClear.indexOf(content.type) !== -1) {
                         wipeAll();
                     }

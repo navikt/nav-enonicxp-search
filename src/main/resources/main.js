@@ -80,6 +80,7 @@ function newAgg(fasetter, id) {
     }, []);
     // log.info(JSON.stringify(resolver, null, 4));
     resolver.forEach(function(value) {
+        log.info('UPDATE FACETS ON ' + value.fasett + ' | ' + value.underfasett);
         var query = {
             query: value.query
         };
@@ -100,6 +101,7 @@ function newAgg(fasetter, id) {
             start += count;
             hits = hits.concat(res);
         }
+        log.info(hits.length);
         hits.forEach(function(hit) {
             checked.push(hit.id);
             repo.modify({
@@ -116,6 +118,7 @@ function newAgg(fasetter, id) {
 }
 
 function tagAll(node, id) {
+    log.info('TAG ALL FACETS');
     var fasetter = Array.isArray(node.data.fasetter) ? node.data.fasetter : [node.data.fasetter];
     newAgg(fasetter, id);
     //fasetter.forEach(forEachPrimer('fasett', id));

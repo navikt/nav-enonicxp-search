@@ -86,20 +86,44 @@ module.exports = {
     11. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
  */
 
-function enonicSearch(params) {
+function enonicSearch(params, skipCache) {
     var s = Date.now();
     var wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
     logWordList(wordList);
+
+    // get empty search from cache, or fallback to trying again but with forced skip cache bit
+    if (wordList.length === 0 && !skipCache) {
+        return libs.searchCache.getEmptySearchResult(JSON.stringify(params), function() {
+            return enonicSearch(params, true);
+        });
+    }
+
     var prioritiesItems = getPrioritiesedElements(wordList); // 3.
 
     var query = getQuery(wordList); // 4.
     var config = libs.content.get({ key: '/www.nav.no/fasetter' });
-    
-    var aggregations = getAggregations(query, config); // 5.
+
+    // get aggregations or just fetch it from cache if its any empty search
+    var aggregations;
+    if (wordList.length > 0) {
+        aggregations = getAggregations(query, config); // 5.
+    } else {
+        aggregations = libs.searchCache.getEmptyAggregation(function() {
+            return getAggregations(query, config);
+        });
+    }
     query.filters = getFilters(params, config, prioritiesItems); // 6.
 
     query.aggregations.Tidsperiode = tidsperiode;
-    var q = libs.content.query(query);
+    // run time period query, or fetch from cache if its an empty search with an earlier used combination on facet and subfacet
+    var q;
+    if (wordList.length > 0) {
+        q = libs.content.query(query);
+    } else {
+        q = libs.searchCache.getEmptyTimePeriod(params.f + '_' + JSON.stringify(params.uf), function() {
+            return libs.content.query(query);
+        });
+    }
     aggregations.Tidsperiode = q.aggregations.Tidsperiode; // 7.
 
     if (params.daterange) {
@@ -127,8 +151,9 @@ function enonicSearch(params) {
         // 11.
         var highLight = getHighLight(el, wordList);
         var highlightText = calculateHighlightText(highLight);
-        var href = getHref(el);
-        var displayPath = getDisplayPath(href);
+        var paths = getPaths(el);
+        var href = paths.href;
+        var displayPath = paths.displayPath;
         var className = getClassName(el);
 
         var officeInformation;
@@ -197,7 +222,7 @@ function enonicSearchWithoutAggregations(params) {
         // 11.
         var highLight = getHighLight(el, wordList);
         var highlightText = calculateHighlightText(highLight);
-        var href = getHref(el);
+        var href = getPaths(el).href;
 
         return {
             priority: !!el.priority,
@@ -323,24 +348,49 @@ function getClassName(el) {
      If it is a service or application, return the given url or host
      else do a portal lookup and return the url
  */
-function getHref(el) {
+function getPaths(el) {
+    const paths = {
+        href: '',
+        displayPath: ''
+    };
+    // find href for prioritised items
     if (el.type === app.name + ':search-api' || el.type === app.name + ':search-api2') {
-        return el.data.host || el.data.url;
-    }
-    return libs.portal.pageUrl({
-        id: el._id
-    });
-}
-
-function getDisplayPath(href) {
-    if (href.indexOf('http') === 0) {
-        return href;
+        paths.href = el.data.host || el.data.url;
+        // href for media/files
+    } else if (el.type === 'media:document' || el.type === 'media:spreadsheet' || el.type === 'media:image') {
+        paths.href = libs.portal.attachmentUrl({
+            id: el._id
+        });
     } else {
-        return href
+        // href for everything else
+        paths.href = libs.portal.pageUrl({
+            id: el._id
+        });
+    }
+
+    // find display path for media/files
+    if (el.type === 'media:document' || el.type === 'media:spreadsheet' || el.type === 'media:image') {
+        paths.displayPath = libs.portal
+            .pageUrl({
+                id: el._id
+            })
             .split('/')
             .slice(0, -1)
             .join('/');
+    } else {
+        // find display path for absolute urls
+        if (paths.href.indexOf('http') === 0) {
+            paths.displayPath = paths.href;
+        } else {
+            // display path for everything else
+            paths.displayPath = paths.href
+                .split('/')
+                .slice(0, -1)
+                .join('/');
+        }
     }
+
+    return paths;
 }
 
 function getHighLight(el, wordList) {
@@ -499,10 +549,10 @@ function getSearchWords(word) {
 
     // synonyms
     var synonymMap = libs.searchCache.getSynonyms();
-    wordList = wordList.reduce(function(list, word){
-        if(synonymMap[word]) {
+    wordList = wordList.reduce(function(list, word) {
+        if (synonymMap[word]) {
             synonymMap[word].forEach(function(synonym) {
-                if(list.indexOf(synonym) === -1) {
+                if (list.indexOf(synonym) === -1) {
                     list.push(synonym);
                 }
             });
@@ -626,13 +676,17 @@ function getSearchPriorityContent(id) {
  */
 function getQuery(wordList) {
     var navApp = 'no.nav.navno:';
+    let query = '';
+    if (wordList.length > 0) {
+        query =
+            'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
+            wordList.join(' ') +
+            '", "OR") ';
+    }
     return {
         start: 0,
         count: 0,
-        query:
-            'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
-            wordList.join(' ') +
-            '", "OR") ',
+        query: query,
         contentTypes: [
             navApp + 'main-article',
             navApp + 'section-page',
@@ -655,7 +709,7 @@ function getQuery(wordList) {
                     underaggregeringer: {
                         terms: {
                             field: 'x.no-nav-navno.fasetter.underfasett',
-                            size: 20
+                            size: 30
                         }
                     }
                 }
