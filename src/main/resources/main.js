@@ -1,5 +1,4 @@
 var event = require('/lib/xp/event');
-var content = require('/lib/xp/content');
 var contextLib = require('/lib/xp/context');
 var nodeLib = require('/lib/xp/node');
 var searchCache = require('/lib/search/searchCache');
@@ -40,7 +39,6 @@ function checkFasettConfiguration(event) {
     });
     // stop fasett update if the node change is in another repo
     if (cmsNodesChanged.length === 0) return;
-    // log.info(JSON.stringify(event, null, 4));
     var node = repo.get(event.data.nodes[0].id);
     if (node && node.type.endsWith('search-config2')) tagAll(node);
     else checkIfUpdateNeeded(node);
@@ -56,8 +54,7 @@ function checkIfUpdateNeeded(node) {
         count: 1,
         query: 'type = "' + app.name + ':search-config2"'
     }).hits;
-    var fasettConfig = hits.length > 0 ? repo.get(hits[0]._id) : null;
-    // log.info(JSON.stringify(fasettConfig, null, 4));
+    var fasettConfig = hits.length > 0 ? repo.get(hits[0].id) : null;
     if (fasettConfig) {
         tagAll(fasettConfig, node._id);
     }
@@ -78,7 +75,7 @@ function newAgg(fasetter, id) {
             });
         return t;
     }, []);
-    // log.info(JSON.stringify(resolver, null, 4));
+
     resolver.forEach(function(value) {
         log.info('UPDATE FACETS ON ' + value.fasett + ' | ' + value.underfasett);
         var query = {
@@ -118,8 +115,9 @@ function newAgg(fasetter, id) {
 }
 
 function tagAll(node, id) {
-    log.info('TAG ALL FACETS');
+    if (!id) {
+        log.info('TAG ALL FACETS');
+    }
     var fasetter = Array.isArray(node.data.fasetter) ? node.data.fasetter : [node.data.fasetter];
     newAgg(fasetter, id);
-    //fasetter.forEach(forEachPrimer('fasett', id));
 }
