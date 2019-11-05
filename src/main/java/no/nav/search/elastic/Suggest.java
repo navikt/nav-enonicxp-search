@@ -32,7 +32,7 @@ public class Suggest {
     }
 
     private boolean isNumeric(String str) {
-        return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
+        return str.matches("^[0-9.-]*$");  // match any combination of numbers, . and - as a number and skip suggest for those words
     }
 
     private SuggestBuilder createSuggestBuilder() {
