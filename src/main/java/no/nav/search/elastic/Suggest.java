@@ -32,7 +32,7 @@ public class Suggest {
     }
 
     private boolean isNumeric(String str) {
-        return str.matches("^[0-9.-]*$");  // match any combination of numbers, . and - as a number and skip suggest for those words
+        return str.matches("^[0-9.-_]*$");  // match any combination of numbers, dot, dash and underscore as a number and skip suggest for those words
     }
 
     private SuggestBuilder createSuggestBuilder() {
