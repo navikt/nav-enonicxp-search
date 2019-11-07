@@ -405,7 +405,7 @@ function getHighLight(el, wordList) {
     }
     return {
         text: highLight(el.data.text || '', wordList),
-        ingress: highLight(el.data.ingress || '', wordList)
+        ingress: highLight(el.data.ingress || el.data.description || '', wordList)
     };
 }
 
