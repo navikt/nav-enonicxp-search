@@ -170,7 +170,7 @@ function enonicSearch(params, skipCache) {
         }
 
         let publishedString = null;
-        if(el.type === 'no.nav.navno:main-article') {
+        if (el.type === 'no.nav.navno:main-article') {
             publishedString = libs.navUtils.dateTimePublished(el, el.language || 'no');
         }
 
@@ -184,7 +184,7 @@ function enonicSearch(params, skipCache) {
             modifiedTime: el.modifiedTime,
             className: className,
             officeInformation: officeInformation,
-            publishedString: publishedString,
+            publishedString: publishedString
         };
     });
 
@@ -354,7 +354,7 @@ function getPaths(el) {
         displayPath: ''
     };
     // find href for prioritised items
-    if (el.type === app.name + ':search-api' || el.type === app.name + ':search-api2') {
+    if (el.type === app.name + ':search-api' || el.type === app.name + ':search-api2' || 'no.nav.navno:external-link') {
         paths.href = el.data.host || el.data.url;
         // href for media/files
     } else if (el.type === 'media:document' || el.type === 'media:spreadsheet' || el.type === 'media:image') {
@@ -380,7 +380,11 @@ function getPaths(el) {
     } else {
         // find display path for absolute urls
         if (paths.href.indexOf('http') === 0) {
-            paths.displayPath = paths.href;
+            if (paths.href.indexOf('https://www.nav.no/') === 0) {
+                paths.displayPath = paths.href.replace('https://www.nav.no/', '/');
+            } else {
+                paths.displayPath = paths.href;
+            }
         } else {
             // display path for everything else
             paths.displayPath = paths.href
