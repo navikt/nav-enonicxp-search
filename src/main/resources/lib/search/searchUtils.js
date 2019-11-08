@@ -354,7 +354,7 @@ function getPaths(el) {
         displayPath: ''
     };
     // find href for prioritised items
-    if (el.type === app.name + ':search-api' || el.type === app.name + ':search-api2' || 'no.nav.navno:external-link') {
+    if (el.type === app.name + ':search-api' || el.type === app.name + ':search-api2' || el.type === 'no.nav.navno:external-link') {
         paths.href = el.data.host || el.data.url;
         // href for media/files
     } else if (el.type === 'media:document' || el.type === 'media:spreadsheet' || el.type === 'media:image') {
