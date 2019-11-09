@@ -77,7 +77,9 @@ function newAgg(fasetter, id) {
     }, []);
 
     resolver.forEach(function(value) {
-        log.info('UPDATE FACETS ON ' + value.fasett + ' | ' + value.underfasett);
+        if (!id) {
+            log.info('UPDATE FACETS ON ' + value.fasett + ' | ' + value.underfasett);
+        }
         var query = {
             query: value.query
         };
@@ -98,7 +100,9 @@ function newAgg(fasetter, id) {
             start += count;
             hits = hits.concat(res);
         }
-        log.info(hits.length);
+        if (!id) {
+            log.info(hits.length);
+        }
         hits.forEach(function(hit) {
             checked.push(hit.id);
             repo.modify({
