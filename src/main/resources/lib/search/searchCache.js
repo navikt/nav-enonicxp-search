@@ -1,7 +1,8 @@
 var libs = {
     cache: require('/lib/cache'),
     event: require('/lib/xp/event'),
-    content: require('/lib/xp/content')
+    content: require('/lib/xp/content'),
+    context: require('/lib/xp/context')
 };
 var standardCache = {
     size: 1000,
@@ -98,23 +99,36 @@ function activateEventListener() {
         type: 'node.*',
         localOnly: false,
         callback: function(event) {
-            // clear aggregation cache
-            searchCache.remove('emptyaggs');
-            // clear other empty search caches
-            emptySearchKeys.forEach(function(key) {
-                searchCache.remove(key);
-            });
-            emptySearchKeys = [];
-            // clear full cache if prioritized items or synonyms have changed
-            event.data.nodes.forEach(function(node) {
-                if (node.branch === 'master' && node.repo === 'com.enonic.cms.default') {
-                    var content = libs.content.get({ key: node.id });
-                    var typesToClear = [app.name + ':search-priority', app.name + ':search-api2', app.name + ':synonyms'];
-                    if (typesToClear.indexOf(content.type) !== -1) {
-                        wipeAll();
-                    }
+            libs.context.run(
+                {
+                    repository: 'com.enonic.cms.default',
+                    branch: 'master',
+                    user: {
+                        login: 'su',
+                        userStore: 'system'
+                    },
+                    principals: ['role:system.admin']
+                },
+                function() {
+                    // clear aggregation cache
+                    searchCache.remove('emptyaggs');
+                    // clear other empty search caches
+                    emptySearchKeys.forEach(function(key) {
+                        searchCache.remove(key);
+                    });
+                    emptySearchKeys = [];
+                    // clear full cache if prioritized items or synonyms have changed
+                    event.data.nodes.forEach(function(node) {
+                        if (node.branch === 'master' && node.repo === 'com.enonic.cms.default') {
+                            var content = libs.content.get({ key: node.id });
+                            var typesToClear = [app.name + ':search-priority', app.name + ':search-api2', app.name + ':synonyms'];
+                            if (typesToClear.indexOf(content.type) !== -1) {
+                                wipeAll();
+                            }
+                        }
+                    });
                 }
-            });
+            );
         }
     });
 }
