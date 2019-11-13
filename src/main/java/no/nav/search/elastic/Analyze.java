@@ -19,7 +19,7 @@ import no.nav.search.elastic.Token;
 @Component(immediate = true)
 public class Analyze {
     private final static Logger LOG = LoggerFactory.getLogger(Analyze.class);
-    private final static String ANALYZER = "navno_analyzer";
+    public final static String ANALYZER = "navno_analyzer";
 
     private String text;
 

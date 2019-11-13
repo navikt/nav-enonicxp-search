@@ -31,20 +31,15 @@ public class Suggest {
         return this.texts;
     }
 
-    private boolean isNumeric(String str) {
-        return str.matches("^[0-9.-_]*$");  // match any combination of numbers, dot, dash and underscore as a number and skip suggest for those words
-    }
-
     private SuggestBuilder createSuggestBuilder() {
         SuggestBuilder suggestBuild = new SuggestBuilder();
         for(String text : this.texts) {
-            if(!isNumeric(text)) {
-                TermSuggestionBuilder termSuggestionBuilder = SuggestBuilders.termSuggestion(text)
-                .text(text)
-                .field("_alltext._analyzed")
-                .suggestMode("always");
-                suggestBuild = suggestBuild.addSuggestion(termSuggestionBuilder);
-            }
+            TermSuggestionBuilder termSuggestionBuilder = SuggestBuilders.termSuggestion(text)
+            .text(text)
+            .field("_alltext._analyzed")
+            .suggestMode("always")
+            .analyzer(Analyze.ANALYZER);
+            suggestBuild = suggestBuild.addSuggestion(termSuggestionBuilder);
         }
         return suggestBuild;
     }
