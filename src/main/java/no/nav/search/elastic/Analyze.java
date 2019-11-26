@@ -76,11 +76,13 @@ public class Analyze {
             .isExists();
     }
 
-    public List<Token> analyze() {
+    public void createAnalyzerOnStartup(){
         if(!this.hasAnalyzer(Analyze.ANALYZER)) {
             this.createAnalyzer();
         }
+    }
 
+    public List<Token> analyze() {
         AnalyzeRequest request = (new AnalyzeRequest())
             .analyzer("nb_NO")
             .text(this.text)
