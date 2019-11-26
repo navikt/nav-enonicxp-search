@@ -421,11 +421,15 @@ function getHighLight(el, wordList) {
      11.4. Return a highlighted fragment of text or false
  */
 function highLight(text, wordList) {
+    text = removeHTMLTags(text);
     var highligthedText = wordList.reduce(function(t, word) {
-        if (word.length < 2) return t;
-        if (!t) t = findSubstring(word, text);
+        if (word.length < 2) {
+            return t;
+        }
         // 11.2
-        else {
+        if (!t) {
+            t = findSubstring(word, text);
+        } else {
             var res = findSubstring(word, t); // 11.3
             t = res ? res : t;
         }
@@ -438,10 +442,9 @@ function highLight(text, wordList) {
             text: highligthedText
         };
     } else {
-        var htmlStrippedText = removeHTMLTagsExeptBold(text);
         return {
             highlighted: false,
-            text: htmlStrippedText ? (htmlStrippedText.length > 200 ? htmlStrippedText.substring(0, 200) + ' (...)' : htmlStrippedText) : ''
+            text: text ? (text.length > 200 ? text.substring(0, 200) + ' (...)' : text) : ''
         };
     }
 }
@@ -458,11 +461,8 @@ function calculateHighlightText(highLight) {
     } else return '';
 }
 
-function removeHTMLTagsExeptBold(text) {
-    return text.replace(/<(?:[\/0-9a-zA-ZøæåÅØÆ\s\\="\-:;+%&.?@#()_]*)>[\r\n]*/g, function(e) {
-        // 11.2.1.
-        return e === '</b>' || e === '<b>' ? e : '';
-    });
+function removeHTMLTags(text) {
+    return text.replace(/<\/?[^>]+(>|$)/g, '');
 }
 
 /*
@@ -475,7 +475,6 @@ function removeHTMLTagsExeptBold(text) {
     TODO multiple (...) is added for multiparsed highlights
  */
 function findSubstring(word, text) {
-    text = removeHTMLTagsExeptBold(text);
     var replaceText = test(word, text); // 11.2.2.
     var index = text.indexOf(word); // 11.2.3.
     if (index === -1) return false; // 11.2.4.
