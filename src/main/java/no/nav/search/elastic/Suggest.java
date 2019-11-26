@@ -47,7 +47,9 @@ public class Suggest {
     private org.elasticsearch.search.suggest.Suggest getSuggest() {
         SuggestBuilder suggestBuild = createSuggestBuilder();
         
-        SuggestRequest request = new SuggestRequest().suggest(suggestBuild);
+        SuggestRequest request = new SuggestRequest()
+            .suggest(suggestBuild)
+            .preference("_local");
         return ClientHolder.client
             .suggest(request)
             .actionGet()
