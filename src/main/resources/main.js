@@ -156,7 +156,7 @@ function newAgg(fasetter, ids) {
     if (ids) {
         log.info('*** UPDATE FACETS ON ' + ids.join(', ') + ' ***');
     }
-    resolver = [resolver[0]];
+
     resolver.forEach(function(value) {
         if (!ids) {
             log.info('UPDATE FACETS ON ' + value.fasett + ' | ' + value.underfasett);

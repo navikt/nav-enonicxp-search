@@ -117,16 +117,27 @@ function activateEventListener() {
                         searchCache.remove(key);
                     });
                     emptySearchKeys = [];
-                    // clear full cache if prioritized items or synonyms have changed
-                    event.data.nodes.forEach(function(node) {
-                        if (node.branch === 'master' && node.repo === 'com.enonic.cms.default') {
-                            var content = libs.content.get({ key: node.id });
-                            var typesToClear = [app.name + ':search-priority', app.name + ':search-api2', app.name + ':synonyms'];
-                            if (typesToClear.indexOf(content.type) !== -1) {
-                                wipeAll();
+
+                    // wipe all on delete because we can't check the type of the deleted content
+                    if (event.type === 'node.deleted') {
+                        wipeAll();
+                    } else {
+                        // clear full cache if prioritized items or synonyms have changed
+                        event.data.nodes.forEach(function(node) {
+                            if (node.branch === 'master' && node.repo === 'com.enonic.cms.default') {
+                                var content = libs.content.get({ key: node.id });
+                                if (content) {
+                                    var typesToClear = [app.name + ':search-priority', app.name + ':search-api2', app.name + ':synonyms'];
+                                    if (typesToClear.indexOf(content.type) !== -1) {
+                                        wipeAll();
+                                    }
+                                } else {
+                                    // wipe all if the content doesn't exist, just in case
+                                    wipeAll();
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             );
         }
