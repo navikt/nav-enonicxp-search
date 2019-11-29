@@ -4,6 +4,7 @@ var nodeLib = require('/lib/xp/node');
 var searchCache = require('/lib/search/searchCache');
 var navUtils = require('/lib/nav-utils');
 var taskLib = require('/lib/xp/task');
+var clusterLib = require('/lib/xp/cluster');
 
 var repo = nodeLib.connect({
     repoId: 'com.enonic.cms.default',
@@ -22,8 +23,10 @@ contextLib.run(
         principals: ['role:system.admin']
     },
     function() {
-        // create analyzer indices on startup
-        __.newBean('no.nav.search.elastic.Analyze').createAnalyzerOnStartup();
+        // create analyzer indices on startup, but only on master
+        if (clusterLib.isMaster()) {
+            __.newBean('no.nav.search.elastic.Analyze').createAnalyzerOnStartup();
+        }
 
         event.listener({
             type: 'custom.appcreated',
