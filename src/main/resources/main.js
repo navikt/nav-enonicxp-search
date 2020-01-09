@@ -33,7 +33,7 @@ contextLib.run(
             callback: checkFasettConfiguration
         });
         event.listener({
-            type: 'node.updated',
+            type: 'node.pushed',
             callback: checkFasettConfiguration,
             localOnly: true
         });
@@ -144,10 +144,15 @@ function checkIfUpdateNeeded(nodeIds) {
 }
 
 function newAgg(fasetter, ids) {
+    // TODO: look into writing this better, an object can just have one facet so
+    // no reason to continue iterating when one is set.
+
+    // create queries for each facet and subfacet
     var resolver = fasetter.reduce(function(t, el) {
         var underfasett = el.underfasetter ? (Array.isArray(el.underfasetter) ? el.underfasetter : [el.underfasetter]) : [];
-        if (underfasett.length === 0 || !underfasett[0]) t.push({ fasett: el.name, query: el.rulekey + ' LIKE "' + el.rulevalue + '"' });
-        else
+        if (underfasett.length === 0 || !underfasett[0]){
+            t.push({ fasett: el.name, query: el.rulekey + ' LIKE "' + el.rulevalue + '"' });
+        } else {
             underfasett.forEach(function(value) {
                 t.push({
                     fasett: el.name,
@@ -156,6 +161,7 @@ function newAgg(fasetter, ids) {
                     query: el.rulekey + ' LIKE "' + el.rulevalue + '" AND ' + value.rulekey + ' LIKE "' + value.rulevalue + '"'
                 });
             });
+        }
         return t;
     }, []);
 
@@ -167,6 +173,7 @@ function newAgg(fasetter, ids) {
         if (!ids) {
             log.info('UPDATE FACETS ON ' + value.fasett + ' | ' + value.underfasett);
         }
+
         var query = {
             query: value.query
         };
@@ -185,6 +192,8 @@ function newAgg(fasetter, ids) {
         var start = 0;
         var count = 1000;
         var hits = [];
+
+        // make sure we get all the content, query 1k at a time.
         while (count === 1000) {
             query.start = start;
             query.count = count;
@@ -193,14 +202,13 @@ function newAgg(fasetter, ids) {
             start += count;
             hits = hits.concat(res);
         }
-        if (!ids) {
-            log.info(hits.length);
-        }
+
         navUtils.addValidatedNodes(
             hits.map(function(c) {
                 return c.id;
             })
         );
+
         hits.forEach(function(hit) {
             repo.modify({
                 key: hit.id,
@@ -211,8 +219,16 @@ function newAgg(fasetter, ids) {
                     return n;
                 }
             });
+
+            // republish objects which have been updated with facets
+            repo.push({
+                key: hit.id,
+                target: 'master',
+            });
         });
     });
+
+
     if (!ids) {
         // unblock facet updates
         navUtils.setUpdateAll(false);
