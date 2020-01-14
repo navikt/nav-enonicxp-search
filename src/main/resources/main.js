@@ -144,14 +144,14 @@ function checkIfUpdateNeeded(nodeIds) {
 }
 
 function newAgg(fasetter, ids) {
-    // TODO: look into writing this better, an object can just have one facet so
-    // no reason to continue iterating when one is set.
-
     // create queries for each facet and subfacet
     var resolver = fasetter.reduce(function(t, el) {
         var underfasett = el.underfasetter ? (Array.isArray(el.underfasetter) ? el.underfasetter : [el.underfasetter]) : [];
         if (underfasett.length === 0 || !underfasett[0]){
-            t.push({ fasett: el.name, query: el.rulekey + ' LIKE "' + el.rulevalue + '"' });
+            t.push({
+                fasett: el.name,
+                query: el.rulekey + ' LIKE "' + el.rulevalue + '"'
+            });
         } else {
             underfasett.forEach(function(value) {
                 t.push({
@@ -168,7 +168,7 @@ function newAgg(fasetter, ids) {
     if (ids) {
         log.info('*** UPDATE FACETS ON ' + ids.join(', ') + ' ***');
     }
-
+    // iterate over each facet update the ids which have been published
     resolver.forEach(function(value) {
         if (!ids) {
             log.info('UPDATE FACETS ON ' + value.fasett + ' | ' + value.underfasett);
@@ -177,6 +177,8 @@ function newAgg(fasetter, ids) {
         var query = {
             query: value.query
         };
+
+        // filter for just the currently updated ids
         if (ids) {
             query.filters = {
                 ids: {
@@ -203,11 +205,7 @@ function newAgg(fasetter, ids) {
             hits = hits.concat(res);
         }
 
-        navUtils.addValidatedNodes(
-            hits.map(function(c) {
-                return c.id;
-            })
-        );
+        navUtils.addValidatedNodes(hits.map(function(c) {return c.id;}));
 
         hits.forEach(function(hit) {
             repo.modify({
