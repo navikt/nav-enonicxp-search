@@ -12,8 +12,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import java.util.List;
 import java.util.ArrayList;
-// import org.slf4j.Logger;
-// import org.slf4j.LoggerFactory;
 
 // DOCUMENTATION http://javadoc.kyubu.de/elasticsearch/v1.7.3/
 
