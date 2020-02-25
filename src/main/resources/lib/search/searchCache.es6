@@ -27,9 +27,7 @@ function getEmptyTimePeriod(key, fallback) {
 
 function getEmptySearchResult(key, fallback) {
     emptySearchKeys.push(key);
-    const result = searchCache.get(key, fallback);
-
-    return result;
+    return searchCache.get(key, fallback);
 }
 
 function getSynonyms() {

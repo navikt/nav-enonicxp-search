@@ -1,7 +1,5 @@
 const searchUtils = require('/lib/search/searchUtils');
 
-// const ta = ['Eldre enn 12 måneder', 'Siste 12 måneder', 'Siste 30 dager', 'Siste 7 dager'];
-
 function bucket(type, params, parent) {
     return function(element, index) {
         const el = element;
