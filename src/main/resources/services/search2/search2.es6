@@ -1,13 +1,7 @@
-var searchUtils = require('/lib/search/searchUtils');
-
-exports.get = handleGet;
+const searchUtils = require('/lib/search/searchUtils');
 
 function handleGet(req) {
-    var params = req.params || {};
-
-    var model = {
-        word: false,
-    };
+    const params = req.params || {};
 
     if (!params.ord) {
         params.ord = '';
@@ -16,13 +10,15 @@ function handleGet(req) {
         params.ord = params.ord.substring(0, 200);
     }
 
-    var result = searchUtils.runInContext(searchUtils.enonicSearchWithoutAggregations, params);
+    const result = searchUtils.runInContext(searchUtils.enonicSearchWithoutAggregations, params);
+    let c = 1;
+    if (params.c) {
+        c = !Number(params.c).isNaN() ? Number(params.c) : 1;
+    }
+    const isMore = c * 20 < result.total;
+    const isSortDate = !params.s || params.s === '0';
 
-    var c = params.c ? (!isNaN(Number(params.c)) ? Number(params.c) : 1) : 1;
-    var isMore = c * 20 < result.total;
-    var isSortDate = !params.s || params.s === '0';
-
-    model = {
+    const model = {
         c: c,
         isMore: isMore,
         isSortDate: isSortDate,
@@ -37,3 +33,5 @@ function handleGet(req) {
         contentType: 'application/json',
     };
 }
+
+exports.get = handleGet;
