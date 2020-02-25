@@ -735,10 +735,19 @@ function enonicSearch(params, skipCache) {
         };
     });
 
-    // log.info('SEARCH TIME :: ' + (Date.now() - s));
-    // log.info('HITS::' + res.total + '|' + prioritiesItems.hits.length);
+    // Logging of search
+    // <queryString - mainfacet|subfacets / timeInterval> => [searchWords] -- [numberOfHits | prioritizedHits]
+    let facetsLog = '';
+    if (params.f) {
+        facetsLog = ` - ${params.f}|${
+            params.uf ? libs.navUtils.forceArray(params.uf).join(', ') : ''
+        }`;
+    }
+    if (params.daterange && params.daterange !== '-1') {
+        facetsLog += ` / ${params.daterange}`;
+    }
     log.info(
-        `<${params.ord}> => ${JSON.stringify(wordList)} -- [${res.total} | ${
+        `<${params.ord}${facetsLog}> => ${JSON.stringify(wordList)} -- [${res.total} | ${
             prioritiesItems.hits.length
         }]`
     );
