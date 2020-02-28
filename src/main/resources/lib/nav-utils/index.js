@@ -3,7 +3,7 @@ var libs = {
     moment: require('/assets/momentjs/2.14.1/min/moment-with-locales.min.js'),
     repo: require('/lib/xp/repo'),
     node: require('/lib/xp/node'),
-    context: require('/lib/xp/context')
+    context: require('/lib/xp/context'),
 };
 
 exports.fixDateFormat = fixDateFormat;
@@ -19,13 +19,25 @@ function fixDateFormat(date) {
     return date;
 }
 
+/**
+ * Make sure the content is an array.
+ * @param {*} content Whatever is passed in
+ * @returns {Object[]} Array containing the content or just content
+ */
+exports.forceArray = function(content) {
+    if (content) {
+        return Array.isArray(content) ? content : [content];
+    }
+    return [];
+};
+
 exports.dateTimePublished = function(content, language) {
     if (!content) {
         return '';
     }
     const navPublished = libs.i18n.localize({
         key: 'main_article.published',
-        locale: language
+        locale: language,
     });
     const p = fixDateFormat(content.publish.from ? content.publish.from : content.createdTime);
     const published = formatDate(p, language);
@@ -36,7 +48,7 @@ exports.dateTimePublished = function(content, language) {
     if (new Date(m) > new Date(p)) {
         let navUpdated = libs.i18n.localize({
             key: 'main_article.lastChanged',
-            locale: language
+            locale: language,
         });
         const lastModified = formatDate(content.modifiedTime, language);
         modifiedString = ` | ${navUpdated} ${lastModified}`;
@@ -61,16 +73,16 @@ function getNavRepo() {
             branch: 'draft',
             user: {
                 login: 'su',
-                userStore: 'system'
+                userStore: 'system',
             },
-            principals: ['role:system.admin']
+            principals: ['role:system.admin'],
         },
         function() {
             const hasNavRepo = libs.repo.get('no.nav.navno');
             if (!hasNavRepo) {
                 log.info('Create no.nav.navno repo');
                 libs.repo.create({
-                    id: 'no.nav.navno'
+                    id: 'no.nav.navno',
                 });
             }
 
@@ -78,9 +90,9 @@ function getNavRepo() {
                 repoId: 'no.nav.navno',
                 branch: 'master',
                 user: {
-                    login: 'su'
+                    login: 'su',
                 },
-                pricipals: ['role:system.admin']
+                pricipals: ['role:system.admin'],
             });
 
             return navRepo;
@@ -100,8 +112,8 @@ function getFacetValidation() {
             refresh: true,
             data: {
                 updateAll: false,
-                justValidatedNodes: []
-            }
+                justValidatedNodes: [],
+            },
         });
     }
 
@@ -115,7 +127,7 @@ function setUpdateAll(updateAll) {
         editor: function(facetValidation) {
             facetValidation.data.updateAll = updateAll;
             return facetValidation;
-        }
+        },
     });
 }
 
@@ -137,7 +149,7 @@ function addValidatedNodes(ids) {
             justValidatedNodes = justValidatedNodes.concat(ids);
             facetValidation.data.justValidatedNodes = justValidatedNodes;
             return facetValidation;
-        }
+        },
     });
 }
 
@@ -156,7 +168,7 @@ function removeValidatedNodes(ids) {
             });
             facetValidation.data.justValidatedNodes = justValidatedNodes;
             return facetValidation;
-        }
+        },
     });
 }
 

@@ -1,49 +1,44 @@
-var libs = {
+const libs = {
     cache: require('/lib/cache'),
     event: require('/lib/xp/event'),
     content: require('/lib/xp/content'),
-    context: require('/lib/xp/context')
+    context: require('/lib/xp/context'),
 };
-var standardCache = {
+const standardCache = {
     size: 1000,
-    expire: 3600 * 24 /* One day */
+    expire: 3600 * 24 /* One day */,
 };
 
-var emptySearchKeys = [];
-var searchCache = libs.cache.newCache(standardCache);
+let emptySearchKeys = [];
+const searchCache = libs.cache.newCache(standardCache);
 
 function wipeAll() {
     searchCache.clear();
-    log.info('search cache wiped');
 }
 
-module.exports.getEmptyAggregation = getEmptyAggregation;
 function getEmptyAggregation(fallback) {
     return searchCache.get('emptyaggs', fallback);
 }
 
-module.exports.getEmptyTimePeriod = getEmptyTimePeriod;
 function getEmptyTimePeriod(key, fallback) {
     emptySearchKeys.push(key);
     return searchCache.get(key, fallback);
 }
 
-module.exports.getEmptySearchResult = getEmptySearchResult;
 function getEmptySearchResult(key, fallback) {
     emptySearchKeys.push(key);
     return searchCache.get(key, fallback);
 }
 
-module.exports.getSynonyms = getSynonyms;
 function getSynonyms() {
     return searchCache.get('synonyms', function() {
-        var synonymLists = libs.content.query({
+        const synonymLists = libs.content.query({
             start: 0,
             count: 100,
-            query: 'type = "' + app.name + ':synonyms"'
+            query: 'type = "' + app.name + ':synonyms"',
         }).hits;
 
-        var synonymMap = {};
+        const synonymMap = {};
         synonymLists.forEach(function(synonymList) {
             synonymList.data.synonyms.forEach(function(s) {
                 s.synonym.forEach(function(word) {
@@ -66,18 +61,17 @@ function getSynonyms() {
     });
 }
 
-module.exports.getPriorities = getPriorities;
 function getPriorities() {
     return searchCache.get('priorites', function() {
-        var priority = [];
-        var start = 0;
-        var count = 1000;
+        let priority = [];
+        let start = 0;
+        let count = 1000;
         while (count === 1000) {
-            var q = libs.content.query({
+            const q = libs.content.query({
                 start: start,
                 count: 1000,
-                query: `(_parentpath LIKE "*prioriterte-elementer*" OR _parentpath LIKE "*prioriterte-elementer-eksternt*") AND 
-                        (type = "navno.nav.no.search:search-priority" OR type = "navno.nav.no.search:search-api2")`
+                query: `(_parentpath LIKE "*prioriterte-elementer*" OR _parentpath LIKE "*prioriterte-elementer-eksternt*") AND
+                        (type = "navno.nav.no.search:search-priority" OR type = "navno.nav.no.search:search-api2")`,
             });
 
             start += 1000;
@@ -92,7 +86,6 @@ function getPriorities() {
     });
 }
 
-module.exports.activateEventListener = activateEventListener;
 function activateEventListener() {
     wipeAll();
     libs.event.listener({
@@ -105,9 +98,9 @@ function activateEventListener() {
                     branch: 'master',
                     user: {
                         login: 'su',
-                        userStore: 'system'
+                        userStore: 'system',
                     },
-                    principals: ['role:system.admin']
+                    principals: ['role:system.admin'],
                 },
                 function() {
                     // clear aggregation cache
@@ -124,10 +117,17 @@ function activateEventListener() {
                     } else {
                         // clear full cache if prioritized items or synonyms have changed
                         event.data.nodes.forEach(function(node) {
-                            if (node.branch === 'master' && node.repo === 'com.enonic.cms.default') {
-                                var content = libs.content.get({ key: node.id });
+                            if (
+                                node.branch === 'master' &&
+                                node.repo === 'com.enonic.cms.default'
+                            ) {
+                                const content = libs.content.get({ key: node.id });
                                 if (content) {
-                                    var typesToClear = [app.name + ':search-priority', app.name + ':search-api2', app.name + ':synonyms'];
+                                    const typesToClear = [
+                                        app.name + ':search-priority',
+                                        app.name + ':search-api2',
+                                        app.name + ':synonyms',
+                                    ];
                                     if (typesToClear.indexOf(content.type) !== -1) {
                                         wipeAll();
                                     }
@@ -140,6 +140,15 @@ function activateEventListener() {
                     }
                 }
             );
-        }
+        },
     });
 }
+
+module.exports = {
+    activateEventListener,
+    getEmptyAggregation,
+    getEmptyTimePeriod,
+    getEmptySearchResult,
+    getSynonyms,
+    getPriorities,
+};
