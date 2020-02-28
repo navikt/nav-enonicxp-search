@@ -2,7 +2,6 @@ const libs = {
     content: require('/lib/xp/content'),
     portal: require('/lib/xp/portal'),
     context: require('/lib/xp/context'),
-    http: require('/lib/http-client'),
     searchCache: require('/lib/search/searchCache'),
     node: require('/lib/xp/node'),
     navUtils: require('/lib/nav-utils'),
