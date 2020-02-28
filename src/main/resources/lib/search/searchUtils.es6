@@ -610,22 +610,71 @@ function enonicSearchWithoutAggregations(params) {
     };
 }
 
-/*
-    ------------ NAV search --------------
-    Here follows the current algorithm of the nav.no search
-    1. Take the raw search words and analyze them with elasticSearch analyzer (see 1.1)
-    2. Apply suggestions with elasticSearch suggest query (see 2. in 1.1)
-    3. Check for any prioritised elements from the search words and store them
-    4. Create a query based on the search word and facet parameters
-    5. Get the facet configuration and generate the aggregations based on the pre filtered query and configuration
-    6. Apply filters and Tidsperiode aggregations.
-    7. Do a first pass to create Tidsperiode buckets
-    8. If the search is limited by a time range, apply it to the query
-    9. If the search is sorted by date, apply it to the query
-    10. Run the query and store it
-    11. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
- */
+const prepareHits = (hit, wordList) => {
+    // 11. Join the prioritised search with the result and map the contents with: highlighting,
+    // href, displayName and so on
 
+    const highLight = getHighLight(hit, wordList);
+    const highlightText = calculateHighlightText(highLight);
+    const paths = getPaths(hit);
+    const href = paths.href;
+    const displayPath = paths.displayPath;
+    const className = getClassName(hit);
+
+    let officeInformation;
+    if (hit.type === 'no.nav.navno:office-information') {
+        officeInformation = {
+            phone:
+                hit.data.kontaktinformasjon && hit.data.kontaktinformasjon.telefonnummer
+                    ? hit.data.kontaktinformasjon.telefonnummer
+                    : '',
+            audienceReceptions:
+                hit.data.kontaktinformasjon &&
+                hit.data.kontaktinformasjon.publikumsmottak &&
+                hit.data.kontaktinformasjon.publikumsmottak.length > 0
+                    ? hit.data.kontaktinformasjon.publikumsmottak.map(function(a) {
+                          return a.besoeksadresse && a.besoeksadresse.poststed
+                              ? a.besoeksadresse.poststed
+                              : '';
+                      })
+                    : [],
+        };
+    }
+
+    let publishedString = null;
+    if (hit.type === 'no.nav.navno:main-article') {
+        publishedString = libs.navUtils.dateTimePublished(hit, hit.language || 'no');
+    }
+
+    return {
+        priority: !!hit.priority,
+        displayName: hit.displayName,
+        href: href,
+        displayPath: displayPath,
+        highlight: highlightText,
+        publish: hit.publish,
+        modifiedTime: hit.modifiedTime,
+        className: className,
+        officeInformation: officeInformation,
+        publishedString: publishedString,
+    };
+};
+
+/*
+  ------------ NAV search --------------
+  Here follows the current algorithm of the nav.no search
+  1. Take the raw search words and analyze them with elasticSearch analyzer (see 1.1)
+  2. Apply suggestions with elasticSearch suggest query (see 2. in 1.1)
+  3. Check for any prioritised elements from the search words and store them
+  4. Create a query based on the search word and facet parameters
+  5. Get the facet configuration and generate the aggregations based on the pre filtered query and configuration
+  6. Apply filters and Tidsperiode aggregations.
+  7. Do a first pass to create Tidsperiode buckets
+  8. If the search is limited by a time range, apply it to the query
+  9. If the search is sorted by date, apply it to the query
+  10. Run the query and store it
+  11. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
+*/
 function enonicSearch(params, skipCache) {
     const wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
 
@@ -643,7 +692,6 @@ function enonicSearch(params, skipCache) {
     const aggregations = getAggregations(query, config); // 5.
 
     query.filters = getFilters(params, config, prioritiesItems); // 6.
-
     query.aggregations.Tidsperiode = tidsperiode;
     // run time period query, or fetch from cache if its an empty search with an earlier used combination on facet and subfacet
     let q;
@@ -684,54 +732,10 @@ function enonicSearch(params, skipCache) {
     aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount +=
         prioritiesItems.hits.length;
 
-    hits = hits.map(function(el) {
-        // 11.
-        const highLight = getHighLight(el, wordList);
-        const highlightText = calculateHighlightText(highLight);
-        const paths = getPaths(el);
-        const href = paths.href;
-        const displayPath = paths.displayPath;
-        const className = getClassName(el);
-
-        let officeInformation;
-        if (el.type === 'no.nav.navno:office-information') {
-            officeInformation = {
-                phone:
-                    el.data.kontaktinformasjon && el.data.kontaktinformasjon.telefonnummer
-                        ? el.data.kontaktinformasjon.telefonnummer
-                        : '',
-                audienceReceptions:
-                    el.data.kontaktinformasjon &&
-                    el.data.kontaktinformasjon.publikumsmottak &&
-                    el.data.kontaktinformasjon.publikumsmottak.length > 0
-                        ? el.data.kontaktinformasjon.publikumsmottak.map(function(a) {
-                              return a.besoeksadresse && a.besoeksadresse.poststed
-                                  ? a.besoeksadresse.poststed
-                                  : '';
-                          })
-                        : [],
-            };
-        }
-
-        let publishedString = null;
-        if (el.type === 'no.nav.navno:main-article') {
-            publishedString = libs.navUtils.dateTimePublished(el, el.language || 'no');
-        }
-
-        return {
-            priority: !!el.priority,
-            displayName: el.displayName,
-            href: href,
-            displayPath: displayPath,
-            highlight: highlightText,
-            publish: el.publish,
-            modifiedTime: el.modifiedTime,
-            className: className,
-            officeInformation: officeInformation,
-            publishedString: publishedString,
-        };
+    // prepare the hits with highlighting and such
+    hits = hits.map(hit => {
+        return prepareHits(hit, wordList);
     });
-
     // Logging of search
     // <queryString - mainfacet|subfacets / timeInterval> => [searchWords] -- [numberOfHits | prioritizedHits]
     let facetsLog = '';
@@ -750,14 +754,14 @@ function enonicSearch(params, skipCache) {
     );
 
     return {
-        total: total,
-        hits: hits,
-        aggregations: aggregations,
+        total,
+        hits,
+        aggregations,
     };
 }
 
 module.exports = {
-    enonicSearch: enonicSearch,
-    enonicSearchWithoutAggregations: enonicSearchWithoutAggregations,
-    runInContext: runInContext,
+    enonicSearch,
+    enonicSearchWithoutAggregations,
+    runInContext,
 };
