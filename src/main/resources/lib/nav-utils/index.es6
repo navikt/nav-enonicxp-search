@@ -1,4 +1,4 @@
-var libs = {
+const libs = {
     i18n: require('/lib/xp/i18n'),
     moment: require('/assets/momentjs/2.14.1/min/moment-with-locales.min.js'),
     repo: require('/lib/xp/repo'),
@@ -6,32 +6,36 @@ var libs = {
     context: require('/lib/xp/context'),
 };
 
-exports.fixDateFormat = fixDateFormat;
 /**
  * @description Date formats on content created in XP7 is not necessarily supported in the Date wrapper in XP7 (but it does work in browsers)
  * @param {string} date Date
  * @returns {string} Correctly formated date
  */
-function fixDateFormat(date) {
-    if (date.indexOf('.') !== -1) {
-        date = date.split('.')[0] + 'Z';
-    }
-    return date;
-}
+const fixDateFormat = date => {
+    return date.indexOf('.') !== -1 ? date.split('.')[0] + 'Z' : date;
+};
 
 /**
  * Make sure the content is an array.
  * @param {*} content Whatever is passed in
  * @returns {Object[]} Array containing the content or just content
  */
-exports.forceArray = function(content) {
+const forceArray = content => {
     if (content) {
         return Array.isArray(content) ? content : [content];
     }
     return [];
 };
 
-exports.dateTimePublished = function(content, language) {
+const formatDate = (date, language) => {
+    // use nb(DD.MM.YYYY) for everything except for english content(MM/DD/YYYY)
+    return libs
+        .moment(date)
+        .locale(language === 'en' ? 'en' : 'nb')
+        .format('L');
+};
+
+const dateTimePublished = (content, language) => {
     if (!content) {
         return '';
     }
@@ -46,7 +50,7 @@ exports.dateTimePublished = function(content, language) {
     let modifiedString = '';
     const m = fixDateFormat(content.modifiedTime);
     if (new Date(m) > new Date(p)) {
-        let navUpdated = libs.i18n.localize({
+        const navUpdated = libs.i18n.localize({
             key: 'main_article.lastChanged',
             locale: language,
         });
@@ -56,17 +60,7 @@ exports.dateTimePublished = function(content, language) {
     return publishedString + modifiedString;
 };
 
-exports.formatDate = formatDate;
-function formatDate(date, language) {
-    // use nb(DD.MM.YYYY) for everything except for english content(MM/DD/YYYY)
-    return libs
-        .moment(date)
-        .locale(language === 'en' ? 'en' : 'nb')
-        .format('L');
-}
-
-exports.getNavRepo = getNavRepo;
-function getNavRepo() {
+const getNavRepo = () => {
     return libs.context.run(
         {
             repository: 'com.enonic.cms.default',
@@ -77,7 +71,7 @@ function getNavRepo() {
             },
             principals: ['role:system.admin'],
         },
-        function() {
+        () => {
             const hasNavRepo = libs.repo.get('no.nav.navno');
             if (!hasNavRepo) {
                 log.info('Create no.nav.navno repo');
@@ -98,10 +92,9 @@ function getNavRepo() {
             return navRepo;
         }
     );
-}
+};
 
-exports.getFacetValidation = getFacetValidation;
-function getFacetValidation() {
+const getFacetValidation = () => {
     const navRepo = getNavRepo();
     let facetValidation = navRepo.get('/facetValidation');
     if (!facetValidation) {
@@ -118,67 +111,68 @@ function getFacetValidation() {
     }
 
     return facetValidation;
-}
+};
 
-exports.setUpdateAll = setUpdateAll;
-function setUpdateAll(updateAll) {
+const setUpdateAll = updateAll => {
     getNavRepo().modify({
         key: getFacetValidation()._path,
-        editor: function(facetValidation) {
-            facetValidation.data.updateAll = updateAll;
-            return facetValidation;
+        editor: facetValidation => {
+            return { ...facetValidation, data: { ...facetValidation.data, updateAll: updateAll } };
         },
     });
-}
+};
 
-exports.isUpdatingAll = isUpdatingAll;
-function isUpdatingAll() {
+const isUpdatingAll = () => {
     return getFacetValidation().data.updateAll;
-}
+};
 
-exports.addValidatedNodes = addValidatedNodes;
-function addValidatedNodes(ids) {
+const addValidatedNodes = ids => {
     getNavRepo().modify({
         key: getFacetValidation()._path,
-        editor: function(facetValidation) {
-            let justValidatedNodes = facetValidation.data.justValidatedNodes
-                ? Array.isArray(facetValidation.data.justValidatedNodes)
-                    ? facetValidation.data.justValidatedNodes
-                    : [facetValidation.data.justValidatedNodes]
-                : [];
+        editor: facetValidation => {
+            let justValidatedNodes = [];
+            if (facetValidation.data.justValidatedNodes) {
+                justValidatedNodes = forceArray(facetValidation.data.justValidatedNodes);
+            }
             justValidatedNodes = justValidatedNodes.concat(ids);
-            facetValidation.data.justValidatedNodes = justValidatedNodes;
-            return facetValidation;
+            return { ...facetValidation, data: { ...facetValidation.data, justValidatedNodes } };
         },
     });
-}
+};
 
-exports.removeValidatedNodes = removeValidatedNodes;
-function removeValidatedNodes(ids) {
+const removeValidatedNodes = ids => {
     getNavRepo().modify({
         key: getFacetValidation()._path,
-        editor: function(facetValidation) {
-            const justValidatedNodes = facetValidation.data.justValidatedNodes
-                ? Array.isArray(facetValidation.data.justValidatedNodes)
-                    ? facetValidation.data.justValidatedNodes
-                    : [facetValidation.data.justValidatedNodes]
-                : [];
-            ids.forEach(function(id) {
+        editor: facetValidation => {
+            let justValidatedNodes = [];
+            if (facetValidation.data.justValidatedNodes) {
+                justValidatedNodes = forceArray(facetValidation.data.justValidatedNodes);
+            }
+            ids.forEach(id => {
                 justValidatedNodes.splice(justValidatedNodes.indexOf(id), 1);
             });
-            facetValidation.data.justValidatedNodes = justValidatedNodes;
-            return facetValidation;
+            return { ...facetValidation, data: { ...facetValidation.data, justValidatedNodes } };
         },
     });
-}
+};
 
-exports.getJustValidatedNodes = getJustValidatedNodes;
-function getJustValidatedNodes() {
+const getJustValidatedNodes = () => {
     const facetValidation = getFacetValidation();
-    const justValidatedNodes = facetValidation.data.justValidatedNodes
-        ? Array.isArray(facetValidation.data.justValidatedNodes)
-            ? facetValidation.data.justValidatedNodes
-            : [facetValidation.data.justValidatedNodes]
+    return facetValidation.data.justValidatedNodes
+        ? forceArray(facetValidation.data.justValidatedNodes)
         : [];
-    return justValidatedNodes;
-}
+};
+
+module.exports = {
+    fixDateFormat,
+    formatDate,
+    getJustValidatedNodes,
+    removeValidatedNodes,
+    addValidatedNodes,
+    isUpdatingAll,
+    setUpdateAll,
+    getNavRepo,
+    getFacetValidation,
+    forceArray,
+    dateTimePublished,
+};
