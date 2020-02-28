@@ -19,7 +19,9 @@ function handleGet(req) {
     const isSortDate = !params.s || params.s === '0';
 
     const model = {
-        c: c,
+        c,
+        isMore,
+        isSortDate,
         isMore: isMore,
         isSortDate: isSortDate,
         s: params.s ? params.s : '0',
