@@ -22,8 +22,6 @@ function handleGet(req) {
         c,
         isMore,
         isSortDate,
-        isMore: isMore,
-        isSortDate: isSortDate,
         s: params.s ? params.s : '0',
         word: params.ord,
         total: result.total.toString(10),
