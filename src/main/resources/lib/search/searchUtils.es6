@@ -667,7 +667,7 @@ function enonicSearch(params, skipCache) {
         query.query += dateRange;
     }
 
-    query.sort = params.s && params.s !== '0' ? 'modifiedTime DESC' : '_score DESC'; // 9.
+    query.sort = params.s && params.s !== '0' ? 'publish.from DESC' : '_score DESC'; // 9.
     query = addCountAndStart(params, query);
 
     const res = libs.content.query(query); // 10.
