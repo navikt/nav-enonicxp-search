@@ -1,7 +1,7 @@
 const searchUtils = require('/lib/search/searchUtils');
 
-function bucket(type, params, parent) {
-    return function(element, index) {
+const bucket = (type, params, parent) => {
+    return (element, index) => {
         const el = element;
         el.className = '';
         if (type === 'fasett') {
@@ -24,8 +24,9 @@ function bucket(type, params, parent) {
         el.className += el.checked ? 'erValgt' : '';
         return el;
     };
-}
-function parseAggs(aggregations, params) {
+};
+
+const parseAggs = (aggregations, params) => {
     const aggs = aggregations;
     const d = params.daterange ? Number(params.daterange) : -1;
     let tp = 0;
@@ -40,9 +41,9 @@ function parseAggs(aggregations, params) {
     aggs.Tidsperiode.checked = tc;
     aggs.fasetter.buckets = aggs.fasetter.buckets.map(bucket('fasett', params, false));
     return aggs;
-}
+};
 
-function handleGet(req) {
+const handleGet = req => {
     const params = req.params || {};
 
     let model = {
@@ -73,7 +74,7 @@ function handleGet(req) {
         isMore,
         word: params.ord,
         total: result.total.toString(10),
-        fasett: aggregations.fasetter.buckets.reduce(function(t, el) {
+        fasett: aggregations.fasetter.buckets.reduce((t, el) => {
             if (el.checked) return el.key;
             return t;
         }, ''),
@@ -85,5 +86,6 @@ function handleGet(req) {
         body: model,
         contentType: 'application/json',
     };
-}
+};
+
 exports.get = handleGet;
