@@ -9,7 +9,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Cleanup
-        run: rm -rf $(ls navno-*.jar)
+        run: rm -rf $(ls search-*.jar)
       - name: Download artifact
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
@@ -31,8 +31,8 @@ jobs:
           ENONIC_CLI_REMOTE_USER: ${{ secrets.Q6_ENONIC_CLI_REMOTE_USER }}
           ENONIC_CLI_REMOTE_PASS: ${{ secrets.Q6_ENONIC_CLI_REMOTE_PASS }}
         run: |
-          echo Deploying $(ls navno-*.jar)
+          echo Deploying $(ls search-*.jar)
           curl \
             -k ${ENONIC_CLI_REMOTE_URL} \
             --user "${ENONIC_CLI_REMOTE_USER}:${ENONIC_CLI_REMOTE_PASS}" \
-            -F file=@$(ls navno-*.jar)
+            -F file=@$(ls search-*.jar)
