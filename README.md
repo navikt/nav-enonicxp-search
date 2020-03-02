@@ -7,6 +7,9 @@
 ![Build to Q6](https://github.com/navikt/nav-enonicxp-search/workflows/Build%20to%20Q6/badge.svg)
 ![Deploy to Q6](https://github.com/navikt/nav-enonicxp-search/workflows/Deploy%20to%20Q6/badge.svg)
 
+Deployed by [nav-enonicxp-search-actions-runner
+](https://github.com/navikt/nav-enonicxp-search-actions-runner)
+
 ## How to get started
 
 1. Install Enonic by following the guide at https://developer.enonic.com/start
