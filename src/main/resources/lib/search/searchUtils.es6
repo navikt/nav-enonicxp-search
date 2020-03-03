@@ -542,10 +542,9 @@ const mapReducer = buckets => {
  */
 const getAggregations = (query, config) => {
     const agg = libs.content.query(query).aggregations;
-    agg.fasetter.buckets = (Array.isArray(config.data.fasetter)
-        ? config.data.fasetter
-        : [config.data.fasetter]
-    ).reduce(mapReducer(agg.fasetter.buckets), []);
+    agg.fasetter.buckets = libs.navUtils
+        .forceArray(config.data.fasetter)
+        .reduce(mapReducer(agg.fasetter.buckets), []);
     return agg;
 };
 
