@@ -54,20 +54,20 @@ const get = (key, params) => {
             size: 500,
             expire: HOUR,
         });
-    const enpoint = parseEndpoints(key, params);
+    const endpoint = parseEndpoints(key, params);
 
     if (key === 'kontaktinformasjon')
         return safeParse(
             http.request({
-                url: HOST + enpoint,
+                url: HOST + endpoint,
                 method: 'GET',
             }).body
         );
 
-    return cache.get(enpoint, function() {
+    return cache.get(endpoint, () => {
         return safeParse(
             http.request({
-                url: HOST + enpoint,
+                url: HOST + endpoint,
                 method: 'GET',
             }).body
         );
