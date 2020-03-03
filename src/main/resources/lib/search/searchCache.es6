@@ -12,26 +12,26 @@ const standardCache = {
 let emptySearchKeys = [];
 const searchCache = libs.cache.newCache(standardCache);
 
-function wipeAll() {
+const wipeAll = () => {
     searchCache.clear();
-}
+};
 
-function getEmptyAggregation(fallback) {
+const getEmptyAggregation = fallback => {
     return searchCache.get('emptyaggs', fallback);
-}
+};
 
-function getEmptyTimePeriod(key, fallback) {
+const getEmptyTimePeriod = (key, fallback) => {
     emptySearchKeys.push(key);
     return searchCache.get(key, fallback);
-}
+};
 
-function getEmptySearchResult(key, fallback) {
+const getEmptySearchResult = (key, fallback) => {
     emptySearchKeys.push(key);
     return searchCache.get(key, fallback);
-}
+};
 
-function getSynonyms() {
-    return searchCache.get('synonyms', function() {
+const getSynonyms = () => {
+    return searchCache.get('synonyms', () => {
         const synonymLists = libs.content.query({
             start: 0,
             count: 100,
@@ -39,15 +39,15 @@ function getSynonyms() {
         }).hits;
 
         const synonymMap = {};
-        synonymLists.forEach(function(synonymList) {
-            synonymList.data.synonyms.forEach(function(s) {
-                s.synonym.forEach(function(word) {
+        synonymLists.forEach(synonymList => {
+            synonymList.data.synonyms.forEach(s => {
+                s.synonym.forEach(word => {
                     // add all if its a new word
                     if (!synonymMap[word]) {
                         synonymMap[word] = [].concat(s.synonym);
                     } else {
                         // only add new unique words if it already exists
-                        s.synonym.forEach(function(syn) {
+                        s.synonym.forEach(syn => {
                             if (syn !== word && synonymMap[word].indexOf(syn) === -1) {
                                 synonymMap[word].push(syn);
                             }
@@ -59,10 +59,10 @@ function getSynonyms() {
 
         return synonymMap;
     });
-}
+};
 
-function getPriorities() {
-    return searchCache.get('priorites', function() {
+const getPriorities = () => {
+    return searchCache.get('priorites', () => {
         let priority = [];
         let start = 0;
         let count = 1000;
@@ -77,21 +77,21 @@ function getPriorities() {
             start += 1000;
             count = q.count;
             priority = priority.concat(
-                q.hits.map(function(el) {
+                q.hits.map(el => {
                     return el._id;
                 })
             );
         }
         return priority;
     });
-}
+};
 
-function activateEventListener() {
+const activateEventListener = () => {
     wipeAll();
     libs.event.listener({
         type: 'node.*',
         localOnly: false,
-        callback: function(event) {
+        callback: event => {
             libs.context.run(
                 {
                     repository: 'com.enonic.cms.default',
@@ -102,11 +102,11 @@ function activateEventListener() {
                     },
                     principals: ['role:system.admin'],
                 },
-                function() {
+                () => {
                     // clear aggregation cache
                     searchCache.remove('emptyaggs');
                     // clear other empty search caches
-                    emptySearchKeys.forEach(function(key) {
+                    emptySearchKeys.forEach(key => {
                         searchCache.remove(key);
                     });
                     emptySearchKeys = [];
@@ -116,7 +116,7 @@ function activateEventListener() {
                         wipeAll();
                     } else {
                         // clear full cache if prioritized items or synonyms have changed
-                        event.data.nodes.forEach(function(node) {
+                        event.data.nodes.forEach(node => {
                             if (
                                 node.branch === 'master' &&
                                 node.repo === 'com.enonic.cms.default'
@@ -142,7 +142,7 @@ function activateEventListener() {
             );
         },
     });
-}
+};
 
 module.exports = {
     activateEventListener,

@@ -2,7 +2,6 @@ const libs = {
     content: require('/lib/xp/content'),
     portal: require('/lib/xp/portal'),
     context: require('/lib/xp/context'),
-    http: require('/lib/http-client'),
     searchCache: require('/lib/search/searchCache'),
     node: require('/lib/xp/node'),
     navUtils: require('/lib/nav-utils'),
@@ -13,7 +12,7 @@ const repo = libs.node.connect({
     principals: ['role:system.admin'],
 });
 
-function runInContext(func, params) {
+const runInContext = (func, params) => {
     return libs.context.run(
         {
             repository: 'com.enonic.cms.default',
@@ -24,11 +23,11 @@ function runInContext(func, params) {
             },
             principals: ['role:system.admin'],
         },
-        function() {
+        () => {
             return func(params);
         }
     );
-}
+};
 
 /*
     ----------- The date ranges for date range aggregations -----
@@ -71,12 +70,12 @@ const tidsperiode = {
        to the search string
     3. Return result
  */
-function getSearchWords(queryWord) {
+const getSearchWords = queryWord => {
     const word = queryWord.replace(/æ/g, 'ae').replace(/ø/g, 'o');
     // run analyzer to remove stopwords
     const analyze = __.newBean('no.nav.search.elastic.Analyze');
     analyze.text = __.nullOrValue(word);
-    let wordList = __.toNativeObject(analyze.analyze()).reduce(function(t, token) {
+    let wordList = __.toNativeObject(analyze.analyze()).reduce((t, token) => {
         // only keep unique words from the analyzer
         if (t.indexOf(token.term) === -1) {
             t.push(token.term);
@@ -91,7 +90,7 @@ function getSearchWords(queryWord) {
     // get suggestions
     const suggest = __.newBean('no.nav.search.elastic.Suggest');
     suggest.texts = __.nullOrValue(wordList);
-    __.toNativeObject(suggest.suggest()).forEach(function(suggestion) {
+    __.toNativeObject(suggest.suggest()).forEach(suggestion => {
         if (wordList.indexOf(suggestion) === -1) {
             wordList.push(suggestion);
         }
@@ -99,9 +98,9 @@ function getSearchWords(queryWord) {
 
     // synonyms
     const synonymMap = libs.searchCache.getSynonyms();
-    wordList = wordList.reduce(function(list, key) {
+    wordList = wordList.reduce((list, key) => {
         if (synonymMap[key]) {
-            synonymMap[key].forEach(function(synonym) {
+            synonymMap[key].forEach(synonym => {
                 if (list.indexOf(synonym) === -1) {
                     list.push(synonym);
                 }
@@ -111,9 +110,9 @@ function getSearchWords(queryWord) {
     }, wordList);
 
     return wordList;
-}
+};
 
-function getSearchPriorityContent(id) {
+const getSearchPriorityContent = id => {
     const content = libs.content.get({
         key: id,
     });
@@ -122,12 +121,12 @@ function getSearchPriorityContent(id) {
         return getSearchPriorityContent(content.data.target);
     }
     return content;
-}
+};
 
 /*
     ----------- Retrieve the list of prioritised elements and check if the search would hit any of the elements -----
  */
-function getPrioritiesedElements(wordList) {
+const getPrioritiesedElements = wordList => {
     const priorityIds = libs.searchCache.getPriorities();
 
     // add hits on pri content and not keyword
@@ -144,11 +143,11 @@ function getPrioritiesedElements(wordList) {
     }).hits;
 
     // remove search-priority and add the content it points to instead
-    hits = hits.reduce(function(list, el) {
+    hits = hits.reduce((list, el) => {
         if (el.type === 'navno.nav.no.search:search-priority') {
             const content = getSearchPriorityContent(el.data.content);
             const missingContent =
-                hits.filter(function(a) {
+                hits.filter(a => {
                     return a._id === content._id;
                 }).length === 0;
 
@@ -169,12 +168,12 @@ function getPrioritiesedElements(wordList) {
             priority: true,
         })),
     };
-}
+};
 
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
-function getQuery(wordList) {
+const getQuery = wordList => {
     const navApp = 'no.nav.navno:';
     const query =
         'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
@@ -220,9 +219,9 @@ function getQuery(wordList) {
             } */,
         },
     };
-}
+};
 
-function addCountAndStart(params, query) {
+const addCountAndStart = (params, query) => {
     let count = params.c ? parseInt(params.c) || 0 : 0;
     count = count ? count * 20 : 20;
 
@@ -230,36 +229,33 @@ function addCountAndStart(params, query) {
     start *= 20;
     count -= start;
     return { ...query, start, count };
-}
+};
 
-function getFilters(params, config, prioritiesItems) {
-    let filters;
+const getFilters = (params, config, prioritiesItems) => {
+    let filters = { boolean: { must: [] } };
+
     if (params.f) {
-        filters = {
-            boolean: {
-                must: {
-                    hasValue: {
-                        field: 'x.no-nav-navno.fasetter.fasett',
-                        values: [config.data.fasetter[Number(params.f)].name],
-                    },
-                },
+        filters.boolean.must.push({
+            hasValue: {
+                field: 'x.no-nav-navno.fasetter.fasett',
+                values: [config.data.fasetter[Number(params.f)].name],
             },
-        };
+        });
 
         if (params.uf) {
             const values = [];
-            (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(function(uf) {
+            (Array.isArray(params.uf) ? params.uf : [params.uf]).forEach(uf => {
                 const undf = Array.isArray(config.data.fasetter[Number(params.f)].underfasetter)
                     ? config.data.fasetter[Number(params.f)].underfasetter
                     : [config.data.fasetter[Number(params.f)].underfasetter];
                 values.push(undf[Number(uf)].name);
             });
-            filters.boolean.must = {
+            filters.boolean.must.push({
                 hasValue: {
                     field: 'x.no-nav-navno.fasetter.underfasett',
                     values: values,
                 },
-            };
+            });
         }
 
         if (prioritiesItems.ids.length > 0) {
@@ -291,7 +287,7 @@ function getFilters(params, config, prioritiesItems) {
         };
     }
     return filters;
-}
+};
 
 /*
        -------- Coarse algorithm for setting class name to an result element -------
@@ -301,7 +297,7 @@ function getFilters(params, config, prioritiesItems) {
        3. If it has been mapped with facets, set the classname attribute as its classname
 
  */
-function getClassName(el) {
+const getClassName = el => {
     let className = 'informasjon';
     if (el.type.startsWith('media')) {
         className = 'pdf';
@@ -314,14 +310,14 @@ function getClassName(el) {
         }
     }
     return className;
-}
+};
 
 /*
      ----------- Get the url from the element ---------
      If it is a service or application, return the given url or host
      else do a portal lookup and return the url
  */
-function getPaths(el) {
+const getPaths = el => {
     const paths = {
         href: '',
         displayPath: '',
@@ -378,9 +374,9 @@ function getPaths(el) {
     }
 
     return paths;
-}
+};
 
-function calculateHighlightText(highLight) {
+const calculateHighlightText = highLight => {
     if (highLight.ingress.highlighted) {
         return highLight.ingress.text;
     }
@@ -394,14 +390,14 @@ function calculateHighlightText(highLight) {
         return highLight.text.text;
     }
     return '';
-}
+};
 
 /*
   -------- 'substring' substitute -----------
   This function make sure that a word is not cut in the middle
   It subtracts or/and add the length of the substring method
 */
-function substreng(text, start, stopp) {
+const substreng = (text, start, stopp) => {
     let trueStart = start >= 0 ? start : text.length + start;
     let trueStop = stopp;
     let tstopc = text.charAt(trueStop);
@@ -415,21 +411,21 @@ function substreng(text, start, stopp) {
         tstopc = text.charAt(trueStop);
     }
     return start >= 0 ? text.substring(trueStart, trueStop) : text.substring(trueStart);
-}
+};
 
-function removeHTMLTags(text) {
+const removeHTMLTags = text => {
     return text.replace(/<\/?[^>]+(>|$)/g, '');
-}
+};
 
 /*
   --------- Test and replace ---------
   Find the match from any word character + word + any word character and surround the hits with <b> tag
 */
-function addBoldTag(word, text) {
-    return text.replace(new RegExp('\\w*' + word + '\\w*', 'gi'), function(e) {
+const addBoldTag = (word, text) => {
+    return text.replace(new RegExp('\\w*' + word + '\\w*', 'gi'), e => {
         return '<b>' + e + '</b>';
     });
-}
+};
 
 /*
     ---------------- Algorithm for finding and highlighting a text fragment ---------------
@@ -440,7 +436,7 @@ function addBoldTag(word, text) {
     11.2.5. Do a check where the index of the word is in the text, if it exceed 200 of length add a trailing (...)
     TODO multiple (...) is added for multiparsed highlights
  */
-function findSubstring(word, text) {
+const findSubstring = (word, text) => {
     const replaceText = addBoldTag(word, text); // 11.2.2.
     const index = text.indexOf(word); // 11.2.3.
     if (index === -1) return false; // 11.2.4.
@@ -454,7 +450,7 @@ function findSubstring(word, text) {
     return text.length > 200
         ? substreng(replaceText, index - 100, index + 100) + ' (...)'
         : replaceText;
-}
+};
 
 /*
      -------------- Algorithm for highlighting ---------------
@@ -463,9 +459,9 @@ function findSubstring(word, text) {
      11.3. If there is an occurrence of a word in text, do the rest of the highlighting from that fragment of text
      11.4. Return a highlighted fragment of text or false
  */
-function highLightFragment(searchText, wordList) {
+const highLightFragment = (searchText, wordList) => {
     let text = removeHTMLTags(searchText);
-    const highligthedText = wordList.reduce(function(t, word) {
+    const highligthedText = wordList.reduce((t, word) => {
         let currentText = t;
         if (word.length < 2) {
             return currentText;
@@ -494,9 +490,9 @@ function highLightFragment(searchText, wordList) {
         highlighted: false,
         text: text || '',
     };
-}
+};
 
-function getHighLight(el, wordList) {
+const getHighLight = (el, wordList) => {
     if (el.type === 'media:document') {
         const media = repo.get(el._id);
         if (media && media.attachment) {
@@ -510,16 +506,16 @@ function getHighLight(el, wordList) {
         text: highLightFragment(el.data.text || '', wordList),
         ingress: highLightFragment(el.data.ingress || el.data.description || '', wordList),
     };
-}
+};
 
 /*
     -------------- Map and reduce the facet configuration with the aggregated result ------------
     As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
     aggregation result as a bucket with docCount = 0
  */
-function mapReducer(buckets) {
-    return function(t, el) {
-        const match = buckets.reduce(function(t2, e) {
+const mapReducer = buckets => {
+    return (t, el) => {
+        const match = buckets.reduce((t2, e) => {
             return t2 || (e.key === el.name.toLowerCase() ? e : t2);
         }, undefined);
 
@@ -538,25 +534,24 @@ function mapReducer(buckets) {
         });
         return t;
     };
-}
+};
 
 /*
     ------------ Retrieve the aggregations from the query before query filters is applied and map the results ----------
 
  */
-function getAggregations(query, config) {
+const getAggregations = (query, config) => {
     const agg = libs.content.query(query).aggregations;
-    agg.fasetter.buckets = (Array.isArray(config.data.fasetter)
-        ? config.data.fasetter
-        : [config.data.fasetter]
-    ).reduce(mapReducer(agg.fasetter.buckets), []);
+    agg.fasetter.buckets = libs.navUtils
+        .forceArray(config.data.fasetter)
+        .reduce(mapReducer(agg.fasetter.buckets), []);
     return agg;
-}
+};
 
 /*
     -------- Add the date range to query if selected ----------
  */
-function getDateRange(daterange, buckets) {
+const getDateRange = (daterange, buckets) => {
     const dateRangeValue = Number(daterange);
     if (!buckets || dateRangeValue.isNaN() || !buckets[dateRangeValue]) return '';
     let s = '';
@@ -568,9 +563,9 @@ function getDateRange(daterange, buckets) {
         s += ' And modifiedTime > dateTime("' + e.from + '")';
     }
     return s;
-}
+};
 
-function enonicSearchWithoutAggregations(params) {
+const enonicSearchWithoutAggregations = params => {
     const wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
     const prioritiesItems = getPrioritiesedElements(wordList); // 3.
     let query = getQuery(wordList); // 4.
@@ -592,7 +587,7 @@ function enonicSearchWithoutAggregations(params) {
         total += prioritiesItems.hits.length;
     }
 
-    hits = hits.map(function(el) {
+    hits = hits.map(el => {
         // 11.
         const highLight = getHighLight(el, wordList);
         const highlightText = calculateHighlightText(highLight);
@@ -611,30 +606,79 @@ function enonicSearchWithoutAggregations(params) {
         total: total,
         hits: hits,
     };
-}
+};
+
+const prepareHits = (hit, wordList) => {
+    // 11. Join the prioritised search with the result and map the contents with: highlighting,
+    // href, displayName and so on
+
+    const highLight = getHighLight(hit, wordList);
+    const highlightText = calculateHighlightText(highLight);
+    const paths = getPaths(hit);
+    const href = paths.href;
+    const displayPath = paths.displayPath;
+    const className = getClassName(hit);
+
+    let officeInformation;
+    if (hit.type === 'no.nav.navno:office-information') {
+        officeInformation = {
+            phone:
+                hit.data.kontaktinformasjon && hit.data.kontaktinformasjon.telefonnummer
+                    ? hit.data.kontaktinformasjon.telefonnummer
+                    : '',
+            audienceReceptions:
+                hit.data.kontaktinformasjon &&
+                hit.data.kontaktinformasjon.publikumsmottak &&
+                hit.data.kontaktinformasjon.publikumsmottak.length > 0
+                    ? hit.data.kontaktinformasjon.publikumsmottak.map(a => {
+                          return a.besoeksadresse && a.besoeksadresse.poststed
+                              ? a.besoeksadresse.poststed
+                              : '';
+                      })
+                    : [],
+        };
+    }
+
+    let publishedString = null;
+    if (hit.type === 'no.nav.navno:main-article') {
+        publishedString = libs.navUtils.dateTimePublished(hit, hit.language || 'no');
+    }
+
+    return {
+        priority: !!hit.priority,
+        displayName: hit.displayName,
+        href: href,
+        displayPath: displayPath,
+        highlight: highlightText,
+        publish: hit.publish,
+        modifiedTime: hit.modifiedTime,
+        className: className,
+        officeInformation: officeInformation,
+        publishedString: publishedString,
+    };
+};
 
 /*
-    ------------ NAV search --------------
-    Here follows the current algorithm of the nav.no search
-    1. Take the raw search words and analyze them with elasticSearch analyzer (see 1.1)
-    2. Apply suggestions with elasticSearch suggest query (see 2. in 1.1)
-    3. Check for any prioritised elements from the search words and store them
-    4. Create a query based on the search word and facet parameters
-    5. Get the facet configuration and generate the aggregations based on the pre filtered query and configuration
-    6. Apply filters and Tidsperiode aggregations.
-    7. Do a first pass to create Tidsperiode buckets
-    8. If the search is limited by a time range, apply it to the query
-    9. If the search is sorted by date, apply it to the query
-    10. Run the query and store it
-    11. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
- */
-
-function enonicSearch(params, skipCache) {
+  ------------ NAV search --------------
+  Here follows the current algorithm of the nav.no search
+  1. Take the raw search words and analyze them with elasticSearch analyzer (see 1.1)
+  2. Apply suggestions with elasticSearch suggest query (see 2. in 1.1)
+  3. Check for any prioritised elements from the search words and store them
+  4. Create a query based on the search word and facet parameters
+  5. Get the facet configuration and generate the aggregations based on the pre filtered query and configuration
+  6. Apply filters and Tidsperiode aggregations.
+  7. Do a first pass to create Tidsperiode buckets
+  8. If the search is limited by a time range, apply it to the query
+  9. If the search is sorted by date, apply it to the query
+  10. Run the query and store it
+  11. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
+*/
+const enonicSearch = (params, skipCache) => {
     const wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {
-        return libs.searchCache.getEmptySearchResult(JSON.stringify(params), function() {
+        return libs.searchCache.getEmptySearchResult(JSON.stringify(params), () => {
             return enonicSearch(params, true);
         });
     }
@@ -646,19 +690,15 @@ function enonicSearch(params, skipCache) {
     const aggregations = getAggregations(query, config); // 5.
 
     query.filters = getFilters(params, config, prioritiesItems); // 6.
-
     query.aggregations.Tidsperiode = tidsperiode;
     // run time period query, or fetch from cache if its an empty search with an earlier used combination on facet and subfacet
     let q;
     if (wordList.length > 0) {
         q = libs.content.query(query);
     } else {
-        q = libs.searchCache.getEmptyTimePeriod(
-            params.f + '_' + JSON.stringify(params.uf),
-            function() {
-                return libs.content.query(query);
-            }
-        );
+        q = libs.searchCache.getEmptyTimePeriod(params.f + '_' + JSON.stringify(params.uf), () => {
+            return libs.content.query(query);
+        });
     }
     aggregations.Tidsperiode = q.aggregations.Tidsperiode; // 7.
 
@@ -687,54 +727,10 @@ function enonicSearch(params, skipCache) {
     aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount +=
         prioritiesItems.hits.length;
 
-    hits = hits.map(function(el) {
-        // 11.
-        const highLight = getHighLight(el, wordList);
-        const highlightText = calculateHighlightText(highLight);
-        const paths = getPaths(el);
-        const href = paths.href;
-        const displayPath = paths.displayPath;
-        const className = getClassName(el);
-
-        let officeInformation;
-        if (el.type === 'no.nav.navno:office-information') {
-            officeInformation = {
-                phone:
-                    el.data.kontaktinformasjon && el.data.kontaktinformasjon.telefonnummer
-                        ? el.data.kontaktinformasjon.telefonnummer
-                        : '',
-                audienceReceptions:
-                    el.data.kontaktinformasjon &&
-                    el.data.kontaktinformasjon.publikumsmottak &&
-                    el.data.kontaktinformasjon.publikumsmottak.length > 0
-                        ? el.data.kontaktinformasjon.publikumsmottak.map(function(a) {
-                              return a.besoeksadresse && a.besoeksadresse.poststed
-                                  ? a.besoeksadresse.poststed
-                                  : '';
-                          })
-                        : [],
-            };
-        }
-
-        let publishedString = null;
-        if (el.type === 'no.nav.navno:main-article') {
-            publishedString = libs.navUtils.dateTimePublished(el, el.language || 'no');
-        }
-
-        return {
-            priority: !!el.priority,
-            displayName: el.displayName,
-            href: href,
-            displayPath: displayPath,
-            highlight: highlightText,
-            publish: el.publish,
-            modifiedTime: el.modifiedTime,
-            className: className,
-            officeInformation: officeInformation,
-            publishedString: publishedString,
-        };
+    // prepare the hits with highlighting and such
+    hits = hits.map(hit => {
+        return prepareHits(hit, wordList);
     });
-
     // Logging of search
     // <queryString - mainfacet|subfacets / timeInterval> => [searchWords] -- [numberOfHits | prioritizedHits]
     let facetsLog = '';
@@ -753,14 +749,14 @@ function enonicSearch(params, skipCache) {
     );
 
     return {
-        total: total,
-        hits: hits,
-        aggregations: aggregations,
+        total,
+        hits,
+        aggregations,
     };
-}
+};
 
 module.exports = {
-    enonicSearch: enonicSearch,
-    enonicSearchWithoutAggregations: enonicSearchWithoutAggregations,
-    runInContext: runInContext,
+    enonicSearch,
+    enonicSearchWithoutAggregations,
+    runInContext,
 };
