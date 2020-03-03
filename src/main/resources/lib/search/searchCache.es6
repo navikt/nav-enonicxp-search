@@ -1,58 +1,53 @@
-var libs = {
+const libs = {
     cache: require('/lib/cache'),
     event: require('/lib/xp/event'),
     content: require('/lib/xp/content'),
-    context: require('/lib/xp/context')
+    context: require('/lib/xp/context'),
 };
-var standardCache = {
+const standardCache = {
     size: 1000,
-    expire: 3600 * 24 /* One day */
+    expire: 3600 * 24 /* One day */,
 };
 
-var emptySearchKeys = [];
-var searchCache = libs.cache.newCache(standardCache);
+let emptySearchKeys = [];
+const searchCache = libs.cache.newCache(standardCache);
 
-function wipeAll() {
+const wipeAll = () => {
     searchCache.clear();
-    log.info('search cache wiped');
-}
+};
 
-module.exports.getEmptyAggregation = getEmptyAggregation;
-function getEmptyAggregation(fallback) {
+const getEmptyAggregation = fallback => {
     return searchCache.get('emptyaggs', fallback);
-}
+};
 
-module.exports.getEmptyTimePeriod = getEmptyTimePeriod;
-function getEmptyTimePeriod(key, fallback) {
+const getEmptyTimePeriod = (key, fallback) => {
     emptySearchKeys.push(key);
     return searchCache.get(key, fallback);
-}
+};
 
-module.exports.getEmptySearchResult = getEmptySearchResult;
-function getEmptySearchResult(key, fallback) {
+const getEmptySearchResult = (key, fallback) => {
     emptySearchKeys.push(key);
     return searchCache.get(key, fallback);
-}
+};
 
-module.exports.getSynonyms = getSynonyms;
-function getSynonyms() {
-    return searchCache.get('synonyms', function() {
-        var synonymLists = libs.content.query({
+const getSynonyms = () => {
+    return searchCache.get('synonyms', () => {
+        const synonymLists = libs.content.query({
             start: 0,
             count: 100,
-            query: 'type = "' + app.name + ':synonyms"'
+            query: 'type = "' + app.name + ':synonyms"',
         }).hits;
 
-        var synonymMap = {};
-        synonymLists.forEach(function(synonymList) {
-            synonymList.data.synonyms.forEach(function(s) {
-                s.synonym.forEach(function(word) {
+        const synonymMap = {};
+        synonymLists.forEach(synonymList => {
+            synonymList.data.synonyms.forEach(s => {
+                s.synonym.forEach(word => {
                     // add all if its a new word
                     if (!synonymMap[word]) {
                         synonymMap[word] = [].concat(s.synonym);
                     } else {
                         // only add new unique words if it already exists
-                        s.synonym.forEach(function(syn) {
+                        s.synonym.forEach(syn => {
                             if (syn !== word && synonymMap[word].indexOf(syn) === -1) {
                                 synonymMap[word].push(syn);
                             }
@@ -64,56 +59,54 @@ function getSynonyms() {
 
         return synonymMap;
     });
-}
+};
 
-module.exports.getPriorities = getPriorities;
-function getPriorities() {
-    return searchCache.get('priorites', function() {
-        var priority = [];
-        var start = 0;
-        var count = 1000;
+const getPriorities = () => {
+    return searchCache.get('priorites', () => {
+        let priority = [];
+        let start = 0;
+        let count = 1000;
         while (count === 1000) {
-            var q = libs.content.query({
+            const q = libs.content.query({
                 start: start,
                 count: 1000,
-                query: `(_parentpath LIKE "*prioriterte-elementer*" OR _parentpath LIKE "*prioriterte-elementer-eksternt*") AND 
-                        (type = "navno.nav.no.search:search-priority" OR type = "navno.nav.no.search:search-api2")`
+                query: `(_parentpath LIKE "*prioriterte-elementer*" OR _parentpath LIKE "*prioriterte-elementer-eksternt*") AND
+                        (type = "navno.nav.no.search:search-priority" OR type = "navno.nav.no.search:search-api2")`,
             });
 
             start += 1000;
             count = q.count;
             priority = priority.concat(
-                q.hits.map(function(el) {
+                q.hits.map(el => {
                     return el._id;
                 })
             );
         }
         return priority;
     });
-}
+};
 
-module.exports.activateEventListener = activateEventListener;
-function activateEventListener() {
+const activateEventListener = () => {
     wipeAll();
     libs.event.listener({
         type: 'node.*',
         localOnly: false,
-        callback: function(event) {
+        callback: event => {
             libs.context.run(
                 {
                     repository: 'com.enonic.cms.default',
                     branch: 'master',
                     user: {
                         login: 'su',
-                        userStore: 'system'
+                        userStore: 'system',
                     },
-                    principals: ['role:system.admin']
+                    principals: ['role:system.admin'],
                 },
-                function() {
+                () => {
                     // clear aggregation cache
                     searchCache.remove('emptyaggs');
                     // clear other empty search caches
-                    emptySearchKeys.forEach(function(key) {
+                    emptySearchKeys.forEach(key => {
                         searchCache.remove(key);
                     });
                     emptySearchKeys = [];
@@ -123,11 +116,18 @@ function activateEventListener() {
                         wipeAll();
                     } else {
                         // clear full cache if prioritized items or synonyms have changed
-                        event.data.nodes.forEach(function(node) {
-                            if (node.branch === 'master' && node.repo === 'com.enonic.cms.default') {
-                                var content = libs.content.get({ key: node.id });
+                        event.data.nodes.forEach(node => {
+                            if (
+                                node.branch === 'master' &&
+                                node.repo === 'com.enonic.cms.default'
+                            ) {
+                                const content = libs.content.get({ key: node.id });
                                 if (content) {
-                                    var typesToClear = [app.name + ':search-priority', app.name + ':search-api2', app.name + ':synonyms'];
+                                    const typesToClear = [
+                                        app.name + ':search-priority',
+                                        app.name + ':search-api2',
+                                        app.name + ':synonyms',
+                                    ];
                                     if (typesToClear.indexOf(content.type) !== -1) {
                                         wipeAll();
                                     }
@@ -140,6 +140,15 @@ function activateEventListener() {
                     }
                 }
             );
-        }
+        },
     });
-}
+};
+
+module.exports = {
+    activateEventListener,
+    getEmptyAggregation,
+    getEmptyTimePeriod,
+    getEmptySearchResult,
+    getSynonyms,
+    getPriorities,
+};

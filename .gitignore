@@ -97,3 +97,6 @@ eclipse-formatter.xml
 .project
 bin/
 .classpath
+
+node_modules/
+.enonic
