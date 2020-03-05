@@ -23,7 +23,9 @@ jobs:
           | jq '.artifacts[0].id')"
 
           echo Downloading artifact $ARTIFACT_ID
-          curl -L -o app.zip "https://${GITHUB_PAT}@api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/$ARTIFACT_ID/zip"
+          curl -o app.zip \
+          -H "Authorization: Bearer ${GITHUB_PAT}" \
+          -L "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/$ARTIFACT_ID/zip"
           unzip -o app.zip
       - name: Deploy application
         env:
