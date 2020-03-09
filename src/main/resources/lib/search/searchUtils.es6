@@ -175,11 +175,10 @@ const getPrioritiesedElements = wordList => {
  */
 const getQuery = wordList => {
     const navApp = 'no.nav.navno:';
-    const query =
-        'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
-        wordList.join(' ') +
-        '", "OR") ';
-    return {
+    const query = `fulltext("attachment.*, data.text^9, data.ingress^4, displayName, data.abstract,
+        data.keywords, data.enhet.*, data.interface.*",
+        "${wordList.join(' ')} ", "OR")`; // Todo: remove experiment
+    const enonicQuery = {
         start: 0,
         count: 0,
         query: query,
@@ -219,6 +218,8 @@ const getQuery = wordList => {
             } */,
         },
     };
+    log.info(JSON.stringify(enonicQuery, null, 4));
+    return enonicQuery;
 };
 
 const addCountAndStart = (params, query) => {
@@ -683,7 +684,8 @@ const enonicSearch = (params, skipCache) => {
         });
     }
 
-    const prioritiesItems = getPrioritiesedElements(wordList); // 3.
+    // const prioritiesItems = getPrioritiesedElements(wordList); // 3.
+    const prioritiesItems = { total: 0, ids: [], hits: [], count: 0}; // Todo: remove
 
     let query = getQuery(wordList); // 4.
     const config = libs.content.get({ key: '/www.nav.no/fasetter' });
@@ -694,6 +696,7 @@ const enonicSearch = (params, skipCache) => {
     // run time period query, or fetch from cache if its an empty search with an earlier used combination on facet and subfacet
     let q;
     if (wordList.length > 0) {
+        log.info(JSON.stringify(query, null, 4));
         q = libs.content.query(query);
     } else {
         q = libs.searchCache.getEmptyTimePeriod(params.f + '_' + JSON.stringify(params.uf), () => {
