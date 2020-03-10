@@ -175,9 +175,9 @@ const getPrioritiesedElements = wordList => {
  */
 const getQuery = wordList => {
     const navApp = 'no.nav.navno:';
-    const query = `fulltext("attachment.*, data.text^9, data.ingress^4, displayName, data.abstract,
-        data.keywords, data.enhet.*, data.interface.*",
-        "${wordList.join(' ')} ", "OR")`; // Todo: remove experiment
+    const query = `fulltext("attachment.*, data.text, data.ingress^3, displayName^8, data.abstract,
+        data.keywords^9, data.enhet.*, data.interface.*", "${wordList.join(' ')} ", "OR")`;
+
     const enonicQuery = {
         start: 0,
         count: 0,
