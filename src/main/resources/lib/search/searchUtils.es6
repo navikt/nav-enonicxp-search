@@ -178,11 +178,11 @@ const getQuery = (wordList, isPhrase) => {
     const navApp = 'no.nav.navno:';
     const searchWords = isPhrase ? `"${wordList.pop()}"~3` : wordList.join(' ');
 
-    const query = `fulltext('attachment.*, data.text^7, data.ingress^4, displayName^2, data.abstract,
-            data.keywords^9, data.enhet.*, data.interface.*', '${searchWords}', 'OR') 
+    const query = `fulltext('attachment.*, data.text^6, data.ingress^7, displayName^5, data.abstract,
+            data.keywords^9, data.enhet.*, data.interface.*', '${searchWords}', 'OR')
             OR stemmed('_allText', '${searchWords}', 'OR', '${LANG_CODE}')`;
 
-    const enonicQuery = {
+    return {
         start: 0,
         count: 0,
         query: query,
@@ -222,7 +222,6 @@ const getQuery = (wordList, isPhrase) => {
             } */,
         },
     };
-    return enonicQuery;
 };
 
 const addCountAndStart = (params, query) => {
