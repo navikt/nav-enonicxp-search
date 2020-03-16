@@ -12,11 +12,6 @@ const repo = libs.node.connect({
     principals: ['role:system.admin'],
 });
 
-const USE_WEIGHT = true;
-const USE_PRIORITIZED_RESULTS = false;
-const USE_PHRASES = true;
-const USE_STEMMING = true;
-
 const runInContext = (func, params) => {
     return libs.context.run(
         {
@@ -28,9 +23,7 @@ const runInContext = (func, params) => {
             },
             principals: ['role:system.admin'],
         },
-        () => {
-            return func(params);
-        }
+        () => func(params)
     );
 };
 
@@ -70,10 +63,12 @@ const tidsperiode = {
 
 /*
     ---------------- 1.1 Extract and optimize search words --------------
-    1. Use the nb_NO analyzer to remove stop words and find the stemmed version of the word
+    1. Use the nb_NO analyzer to remove stop words
     2. From the analyzed version, split the words and see if there is any misspellings and add the correct spelled word
        to the search string
-    3. Return result
+    3. Run a suggestion query towards elasticsearch and add suggestions to list
+    4. Fetch all synonyms defined in XP and add matches to wordlist
+    3. Return list of words that will be searched for.
  */
 const getSearchWords = queryWord => {
     const word = queryWord.replace(/æ/g, 'ae').replace(/ø/g, 'o');
@@ -178,23 +173,14 @@ const getPrioritiesedElements = wordList => {
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
-const LANG_CODE = 'nb';
+const LANG_CODE = 'no';
 const getQuery = (wordList, isPhrase) => {
     const navApp = 'no.nav.navno:';
-    let query ;
-    const searchWords = isPhrase && USE_PHRASES ? `"${wordList.pop()}"~2` : wordList.join(' ');
+    const searchWords = isPhrase ? `"${wordList.pop()}"~3` : wordList.join(' ');
 
-    if (USE_WEIGHT) {
-        query = `fulltext('attachment.*, data.text, data.ingress^4, displayName^8, data.abstract,
-            data.keywords^9, data.enhet.*, data.interface.*', '${searchWords}', 'OR')`;
-    } else {
-        query = `fulltext('attachment.*, data.text, data.ingress, displayName, data.abstract,
-            data.keywords, data.enhet.*, data.interface.*', '${searchWords}', 'OR')`;
-    }
-    if (USE_STEMMING) {
-        query = `${query} OR stemmed('attachment.*, data.text, data.ingress^4, displayName^8, data.abstract,
-            data.keywords^9, data.enhet.*, data.interface.*', '${searchWords}', 'OR', '${LANG_CODE}')`
-    }
+    const query = `fulltext('attachment.*, data.text^7, data.ingress^4, displayName^2, data.abstract,
+            data.keywords^9, data.enhet.*, data.interface.*', '${searchWords}', 'OR') 
+            OR stemmed('_allText', '${searchWords}', 'OR', '${LANG_CODE}')`;
 
     const enonicQuery = {
         start: 0,
@@ -236,7 +222,6 @@ const getQuery = (wordList, isPhrase) => {
             } */,
         },
     };
-    log.info(JSON.stringify(enonicQuery, null, 4));
     return enonicQuery;
 };
 
@@ -542,14 +527,14 @@ const mapReducer = buckets => {
         const under =
             'underfasetter' in el
                 ? (Array.isArray(el.underfasetter) ? el.underfasetter : [el.underfasetter]).reduce(
-                      mapReducer(match ? match.underaggregeringer.buckets || [] : []),
-                      []
-                  )
+                mapReducer(match ? match.underaggregeringer.buckets || [] : []),
+                []
+                )
                 : [];
         t.push({
             key: el.name,
             docCount: docCount,
-            underaggregeringer: { buckets: under },
+            underaggregeringer: {buckets: under},
         });
         return t;
     };
@@ -588,7 +573,7 @@ const enonicSearchWithoutAggregations = params => {
     const wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
     const prioritiesItems = getPrioritiesedElements(wordList); // 3.
     let query = getQuery(wordList); // 4.
-    const config = libs.content.get({ key: '/www.nav.no/fasetter' });
+    const config = libs.content.get({key: '/www.nav.no/fasetter'});
     query.filters = getFilters(params, config, prioritiesItems); // 6.
     query.sort = '_score DESC'; // 9.
     query = addCountAndStart(params, query);
@@ -650,10 +635,10 @@ const prepareHits = (hit, wordList) => {
                 hit.data.kontaktinformasjon.publikumsmottak &&
                 hit.data.kontaktinformasjon.publikumsmottak.length > 0
                     ? hit.data.kontaktinformasjon.publikumsmottak.map(a => {
-                          return a.besoeksadresse && a.besoeksadresse.poststed
-                              ? a.besoeksadresse.poststed
-                              : '';
-                      })
+                        return a.besoeksadresse && a.besoeksadresse.poststed
+                            ? a.besoeksadresse.poststed
+                            : '';
+                    })
                     : [],
         };
     }
@@ -680,21 +665,24 @@ const prepareHits = (hit, wordList) => {
 /*
   ------------ NAV search --------------
   Here follows the current algorithm of the nav.no search
-  1. Take the raw search words and analyze them with elasticSearch analyzer (see 1.1)
-  2. Apply suggestions with elasticSearch suggest query (see 2. in 1.1)
-  3. Check for any prioritised elements from the search words and store them
-  4. Create a query based on the search word and facet parameters
-  5. Get the facet configuration and generate the aggregations based on the pre filtered query and configuration
-  6. Apply filters and Tidsperiode aggregations.
-  7. Do a first pass to create Tidsperiode buckets
-  8. If the search is limited by a time range, apply it to the query
-  9. If the search is sorted by date, apply it to the query
-  10. Run the query and store it
-  11. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
+  1. Determine if this is a phrase query or not
+  2. If not a phrase query, take the raw search words and analyze them with elasticSearch analyzer (see 1.1)
+  3. If a phrase query send the whole phrase to getQuery
+  4. Apply suggestions with elasticSearch suggest query (see 2. in 1.1)
+  5. Check for any prioritised elements from the search words and store them
+  6. Create a query based on the search word and facet parameters
+  7. Get the facet configuration and generate the aggregations based on the pre filtered query and configuration
+  8. Apply filters and Tidsperiode aggregations.
+  9. Do a first pass to create Tidsperiode buckets
+  10. If the search is limited by a time range, apply it to the query
+  11. If the search is sorted by date, apply it to the query
+  12. Run the query and store it
+  13. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
 */
 const enonicSearch = (params, skipCache) => {
     const { ord: searchQuery = null } = params;
-    const isPhrase = /\s/.test(searchQuery);
+    const isPhrase = /\s/.test(searchQuery); // 1
+
     let wordList = [];
     if (searchQuery) {
         if (isPhrase) {
@@ -711,14 +699,10 @@ const enonicSearch = (params, skipCache) => {
         });
     }
 
-    // const prioritiesItems = getPrioritiesedElements(wordList); // 3.
-    let prioritiesItems = { total: 0, ids: [], hits: [], count: 0}; // Todo: remove
-    if (USE_PRIORITIZED_RESULTS) {
-        prioritiesItems = getPrioritiesedElements(wordList);
-    }
+    const prioritiesItems = getPrioritiesedElements(wordList); // 3.
 
     let query = getQuery(wordList, isPhrase); // 4.
-    const config = libs.content.get({ key: '/www.nav.no/fasetter' });
+    const config = libs.content.get({key: '/www.nav.no/fasetter'});
     const aggregations = getAggregations(query, config); // 5.
 
     query.filters = getFilters(params, config, prioritiesItems); // 6.
@@ -726,7 +710,6 @@ const enonicSearch = (params, skipCache) => {
     // run time period query, or fetch from cache if its an empty search with an earlier used combination on facet and subfacet
     let q;
     if (wordList.length > 0) {
-        log.info(JSON.stringify(query, null, 4));
         q = libs.content.query(query);
     } else {
         q = libs.searchCache.getEmptyTimePeriod(params.f + '_' + JSON.stringify(params.uf), () => {
