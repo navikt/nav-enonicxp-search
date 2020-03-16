@@ -19,7 +19,7 @@ import no.nav.search.elastic.Token;
 @Component(immediate = true)
 public class Analyze {
     private final static Logger LOG = LoggerFactory.getLogger(Analyze.class);
-    public final static String ANALYZER = "navno_analyzer";
+    public final static String ANALYZER = "navno_analyzer_raw";
 
     private String text;
 
@@ -37,10 +37,12 @@ public class Analyze {
             .startObject()
                 .startObject("analysis")
                     .startObject("filter")
+                        /*
                         .startObject("nb_NO")
                             .field("type", "hunspell")
                             .field("language", "nb_NO")
                         .endObject()
+                         */
                         .startObject("norwegian_stop")
                             .field("type", "stop")
                             .field("stopwords", "_norwegian_")
@@ -50,12 +52,12 @@ public class Analyze {
                         .startObject("nb_NO")
                             .field("type", "custom")
                             .field("tokenizer", "standard")
-                            .array("filter", "lowercase", "nb_NO", "norwegian_stop")
+                            .array("filter", "lowercase", /*"nb_NO",*/ "norwegian_stop")
                         .endObject()
                     .endObject()
                 .endObject()
             .endObject();
-    
+
             ClientHolder.client.admin()
                 .indices()
                 .prepareCreate(Analyze.ANALYZER)
@@ -78,6 +80,7 @@ public class Analyze {
 
     public void createAnalyzerOnStartup(){
         if(!this.hasAnalyzer(Analyze.ANALYZER)) {
+            LOG.info("Creating new analyzer");
             this.createAnalyzer();
         }
     }
@@ -102,7 +105,7 @@ public class Analyze {
     @Component(immediate = true)
     public static class ClientHolder {
         public static Client client;
-    
+
         @Reference
         public void setClient(final Client client) {
             ClientHolder.client = client;

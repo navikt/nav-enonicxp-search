@@ -12,6 +12,11 @@ const repo = libs.node.connect({
     principals: ['role:system.admin'],
 });
 
+const USE_WEIGHT = true;
+const USE_PRIORITIZED_RESULTS = false;
+const USE_PHRASES = true;
+const USE_STEMMING = true;
+
 const runInContext = (func, params) => {
     return libs.context.run(
         {
@@ -173,10 +178,23 @@ const getPrioritiesedElements = wordList => {
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
-const getQuery = wordList => {
+const LANG_CODE = 'nb';
+const getQuery = (wordList, isPhrase) => {
     const navApp = 'no.nav.navno:';
-    const query = `fulltext("attachment.*, data.text, data.ingress^3, displayName^8, data.abstract,
-        data.keywords^9, data.enhet.*, data.interface.*", "${wordList.join(' ')} ", "OR")`;
+    let query ;
+    const searchWords = isPhrase && USE_PHRASES ? `"${wordList.pop()}"~2` : wordList.join(' ');
+
+    if (USE_WEIGHT) {
+        query = `fulltext('attachment.*, data.text, data.ingress^4, displayName^8, data.abstract,
+            data.keywords^9, data.enhet.*, data.interface.*', '${searchWords}', 'OR')`;
+    } else {
+        query = `fulltext('attachment.*, data.text, data.ingress, displayName, data.abstract,
+            data.keywords, data.enhet.*, data.interface.*', '${searchWords}', 'OR')`;
+    }
+    if (USE_STEMMING) {
+        query = `${query} OR stemmed('attachment.*, data.text, data.ingress^4, displayName^8, data.abstract,
+            data.keywords^9, data.enhet.*, data.interface.*', '${searchWords}', 'OR', '${LANG_CODE}')`
+    }
 
     const enonicQuery = {
         start: 0,
@@ -675,7 +693,16 @@ const prepareHits = (hit, wordList) => {
   11. Join the prioritised search with the result and map the contents with: highlighting, href, displayName and so on
 */
 const enonicSearch = (params, skipCache) => {
-    const wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
+    const { ord: searchQuery = null } = params;
+    const isPhrase = /\s/.test(searchQuery);
+    let wordList = [];
+    if (searchQuery) {
+        if (isPhrase) {
+            wordList = [searchQuery];
+        } else {
+            wordList = getSearchWords(searchQuery);
+        }
+    }
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {
@@ -685,9 +712,12 @@ const enonicSearch = (params, skipCache) => {
     }
 
     // const prioritiesItems = getPrioritiesedElements(wordList); // 3.
-    const prioritiesItems = { total: 0, ids: [], hits: [], count: 0}; // Todo: remove
+    let prioritiesItems = { total: 0, ids: [], hits: [], count: 0}; // Todo: remove
+    if (USE_PRIORITIZED_RESULTS) {
+        prioritiesItems = getPrioritiesedElements(wordList);
+    }
 
-    let query = getQuery(wordList); // 4.
+    let query = getQuery(wordList, isPhrase); // 4.
     const config = libs.content.get({ key: '/www.nav.no/fasetter' });
     const aggregations = getAggregations(query, config); // 5.
 
