@@ -526,14 +526,14 @@ const mapReducer = buckets => {
         const under =
             'underfasetter' in el
                 ? (Array.isArray(el.underfasetter) ? el.underfasetter : [el.underfasetter]).reduce(
-                mapReducer(match ? match.underaggregeringer.buckets || [] : []),
-                []
-                )
+                      mapReducer(match ? match.underaggregeringer.buckets || [] : []),
+                      []
+                  )
                 : [];
         t.push({
             key: el.name,
             docCount: docCount,
-            underaggregeringer: {buckets: under},
+            underaggregeringer: { buckets: under },
         });
         return t;
     };
@@ -572,7 +572,7 @@ const enonicSearchWithoutAggregations = params => {
     const wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
     const prioritiesItems = getPrioritiesedElements(wordList); // 3.
     let query = getQuery(wordList); // 4.
-    const config = libs.content.get({key: '/www.nav.no/fasetter'});
+    const config = libs.content.get({ key: '/www.nav.no/fasetter' });
     query.filters = getFilters(params, config, prioritiesItems); // 6.
     query.sort = '_score DESC'; // 9.
     query = addCountAndStart(params, query);
@@ -634,10 +634,10 @@ const prepareHits = (hit, wordList) => {
                 hit.data.kontaktinformasjon.publikumsmottak &&
                 hit.data.kontaktinformasjon.publikumsmottak.length > 0
                     ? hit.data.kontaktinformasjon.publikumsmottak.map(a => {
-                        return a.besoeksadresse && a.besoeksadresse.poststed
-                            ? a.besoeksadresse.poststed
-                            : '';
-                    })
+                          return a.besoeksadresse && a.besoeksadresse.poststed
+                              ? a.besoeksadresse.poststed
+                              : '';
+                      })
                     : [],
         };
     }
@@ -701,7 +701,7 @@ const enonicSearch = (params, skipCache) => {
     const prioritiesItems = getPrioritiesedElements(wordList); // 3.
 
     let query = getQuery(wordList, isPhrase); // 4.
-    const config = libs.content.get({key: '/www.nav.no/fasetter'});
+    const config = libs.content.get({ key: '/www.nav.no/fasetter' });
     const aggregations = getAggregations(query, config); // 5.
 
     query.filters = getFilters(params, config, prioritiesItems); // 6.
