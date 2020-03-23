@@ -146,13 +146,17 @@ const getPrioritiesedElements = wordList => {
     hits = hits.reduce((list, el) => {
         if (el.type === 'navno.nav.no.search:search-priority') {
             const content = getSearchPriorityContent(el.data.content);
-            const missingContent =
-                hits.filter(a => {
-                    return a._id === content._id;
-                }).length === 0;
+            if (content) {
+                const missingContent =
+                    hits.filter(a => {
+                        return a._id === content._id;
+                    }).length === 0;
 
-            if (missingContent) {
-                list.push(content);
+                if (missingContent) {
+                    list.push(content);
+                }
+            } else {
+                log.error(`Missing content for prioritized search element ${el._path}`);
             }
         } else {
             list.push(el);
