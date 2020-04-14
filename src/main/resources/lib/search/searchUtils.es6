@@ -502,6 +502,7 @@ const highLightFragment = (searchText, wordList) => {
 const getHighLight = (el, wordList) => {
     if (el.type === 'media:document') {
         const media = repo.get(el._id);
+
         if (media && media.attachment) {
             return {
                 text: highLightFragment(media.attachment.text || '', wordList),
@@ -730,6 +731,11 @@ const enonicSearch = (params, skipCache) => {
     query = addCountAndStart(params, query);
 
     const res = libs.content.query(query); // 10.
+    let scores = repo.query({ ...query, explain: true });
+
+    scores = scores.hits.reduce((agg, hit) => {
+        return { ...agg, [hit.id]: hit.score };
+    }, {});
     let hits = res.hits;
 
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
@@ -748,7 +754,8 @@ const enonicSearch = (params, skipCache) => {
 
     // prepare the hits with highlighting and such
     hits = hits.map(hit => {
-        return prepareHits(hit, wordList);
+        const preparedHit = prepareHits(hit, wordList);
+        return { ...preparedHit, score: scores[hit._id] || 0 };
     });
     // Logging of search
     // <queryString - mainfacet|subfacets / timeInterval> => [searchWords] -- [numberOfHits | prioritizedHits]
