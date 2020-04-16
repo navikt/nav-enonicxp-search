@@ -26,6 +26,14 @@
     "bugs": {
         "url": "https://github.com/navikt/navno-search/issues"
     },
+    "lint-staged": {
+        "*.es6": "eslint"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "npm run lint-staged"
+        }
+    },
     "homepage": "https://github.com/navikt/navno-search#readme",
     "devDependencies": {
         "@babel/cli": "^7.6.4",
