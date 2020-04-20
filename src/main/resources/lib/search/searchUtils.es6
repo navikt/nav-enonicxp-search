@@ -720,20 +720,47 @@ const enonicSearch = (params, skipCache) => {
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
     let total = res.total;
     if (
+        params.debug !== 'true' &&
         (!params.f || (params.f === '0' && (!params.uf || params.uf === '0'))) &&
         (!params.start || params.start === '0')
     ) {
         hits = prioritiesItems.hits.concat(hits);
         total += prioritiesItems.hits.length;
-    }
-    // add pri count to aggregations as well
-    aggregations.fasetter.buckets[0].docCount += prioritiesItems.hits.length;
-    aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount +=
-        prioritiesItems.hits.length;
 
+        // add pri count to aggregations as well
+        aggregations.fasetter.buckets[0].docCount += prioritiesItems.hits.length;
+        aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount +=
+            prioritiesItems.hits.length;
+    }
+
+    let scores = {};
+    let prioritized = [];
+    if (params.debug === 'true') {
+        prioritized = prioritiesItems.hits.map(hit => ({
+            ...prepareHits(hit, wordList),
+            id: hit._id || 0,
+            keywords: hit.data.keywords || [],
+        }));
+        scores = repo.query({ ...query, explain: true });
+        scores = scores.hits.reduce((agg, hit) => {
+            return { ...agg, [hit.id]: hit.score };
+        }, {});
+    }
     // prepare the hits with highlighting and such
     hits = hits.map(hit => {
-        return prepareHits(hit, wordList);
+        let preparedHit = prepareHits(hit, wordList);
+        if (params.debug) {
+            // if debug on, add
+            // 1. score
+            // 2. id
+            preparedHit = {
+                ...preparedHit,
+                id: hit._id || 0,
+                score: scores[hit._id] || 0,
+                keywords: hit.data.keywords || [],
+            };
+        }
+        return preparedHit;
     });
     // Logging of search
     // <queryString - mainfacet|subfacets / timeInterval> => [searchWords] -- [numberOfHits | prioritizedHits]
@@ -756,6 +783,7 @@ const enonicSearch = (params, skipCache) => {
         total,
         hits,
         aggregations,
+        prioritized,
     };
 };
 

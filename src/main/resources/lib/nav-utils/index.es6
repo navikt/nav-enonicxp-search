@@ -1,6 +1,6 @@
 const libs = {
     i18n: require('/lib/xp/i18n'),
-    moment: require('/assets/momentjs/2.14.1/min/moment-with-locales.min.js'),
+    moment: require('/assets/momentjs/2.24.0/min/moment-with-locales.min.js'),
     repo: require('/lib/xp/repo'),
     node: require('/lib/xp/node'),
     context: require('/lib/xp/context'),
