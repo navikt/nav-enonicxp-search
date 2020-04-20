@@ -735,8 +735,12 @@ const enonicSearch = (params, skipCache) => {
 
     let scores = {};
     let prioritized = [];
-    if (params.debug) {
-        prioritized = prioritiesItems.hits;
+    if (params.debug === 'true') {
+        prioritized = prioritiesItems.hits.map(hit => ({
+            ...prepareHits(hit, wordList),
+            id: hit._id || 0,
+            keywords: hit.data.keywords || [],
+        }));
         scores = repo.query({ ...query, explain: true });
         scores = scores.hits.reduce((agg, hit) => {
             return { ...agg, [hit.id]: hit.score };
@@ -749,7 +753,12 @@ const enonicSearch = (params, skipCache) => {
             // if debug on, add
             // 1. score
             // 2. id
-            preparedHit = { ...preparedHit, id: hit._id || 0, score: scores[hit._id] || 0 };
+            preparedHit = {
+                ...preparedHit,
+                id: hit._id || 0,
+                score: scores[hit._id] || 0,
+                keywords: hit.data.keywords || [],
+            };
         }
         return preparedHit;
     });
