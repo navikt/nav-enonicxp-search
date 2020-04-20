@@ -1,11 +1,14 @@
 const httpClientLib = require('/lib/http-client');
 
-export function getDisplayNames(hits) {
-    return hits.map(hit => hit.displayName);
-}
+const localBaseURL = 'http://localhost:8080/sok/_/service/navno.nav.no.search/search';
+const prodBaseURL = 'https://www.nav.no/sok/_/service/navno.nav.no.search/search';
 
-export function simpleSearch(searchTerm) {
-    const url = `http://localhost:8080/sok/_/service/navno.nav.no.search/search?ord="${searchTerm}"`;
+const getDisplayNames = hits => {
+    return hits.map(hit => hit.displayName);
+};
+
+const simpleSearch = (searchTerm, prod = false) => {
+    const url = `${prod ? prodBaseURL : localBaseURL}?ord="${searchTerm}&debug=true`;
     const result = httpClientLib.request({
         url: url,
         method: 'GET',
@@ -13,16 +16,25 @@ export function simpleSearch(searchTerm) {
     });
     // add better error handling
     return JSON.parse(result.body);
-}
+};
 
-export function multipleSearch(searchTerms) {
+const multipleSearch = searchTerms => {
     return searchTerms.reduce((acc, searchTerm) => {
         const results = simpleSearch(searchTerm);
-        log.info(JSON.stringify(Object.keys(results), null, 4));
-
-        const { hits } = results;
-        acc[searchTerm] = hits;
+        const { hits, prioritized } = results;
+        acc[searchTerm] = { hits, prioritized };
 
         return acc;
     }, {});
-}
+};
+
+const compareResultsReport = (result1, result2) => {
+    return false;
+};
+
+module.exports = {
+    simpleSearch,
+    multipleSearch,
+    compareResultsReport,
+    getDisplayNames,
+};
