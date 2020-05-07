@@ -24,12 +24,12 @@ const parseEndpoints = (key, params) => {
     return endPoints[key].replace('{0}', params);
 };
 
-const safeParse = literal => {
+const safeParse = (literal) => {
     if (!literal) return false;
     return JSON.parse(literal);
 };
 
-const getCounty = postnr => {
+const getCounty = (postnr) => {
     if (!countyCache)
         countyCache = cacheLib.newCache({
             size: 5000,

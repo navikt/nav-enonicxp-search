@@ -43,7 +43,7 @@ const parseAggs = (aggregations, params) => {
     return aggs;
 };
 
-const handleGet = req => {
+const handleGet = (req) => {
     const params = req.params || {};
 
     let model = {

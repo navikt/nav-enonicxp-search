@@ -16,7 +16,7 @@ const wipeAll = () => {
     searchCache.clear();
 };
 
-const getEmptyAggregation = fallback => {
+const getEmptyAggregation = (fallback) => {
     return searchCache.get('emptyaggs', fallback);
 };
 
@@ -39,15 +39,15 @@ const getSynonyms = () => {
         }).hits;
 
         const synonymMap = {};
-        synonymLists.forEach(synonymList => {
-            synonymList.data.synonyms.forEach(s => {
-                s.synonym.forEach(word => {
+        synonymLists.forEach((synonymList) => {
+            synonymList.data.synonyms.forEach((s) => {
+                s.synonym.forEach((word) => {
                     // add all if its a new word
                     if (!synonymMap[word]) {
                         synonymMap[word] = [].concat(s.synonym);
                     } else {
                         // only add new unique words if it already exists
-                        s.synonym.forEach(syn => {
+                        s.synonym.forEach((syn) => {
                             if (syn !== word && synonymMap[word].indexOf(syn) === -1) {
                                 synonymMap[word].push(syn);
                             }
@@ -77,7 +77,7 @@ const getPriorities = () => {
             start += 1000;
             count = q.count;
             priority = priority.concat(
-                q.hits.map(el => {
+                q.hits.map((el) => {
                     return el._id;
                 })
             );
@@ -91,7 +91,7 @@ const activateEventListener = () => {
     libs.event.listener({
         type: 'node.*',
         localOnly: false,
-        callback: event => {
+        callback: (event) => {
             libs.context.run(
                 {
                     repository: 'com.enonic.cms.default',
@@ -106,7 +106,7 @@ const activateEventListener = () => {
                     // clear aggregation cache
                     searchCache.remove('emptyaggs');
                     // clear other empty search caches
-                    emptySearchKeys.forEach(key => {
+                    emptySearchKeys.forEach((key) => {
                         searchCache.remove(key);
                     });
                     emptySearchKeys = [];
@@ -116,7 +116,7 @@ const activateEventListener = () => {
                         wipeAll();
                     } else {
                         // clear full cache if prioritized items or synonyms have changed
-                        event.data.nodes.forEach(node => {
+                        event.data.nodes.forEach((node) => {
                             if (
                                 node.branch === 'master' &&
                                 node.repo === 'com.enonic.cms.default'

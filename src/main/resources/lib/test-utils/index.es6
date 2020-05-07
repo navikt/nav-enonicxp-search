@@ -3,8 +3,8 @@ const httpClientLib = require('/lib/http-client');
 const localBaseURL = 'http://localhost:8080/sok/_/service/navno.nav.no.search/search';
 const prodBaseURL = 'https://www.nav.no/sok/_/service/navno.nav.no.search/search';
 
-const getDisplayNames = hits => {
-    return hits.map(hit => hit.displayName);
+const getDisplayNames = (hits) => {
+    return hits.map((hit) => hit.displayName);
 };
 
 const simpleSearch = (searchTerm, prod = false) => {
@@ -18,7 +18,7 @@ const simpleSearch = (searchTerm, prod = false) => {
     return JSON.parse(result.body);
 };
 
-const multipleSearch = searchTerms => {
+const multipleSearch = (searchTerms) => {
     return searchTerms.reduce((acc, searchTerm) => {
         const results = simpleSearch(searchTerm);
         const { hits, prioritized } = results;

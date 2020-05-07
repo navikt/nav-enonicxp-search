@@ -1,8 +1,5 @@
-const t = require('/lib/xp/testing');
-
-const libs = {
-    utils: require('/lib/test-utils'),
-};
+const { assertTrue, assertFalse } = require('/lib/xp/testing');
+const { multipleSearch } = require('/lib/test-utils');
 
 const mostPopularTerms = [
     'meldekort',
@@ -27,17 +24,25 @@ const mostPopularTerms = [
 ];
 
 const testMostPopular = () => {
-    const result = libs.utils.multipleSearch(mostPopularTerms);
+    const result = multipleSearch(mostPopularTerms);
 
     // no zero results
-    Object.keys(result).forEach(term => {
-        t.assertTrue(result[term].length > 0, `No hits for ${term}`);
+    Object.keys(result).forEach((term) => {
+        assertTrue(result[term].hits.length > 0, `No hits for ${term}`);
+    });
+
+    // No duplicates
+    Object.keys(result).forEach((term) => {
+        const unique = {};
+        const { hits = [], prioritized } = result[term];
+        const searchResults = prioritized.concat(hits);
+        searchResults.forEach(({ id, href }) => {
+            assertFalse(!!unique[href], `Found a duplicate result: ${href} - id: ${id}`);
+            unique[href] = id;
+        });
     });
 };
 
-// const noDuplicates = () => {
-//     const searchTerms = mostPopularTerms.slice(0, 5);
-// };
 module.exports = {
     testMostPopular,
 };
