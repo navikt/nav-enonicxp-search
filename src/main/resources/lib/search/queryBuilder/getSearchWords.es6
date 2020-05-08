@@ -1,4 +1,4 @@
-import { getSynonyms } from './searchCache';
+import { getSynonyms } from '../helpers/cache';
 /*
     ---------------- 1.1 Extract and optimize search words --------------
     1. Use the nb_NO analyzer to remove stop words and find the stemmed version of the word

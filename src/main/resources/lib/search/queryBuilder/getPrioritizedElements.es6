@@ -1,5 +1,5 @@
 import { query, get } from '/lib/xp/content';
-import { getPriorities } from './searchCache';
+import { getPriorities } from '../helpers/cache';
 
 function getSearchPriorityContent(id) {
     const content = get({
@@ -15,7 +15,7 @@ function getSearchPriorityContent(id) {
 /*
     ----------- Retrieve the list of prioritised elements and check if the search would hit any of the elements -----
  */
-export default function getPrioritiesedElements(wordList) {
+export default function getPrioritizedElements(wordList) {
     const priorityIds = getPriorities();
 
     // add hits on pri content and not keyword

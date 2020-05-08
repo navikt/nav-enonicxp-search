@@ -1,5 +1,5 @@
 import navUtils from '/lib/nav-utils';
-import getRepository from './repo';
+import getRepository from '../helpers/repo';
 import getPaths from './getPaths';
 
 /*
@@ -156,7 +156,7 @@ export function getHighLight(el, wordList) {
     };
 }
 
-export default function prepareHits(hit, wordList) {
+export default function createPreparedHit(hit, wordList) {
     // 11. Join the prioritised search with the result and map the contents with: highlighting,
     // href, displayName and so on
 

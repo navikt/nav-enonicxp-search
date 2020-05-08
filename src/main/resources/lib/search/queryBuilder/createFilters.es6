@@ -1,4 +1,4 @@
-export default function getFilters(params, config, prioritiesItems) {
+export default function createFilters(params, config, prioritiesItems) {
     let filters = { boolean: { must: [] } };
 
     if (params.f) {

@@ -10,28 +10,28 @@ const standardCache = {
 };
 
 let emptySearchKeys = [];
-const searchCache = libs.cache.newCache(standardCache);
+const cache = libs.cache.newCache(standardCache);
 
 const wipeAll = () => {
-    searchCache.clear();
+    cache.clear();
 };
 
 const getEmptyAggregation = (fallback) => {
-    return searchCache.get('emptyaggs', fallback);
+    return cache.get('emptyaggs', fallback);
 };
 
 const getEmptyTimePeriod = (key, fallback) => {
     emptySearchKeys.push(key);
-    return searchCache.get(key, fallback);
+    return cache.get(key, fallback);
 };
 
 const getEmptySearchResult = (key, fallback) => {
     emptySearchKeys.push(key);
-    return searchCache.get(key, fallback);
+    return cache.get(key, fallback);
 };
 
 const getSynonyms = () => {
-    return searchCache.get('synonyms', () => {
+    return cache.get('synonyms', () => {
         const synonymLists = libs.content.query({
             start: 0,
             count: 100,
@@ -62,7 +62,7 @@ const getSynonyms = () => {
 };
 
 const getPriorities = () => {
-    return searchCache.get('priorites', () => {
+    return cache.get('priorites', () => {
         let priority = [];
         let start = 0;
         let count = 1000;
@@ -104,10 +104,10 @@ const activateEventListener = () => {
                 },
                 () => {
                     // clear aggregation cache
-                    searchCache.remove('emptyaggs');
+                    cache.remove('emptyaggs');
                     // clear other empty search caches
                     emptySearchKeys.forEach((key) => {
-                        searchCache.remove(key);
+                        cache.remove(key);
                     });
                     emptySearchKeys = [];
 
@@ -144,7 +144,7 @@ const activateEventListener = () => {
     });
 };
 
-module.exports = {
+export {
     activateEventListener,
     getEmptyAggregation,
     getEmptyTimePeriod,

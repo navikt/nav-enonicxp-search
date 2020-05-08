@@ -1,7 +1,7 @@
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
-export default function getQuery(wordList, esQuery = {}) {
+export default function createQuery(wordList, esQuery = {}) {
     const navApp = 'no.nav.navno:';
     const query =
         'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +

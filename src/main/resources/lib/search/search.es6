@@ -1,33 +1,33 @@
 import { query } from '/lib/xp/content';
-import { getEmptySearchResult, getEmptyTimePeriod } from './searchCache';
+import { getEmptySearchResult, getEmptyTimePeriod } from './helpers/cache';
 import {
     getAggregations,
     getCountAndStart,
     getDateRange,
-    getFalsettConfiguration,
-} from './searchHelpFunctions';
-import { tidsperiode } from './searchConstants';
-import getPrioritiesedElements from './getPrioritizedElements';
-import getQuery from './getQuery';
-import getFilters from './getFilters';
-import prepareHits from './prepareHits';
-import getRepository from './repo';
-import getSearchWords from './getSearchWords';
+    getFacetConfiguration,
+} from './helpers/utils';
+import { tidsperiode } from './helpers/constants';
+import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
+import createQuery from './queryBuilder/createQuery';
+import createFilters from './queryBuilder/createFilters';
+import createPreparedHit from './resultListing/createPreparedHit';
+import getRepository from './helpers/repo';
+import getSearchWords from './queryBuilder/getSearchWords';
 
-export default function enonicSearch(params, skipCache) {
+export default function search(params, skipCache) {
     const { f: facet, uf: childFacet, ord, start, debug, c: count, daterange } = params;
     const wordList = ord ? getSearchWords(ord) : []; // 1. 2.
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {
-        return getEmptySearchResult(JSON.stringify(params), () => enonicSearch(params, true));
+        return getEmptySearchResult(JSON.stringify(params), () => search(params, true));
     }
-    const config = getFalsettConfiguration();
-    const prioritiesItems = getPrioritiesedElements(wordList); // 3.
+    const config = getFacetConfiguration();
+    const prioritiesItems = getPrioritizedElements(wordList); // 3.
     const { start: startQuery, count: countQuery } = getCountAndStart({ start, count });
-    const ESQuery = getQuery(wordList); // 4.
+    const ESQuery = createQuery(wordList); // 4.
     const aggregations = getAggregations(ESQuery, config); // 5
-    ESQuery.filters = getFilters(params, config, prioritiesItems); // 6.
+    ESQuery.filters = createFilters(params, config, prioritiesItems); // 6.
     ESQuery.aggregations.Tidsperiode = tidsperiode;
     ESQuery.start = startQuery;
     ESQuery.count = countQuery;
@@ -70,7 +70,7 @@ export default function enonicSearch(params, skipCache) {
     let prioritized = [];
     if (debug === 'true') {
         prioritized = prioritiesItems.hits.map((hit) => ({
-            ...prepareHits(hit, wordList),
+            ...createPreparedHit(hit, wordList),
             id: hit._id || 0,
             keywords: hit.data.keywords || [],
         }));
@@ -84,7 +84,7 @@ export default function enonicSearch(params, skipCache) {
     }
     // prepare the hits with highlighting and such
     hits = hits.map((hit) => {
-        let preparedHit = prepareHits(hit, wordList);
+        let preparedHit = createPreparedHit(hit, wordList);
         if (params.debug) {
             // if debug on, add
             // 1. score

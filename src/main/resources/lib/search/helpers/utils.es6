@@ -1,3 +1,4 @@
+import { run } from '/lib/xp/context';
 import { get, query } from '/lib/xp/content';
 
 export function getCountAndStart({ start: startString = '0', count: countString = '20' }) {
@@ -63,8 +64,23 @@ export function getDateRange(daterange, buckets) {
     return s;
 }
 
-const FASETTER_CONTENT_KEY = '/www.nav.no/fasetter';
+const FACETS_CONTENT_KEY = '/www.nav.no/fasetter';
 
-export function getFalsettConfiguration() {
-    return get({ key: FASETTER_CONTENT_KEY });
+export function getFacetConfiguration() {
+    return get({ key: FACETS_CONTENT_KEY });
+}
+
+export function runInContext(func, params) {
+    return run(
+        {
+            repository: 'com.enonic.cms.default',
+            branch: 'master',
+            user: {
+                login: 'su',
+                userStore: 'system',
+            },
+            principals: ['role:system.admin'],
+        },
+        () => func(params)
+    );
 }

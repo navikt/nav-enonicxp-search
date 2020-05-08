@@ -1,21 +1,21 @@
 import { query } from '/lib/xp/content';
-import { getCountAndStart, getFalsettConfiguration } from './searchHelpFunctions';
-import getPrioritiesedElements from './getPrioritizedElements';
-import getQuery from './getQuery';
-import getFilters from './getFilters';
-import getPaths from './getPaths';
-import { calculateHighlightText, getHighLight } from './prepareHits';
-import getSearchWords from './getSearchWords';
+import { getCountAndStart, getFacetConfiguration } from './helpers/utils';
+import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
+import createQuery from './queryBuilder/createQuery';
+import createFilters from './queryBuilder/createFilters';
+import getPaths from './resultListing/getPaths';
+import { calculateHighlightText, getHighLight } from './resultListing/createPreparedHit';
+import getSearchWords from './queryBuilder/getSearchWords';
 
-export default function enonicSearchWithoutAggregations(params) {
+export default function searchWithoutAggregations(params) {
     const wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
-    const prioritiesItems = getPrioritiesedElements(wordList); // 3.
-    const config = getFalsettConfiguration();
+    const prioritiesItems = getPrioritizedElements(wordList); // 3.
+    const config = getFacetConfiguration();
     const { start, count } = getCountAndStart(params);
 
     // 4.
-    const ESQuery = getQuery(wordList, {
-        filters: getFilters(params, config, prioritiesItems), // 6
+    const ESQuery = createQuery(wordList, {
+        filters: createFilters(params, config, prioritiesItems), // 6
         sort: '_score DESC', // 9
         start,
         count,
