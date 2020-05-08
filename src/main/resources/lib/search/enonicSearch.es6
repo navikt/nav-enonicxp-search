@@ -76,7 +76,6 @@ export default function enonicSearch(params, skipCache) {
         }));
         scores = getRepository().query({
             ...ESQuery,
-            ...getCountAndStart({ start, count }),
             explain: true,
         });
         scores = scores.hits.reduce((agg, hit) => {
