@@ -15,7 +15,7 @@ import getRepository from './repo';
 import getSearchWords from './getSearchWords';
 
 export default function enonicSearch(params, skipCache) {
-    const { f: falsett, uf: underFalsett, ord, start, debug, c: count, daterange } = params;
+    const { f: facet, uf: childFacet, ord, start, debug, c: count, daterange } = params;
     const wordList = ord ? getSearchWords(ord) : []; // 1. 2.
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
@@ -36,7 +36,7 @@ export default function enonicSearch(params, skipCache) {
     if (wordList.length > 0) {
         enonicResultSet = query(ESQuery);
     } else {
-        const timePeriodKey = falsett + '_' + JSON.stringify(underFalsett);
+        const timePeriodKey = facet + '_' + JSON.stringify(childFacet);
         enonicResultSet = getEmptyTimePeriod(timePeriodKey, () => query(ESQuery));
     }
     aggregations.Tidsperiode = enonicResultSet.aggregations.Tidsperiode; // 7.
@@ -54,7 +54,7 @@ export default function enonicSearch(params, skipCache) {
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
     if (
         params.debug !== 'true' &&
-        (!falsett || (falsett === '0' && (!underFalsett || underFalsett === '0'))) &&
+        (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
         (!start || start === '0')
     ) {
         hits = prioritiesItems.hits.concat(hits);
@@ -101,8 +101,8 @@ export default function enonicSearch(params, skipCache) {
     // Logging of search
     // <queryString - mainfacet|subfacets / timeInterval> => [searchWords] -- [numberOfHits | prioritizedHits]
     let facetsLog = '';
-    if (falsett) {
-        facetsLog = ` - ${falsett}|${underFalsett ? [].concat(underFalsett).join(', ') : ''}`;
+    if (facet) {
+        facetsLog = ` - ${facet}|${childFacet ? [].concat(childFacet).join(', ') : ''}`;
     }
     if (daterange && daterange !== '-1') {
         facetsLog += ` / ${daterange}`;
