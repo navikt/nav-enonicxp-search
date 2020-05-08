@@ -5,7 +5,6 @@ import {
     getCountAndStart,
     getDateRange,
     getFalsettConfiguration,
-    getSearchWords,
 } from './searchHelpFunctions';
 import { tidsperiode } from './searchConstants';
 import getPrioritiesedElements from './getPrioritizedElements';
@@ -13,6 +12,7 @@ import getQuery from './getQuery';
 import getFilters from './getFilters';
 import prepareHits from './prepareHits';
 import getRepository from './repo';
+import getSearchWords from './getSearchWords';
 
 export default function enonicSearch(params, skipCache) {
     const { f: falsett, uf: underFalsett, ord, start, debug, c: count, daterange } = params;

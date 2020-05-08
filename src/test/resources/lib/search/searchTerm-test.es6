@@ -2,8 +2,8 @@ const { assertTrue, assertFalse } = require('/lib/xp/testing');
 const { multipleSearch } = require('/lib/test-utils');
 
 const mostPopularTerms = [
-    'meldekort',
     'dagpenger',
+    'meldekort',
     'ledige stillinger',
     'chat',
     'forskudd',
@@ -37,8 +37,11 @@ const testMostPopular = () => {
         const { hits = [], prioritized } = result[term];
         const searchResults = prioritized.concat(hits);
         searchResults.forEach(({ id, href }) => {
-            assertFalse(!!unique[href], `Found a duplicate result: ${href} - id: ${id}`);
-            unique[href] = id;
+            assertFalse(
+                !!unique[id],
+                `Found a duplicate result for term: ${term}: ${href} - id: ${id}`
+            );
+            unique[id] = href;
         });
     });
 };

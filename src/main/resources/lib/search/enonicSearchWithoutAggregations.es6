@@ -1,10 +1,11 @@
 import { query } from '/lib/xp/content';
-import { getCountAndStart, getFalsettConfiguration, getSearchWords } from './searchHelpFunctions';
+import { getCountAndStart, getFalsettConfiguration } from './searchHelpFunctions';
 import getPrioritiesedElements from './getPrioritizedElements';
 import getQuery from './getQuery';
 import getFilters from './getFilters';
 import getPaths from './getPaths';
 import { calculateHighlightText, getHighLight } from './prepareHits';
+import getSearchWords from './getSearchWords';
 
 export default function enonicSearchWithoutAggregations(params) {
     const wordList = params.ord ? getSearchWords(params.ord) : []; // 1. 2.
