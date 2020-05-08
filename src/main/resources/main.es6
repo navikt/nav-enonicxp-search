@@ -1,6 +1,6 @@
 const eventLib = require('/lib/xp/event');
 const contextLib = require('/lib/xp/context');
-const searchCache = require('/lib/search/searchCache');
+const searchCache = require('/lib/search/helpers/cache');
 const facetLib = require('/lib/facets');
 const clusterLib = require('/lib/xp/cluster');
 

@@ -1,4 +1,4 @@
-const searchUtils = require('/lib/search/searchUtils');
+const searchUtils = require('/lib/search');
 
 function handleGet(req) {
     const params = req.params || {};
@@ -10,7 +10,7 @@ function handleGet(req) {
         params.ord = params.ord.substring(0, 200);
     }
 
-    const result = searchUtils.runInContext(searchUtils.enonicSearchWithoutAggregations, params);
+    const result = searchUtils.runInContext(searchUtils.searchWithoutAggregations, params);
     let c = 1;
     if (params.c) {
         c = !Number(params.c).isNaN() ? Number(params.c) : 1;

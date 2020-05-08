@@ -1,4 +1,4 @@
-const searchUtils = require('/lib/search/searchUtils');
+const searchUtils = require('/lib/search');
 
 const bucket = (type, params, parent) => {
     return (element, index) => {
@@ -43,7 +43,7 @@ const parseAggs = (aggregations, params) => {
     return aggs;
 };
 
-const handleGet = req => {
+const handleGet = (req) => {
     const params = req.params || {};
 
     let model = {
@@ -63,7 +63,7 @@ const handleGet = req => {
 
     params.debug = params.debug || false;
 
-    const result = searchUtils.runInContext(searchUtils.enonicSearch, params);
+    const result = searchUtils.runInContext(searchUtils.search, params);
     const aggregations = parseAggs(result.aggregations, params);
     const c = params.c ? parseInt(params.c) || 1 : 1;
     const isMore = c * 20 < result.total;

@@ -1,12 +1,9 @@
-const t = require('/lib/xp/testing');
-
-const libs = {
-    utils: require('/lib/test-utils'),
-};
+const { assertTrue, assertFalse } = require('/lib/xp/testing');
+const { multipleSearch } = require('/lib/test-utils');
 
 const mostPopularTerms = [
-    'meldekort',
     'dagpenger',
+    'meldekort',
     'ledige stillinger',
     'chat',
     'forskudd',
@@ -26,18 +23,56 @@ const mostPopularTerms = [
     'aktivitetsplan',
 ];
 
+// function arrayFind(list, findFn) {
+//     for (let i = 0; i < list.length; i++) {
+//         if (findFn(list[i], i)) {
+//             return list[i];
+//         }
+//     }
+//     return undefined;
+// }
+
 const testMostPopular = () => {
-    const result = libs.utils.multipleSearch(mostPopularTerms);
+    const result = multipleSearch(mostPopularTerms);
 
     // no zero results
-    Object.keys(result).forEach(term => {
-        t.assertTrue(result[term].length > 0, `No hits for ${term}`);
+    Object.keys(result).forEach((term) => {
+        assertTrue(result[term].hits.length > 0, `No hits for ${term}`);
     });
+
+    // No duplicates
+    Object.keys(result).forEach((term) => {
+        const unique = {};
+        const { hits = [], prioritized } = result[term];
+        const searchResults = prioritized.concat(hits);
+        searchResults.forEach(({ id, href }) => {
+            assertFalse(
+                !!unique[id],
+                `Found a duplicate result for term: ${term}: ${href} - id: ${id}`
+            );
+            unique[id] = href;
+        });
+    });
+
+    // Normal results should include the prioritized results
+    // Object.keys(result).forEach((term) => {
+    //     const { hits = [], prioritized = [] } = result[term];
+    //     const top10 = hits.slice(0, 10); // top 10 normal results
+    //     log.info('top 10');
+    //     log.info(JSON.stringify(top10, null , 4));
+    //
+    //     log.info('Prioritized');
+    //     log.info(JSON.stringify(top10, null , 4));
+    //
+    //     prioritized.forEach(({ id }) =>
+    //         assertTrue(
+    //             !!arrayFind(top10, ({ id: hitId }) => hitId === id),
+    //             `Could not find id: ${id} in top 10 results for term: ${term}`
+    //         )
+    //     );
+    // });
 };
 
-// const noDuplicates = () => {
-//     const searchTerms = mostPopularTerms.slice(0, 5);
-// };
 module.exports = {
     testMostPopular,
 };
