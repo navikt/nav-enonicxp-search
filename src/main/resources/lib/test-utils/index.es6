@@ -7,8 +7,11 @@ const getDisplayNames = (hits) => {
     return hits.map((hit) => hit.displayName);
 };
 
-const simpleSearch = (searchTerm, prod = false) => {
-    const url = `${prod ? prodBaseURL : localBaseURL}?ord="${searchTerm}&debug=true`;
+const simpleSearch = (searchTerm, prod = false, params = null) => {
+    const paramString = params
+        ? Object.keys(params).reduce((memo, item) => `${memo}&${item}=${params[item]}`, '')
+        : '';
+    const url = `${prod ? prodBaseURL : localBaseURL}?ord="${searchTerm}${paramString}`;
     const result = httpClientLib.request({
         url: url,
         method: 'GET',
@@ -18,9 +21,9 @@ const simpleSearch = (searchTerm, prod = false) => {
     return JSON.parse(result.body);
 };
 
-const multipleSearch = (searchTerms) => {
+const multipleSearch = (searchTerms, params) => {
     return searchTerms.reduce((acc, searchTerm) => {
-        const results = simpleSearch(searchTerm);
+        const results = simpleSearch(searchTerm, false, params);
         const { hits, prioritized } = results;
         acc[searchTerm] = { hits, prioritized };
 

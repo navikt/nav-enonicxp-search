@@ -4,7 +4,7 @@
 export default function createQuery(wordList, esQuery = {}) {
     const navApp = 'no.nav.navno:';
     const query =
-        'fulltext("attachment.*, data.text, data.ingress, displayName, data.abstract, data.keywords^15, data.enhet.*, data.interface.*" ,"' +
+        'fulltext("attachment.*, data.text, data.ingress, displayName^2, data.abstract, data.keywords^15, data.enhet.*, data.interface.*" ,"' +
         wordList.join(' ') +
         '", "OR") ';
 

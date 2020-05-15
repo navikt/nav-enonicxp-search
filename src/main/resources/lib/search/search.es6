@@ -14,23 +14,36 @@ import createPreparedHit from './resultListing/createPreparedHit';
 import getRepository from './helpers/repo';
 import getSearchWords from './queryBuilder/getSearchWords';
 
+const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
+
 export default function search(params, skipCache) {
-    const { f: facet, uf: childFacet, ord, start, debug, c: count, daterange } = params;
+    const {
+        f: facet,
+        uf: childFacet,
+        ord,
+        start: startParam,
+        debug,
+        excludePrioritized: excludePrioritizedParam = 'false',
+        c: countParam,
+        daterange,
+    } = params;
     const wordList = ord ? getSearchWords(ord) : []; // 1. 2.
+    const excludePrioritized = excludePrioritizedParam === 'true';
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {
         return getEmptySearchResult(JSON.stringify(params), () => search(params, true));
     }
     const config = getFacetConfiguration();
-    const prioritiesItems = getPrioritizedElements(wordList); // 3.
-    const { start: startQuery, count: countQuery } = getCountAndStart({ start, count });
-    const ESQuery = createQuery(wordList); // 4.
+    const prioritiesItems = excludePrioritized
+        ? EMPTY_RESULT_SET
+        : getPrioritizedElements(wordList); // 3.
+
+    const { start, count } = getCountAndStart({ start: startParam, count: countParam });
+    const ESQuery = createQuery(wordList, { start, count }); // 4.
     const aggregations = getAggregations(ESQuery, config); // 5
     ESQuery.filters = createFilters(params, config, prioritiesItems); // 6.
     ESQuery.aggregations.Tidsperiode = tidsperiode;
-    ESQuery.start = startQuery;
-    ESQuery.count = countQuery;
     // run time period query, or fetch from cache if its an empty search with an earlier used combination on facet and subfacet
     let enonicResultSet;
     if (wordList.length > 0) {
@@ -46,6 +59,8 @@ export default function search(params, skipCache) {
     }
 
     ESQuery.sort = params.s && params.s !== '0' ? 'publish.from DESC' : '_score DESC'; // 9.
+    log.info('Search Query used: ');
+    log.info(JSON.stringify(ESQuery, null, 4));
 
     let { hits, total } = query({
         ...ESQuery,
@@ -55,7 +70,7 @@ export default function search(params, skipCache) {
     if (
         params.debug !== 'true' &&
         (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
-        (!start || start === '0')
+        (!startParam || startParam === '0')
     ) {
         hits = prioritiesItems.hits.concat(hits);
         total += prioritiesItems.hits.length;

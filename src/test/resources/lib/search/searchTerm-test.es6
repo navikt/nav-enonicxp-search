@@ -23,17 +23,17 @@ const mostPopularTerms = [
     'aktivitetsplan',
 ];
 
-// function arrayFind(list, findFn) {
-//     for (let i = 0; i < list.length; i++) {
-//         if (findFn(list[i], i)) {
-//             return list[i];
-//         }
-//     }
-//     return undefined;
-// }
+function arrayFind(list, findFn) {
+    for (let i = 0; i < list.length; i++) {
+        if (findFn(list[i], i)) {
+            return list[i];
+        }
+    }
+    return undefined;
+}
 
 const testMostPopular = () => {
-    const result = multipleSearch(mostPopularTerms);
+    const result = multipleSearch(mostPopularTerms, { debug: true });
 
     // no zero results
     Object.keys(result).forEach((term) => {
@@ -54,23 +54,25 @@ const testMostPopular = () => {
         });
     });
 
+    const normalSearchResult = multipleSearch(mostPopularTerms, {
+        excludePrioritized: true,
+        debug: true,
+    });
     // Normal results should include the prioritized results
-    // Object.keys(result).forEach((term) => {
-    //     const { hits = [], prioritized = [] } = result[term];
-    //     const top10 = hits.slice(0, 10); // top 10 normal results
-    //     log.info('top 10');
-    //     log.info(JSON.stringify(top10, null , 4));
-    //
-    //     log.info('Prioritized');
-    //     log.info(JSON.stringify(top10, null , 4));
-    //
-    //     prioritized.forEach(({ id }) =>
-    //         assertTrue(
-    //             !!arrayFind(top10, ({ id: hitId }) => hitId === id),
-    //             `Could not find id: ${id} in top 10 results for term: ${term}`
-    //         )
-    //     );
-    // });
+    Object.keys(normalSearchResult).forEach((term) => {
+        const { hits = [] } = normalSearchResult[term];
+        const { prioritized = [] } = result[term];
+        const localPrioritized = prioritized.filter(
+            ({ href }) => /^http(s?):\/\//.test(href) === false
+        );
+
+        localPrioritized.forEach(({ id, displayName }) =>
+            assertTrue(
+                !!arrayFind(hits, ({ id: hitId }) => hitId === id),
+                `Could not find: "${displayName}" (id: ${id}) in top results for term: ${term}`
+            )
+        );
+    });
 };
 
 module.exports = {
