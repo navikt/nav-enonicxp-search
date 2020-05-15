@@ -59,8 +59,6 @@ export default function search(params, skipCache) {
     }
 
     ESQuery.sort = params.s && params.s !== '0' ? 'publish.from DESC' : '_score DESC'; // 9.
-    log.info('Search Query used: ');
-    log.info(JSON.stringify(ESQuery, null, 4));
 
     let { hits, total } = query({
         ...ESQuery,
