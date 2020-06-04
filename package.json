@@ -7,7 +7,7 @@
         "build": "npm-run-all lint:* build:*",
         "test": "./gradlew test --info",
         "watch": "npm-run-all watch:*",
-        "dev": "npm-run-all -p lint:watch babel:watch",
+        "dev": "npm-run-all -p watch:lint watch:transpile-local watch:transpile-test",
         "build:transpile-local": "babel src/main/resources --out-dir=build/resources/main --ignore \"**/*.js\"",
         "build:transpile-test": "babel src/test/resources --out-dir=build/resources/test --ignore \"**/*.js\"",
         "watch:lint": "onchange \"src/main/resources/**/*.es6\" -- npm run lint --silent",
