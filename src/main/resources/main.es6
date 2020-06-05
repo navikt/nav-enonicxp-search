@@ -20,24 +20,25 @@ contextLib.run(
         // create analyzer indices on startup, but only on master
         if (clusterLib.isMaster()) {
             __.newBean('no.nav.search.elastic.Analyze').createAnalyzerOnStartup();
+
+            eventLib.listener({
+                type: 'custom.appcreated',
+                callback: facetLib.checkConfiguration,
+            });
+
+            // make sure the updateAll lock is released on startup
+            const facetValidation = navUtils.getFacetValidation();
+            if (facetValidation) {
+                navUtils.setUpdateAll(false);
+            }
+
+            eventLib.listener({
+                type: 'node.pushed',
+                callback: facetLib.checkConfiguration,
+                localOnly: false,
+            });
         }
 
-        eventLib.listener({
-            type: 'custom.appcreated',
-            callback: facetLib.checkConfiguration,
-        });
-
-        // make sure the updateAll lock is released on startup
-        const facetValidation = navUtils.getFacetValidation();
-        if (facetValidation) {
-            navUtils.setUpdateAll(false);
-        }
-
-        eventLib.listener({
-            type: 'node.pushed',
-            callback: facetLib.checkConfiguration,
-            localOnly: true,
-        });
         searchCache.activateEventListener();
     }
 );
