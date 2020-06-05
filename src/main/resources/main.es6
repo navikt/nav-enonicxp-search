@@ -35,7 +35,7 @@ contextLib.run(
             eventLib.listener({
                 type: 'node.pushed',
                 callback: facetLib.checkConfiguration,
-                localOnly: true,
+                localOnly: false,
             });
         }
 
