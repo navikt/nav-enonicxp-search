@@ -23,7 +23,7 @@ const newAgg = (fasetter, ids) => {
                 query: el.rulekey + ' LIKE "' + el.rulevalue + '"',
             });
         } else {
-            underfasett.forEach((value) => {
+            underfasett.forEach(value => {
                 t.push({
                     fasett: el.name,
                     underfasett: value.name,
@@ -47,10 +47,11 @@ const newAgg = (fasetter, ids) => {
         log.info('*** UPDATE FACETS ON ' + ids.join(', ') + ' ***');
     }
     // iterate over each facet update the ids which have been published
-    resolver.forEach(function (value) {
-        if (!ids) {
-            log.info('UPDATE FACETS ON ' + value.fasett + ' | ' + value.underfasett);
-        }
+    resolver.forEach(function(value) {
+        // TODO: debugging
+        // if (!ids) {
+        log.info(`Update facets on ${value.fasett} - ${value.underfasett}`);
+        // }
 
         const query = {
             query: value.query,
@@ -64,6 +65,7 @@ const newAgg = (fasetter, ids) => {
                 },
             };
         }
+
         const fasett = {
             fasett: value.fasett,
         };
@@ -84,12 +86,15 @@ const newAgg = (fasetter, ids) => {
             hits = hits.concat(res);
         }
 
-        navUtils.addValidatedNodes(hits.map((c) => c.id));
+        navUtils.addValidatedNodes(hits.map(c => c.id));
 
-        hits.forEach((hit) => {
+        hits.forEach(hit => {
+            log.info(`current query:`);
+            log.info(JSON.stringify(query, null, 4));
+            log.info(`adding ${fasett.fasett} and ${fasett.underfasett} to ${hit.id}`);
             repo.modify({
                 key: hit.id,
-                editor: (elem) => {
+                editor: elem => {
                     const n = elem;
                     n.x = !n.x ? {} : n.x;
                     n.x['no-nav-navno'] = !n.x['no-nav-navno'] ? {} : n.x['no-nav-navno'];
@@ -117,11 +122,12 @@ const tagAll = (facetConfig, ids) => {
         // block facet updates
         navUtils.setUpdateAll(true);
     }
+    log.info('running tagAll');
     const fasetter = navUtils.forceArray(facetConfig.data.fasetter);
     newAgg(fasetter, ids);
 };
 
-const checkIfUpdateNeeded = (nodeIds) => {
+const checkIfUpdateNeeded = nodeIds => {
     // stop if update all is running
     if (navUtils.isUpdatingAll()) {
         log.info('blocked by update all');
@@ -136,16 +142,17 @@ const checkIfUpdateNeeded = (nodeIds) => {
     }).hits;
     const facetConfig = hits.length > 0 ? repo.get(hits[0].id) : null;
 
+    // TODO: We'll need this for later, leaving out for debugging.
     // run tagAll if the facet config is part of the nodes to update
-    const IsFacetConfigPartOfUpdate =
-        nodeIds.filter((nodeId) => {
-            return nodeId === facetConfig._id;
-        }).length > 0;
+    // const IsFacetConfigPartOfUpdate =
+    //     nodeIds.filter(nodeId => {
+    //         return nodeId === facetConfig._id;
+    //     }).length > 0;
 
-    if (IsFacetConfigPartOfUpdate) {
-        tagAll(facetConfig);
-        return;
-    }
+    // if (IsFacetConfigPartOfUpdate) {
+    //     tagAll(facetConfig);
+    //     return;
+    // }
 
     // update nodes that is not in the just validated nodes list
     if (facetConfig) {
@@ -176,12 +183,14 @@ const checkIfUpdateNeeded = (nodeIds) => {
         if (nodeInfo.update.length > 0) {
             tagAll(facetConfig, nodeInfo.update);
         }
+    } else {
+        log.error('no facetconfig');
     }
 };
 
-const checkConfiguration = (event) => {
+const checkConfiguration = event => {
     // stop fasett update if the node change is in another repo
-    const cmsNodesChanged = event.data.nodes.filter((node) => {
+    const cmsNodesChanged = event.data.nodes.filter(node => {
         return node.repo === 'com.enonic.cms.default';
     });
     if (cmsNodesChanged.length === 0) return;
@@ -191,7 +200,7 @@ const checkConfiguration = (event) => {
 
     // add node ids to next check
     toCheckOnNext = toCheckOnNext.concat(
-        cmsNodesChanged.map((node) => {
+        cmsNodesChanged.map(node => {
             return node.id;
         })
     );
