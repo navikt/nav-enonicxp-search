@@ -48,10 +48,9 @@ const newAgg = (fasetter, ids) => {
     }
     // iterate over each facet update the ids which have been published
     resolver.forEach(function(value) {
-        // TODO: debugging
-        // if (!ids) {
-        log.info(`Update facets on ${value.fasett} - ${value.underfasett}`);
-        // }
+        if (!ids) {
+            log.info(`Update facets on ${value.fasett} - ${value.underfasett}`);
+        }
 
         const query = {
             query: value.query,
@@ -89,9 +88,8 @@ const newAgg = (fasetter, ids) => {
         navUtils.addValidatedNodes(hits.map(c => c.id));
 
         hits.forEach(hit => {
-            log.info(`current query:`);
-            log.info(JSON.stringify(query, null, 4));
             log.info(`adding ${fasett.fasett} and ${fasett.underfasett} to ${hit.id}`);
+
             repo.modify({
                 key: hit.id,
                 editor: elem => {
@@ -122,7 +120,6 @@ const tagAll = (facetConfig, ids) => {
         // block facet updates
         navUtils.setUpdateAll(true);
     }
-    log.info('running tagAll');
     const fasetter = navUtils.forceArray(facetConfig.data.fasetter);
     newAgg(fasetter, ids);
 };
@@ -142,17 +139,16 @@ const checkIfUpdateNeeded = nodeIds => {
     }).hits;
     const facetConfig = hits.length > 0 ? repo.get(hits[0].id) : null;
 
-    // TODO: We'll need this for later, leaving out for debugging.
     // run tagAll if the facet config is part of the nodes to update
-    // const IsFacetConfigPartOfUpdate =
-    //     nodeIds.filter(nodeId => {
-    //         return nodeId === facetConfig._id;
-    //     }).length > 0;
+    const IsFacetConfigPartOfUpdate =
+        nodeIds.filter(nodeId => {
+            return nodeId === facetConfig._id;
+        }).length > 0;
 
-    // if (IsFacetConfigPartOfUpdate) {
-    //     tagAll(facetConfig);
-    //     return;
-    // }
+    if (IsFacetConfigPartOfUpdate) {
+        tagAll(facetConfig);
+        return;
+    }
 
     // update nodes that is not in the just validated nodes list
     if (facetConfig) {
