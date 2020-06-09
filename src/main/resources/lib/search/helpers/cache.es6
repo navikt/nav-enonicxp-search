@@ -10,28 +10,28 @@ const standardCache = {
 };
 
 let emptySearchKeys = [];
-const searchCache = libs.cache.newCache(standardCache);
+const cache = libs.cache.newCache(standardCache);
 
 const wipeAll = () => {
-    searchCache.clear();
+    cache.clear();
 };
 
-const getEmptyAggregation = fallback => {
-    return searchCache.get('emptyaggs', fallback);
+const getEmptyAggregation = (fallback) => {
+    return cache.get('emptyaggs', fallback);
 };
 
 const getEmptyTimePeriod = (key, fallback) => {
     emptySearchKeys.push(key);
-    return searchCache.get(key, fallback);
+    return cache.get(key, fallback);
 };
 
 const getEmptySearchResult = (key, fallback) => {
     emptySearchKeys.push(key);
-    return searchCache.get(key, fallback);
+    return cache.get(key, fallback);
 };
 
 const getSynonyms = () => {
-    return searchCache.get('synonyms', () => {
+    return cache.get('synonyms', () => {
         const synonymLists = libs.content.query({
             start: 0,
             count: 100,
@@ -39,15 +39,15 @@ const getSynonyms = () => {
         }).hits;
 
         const synonymMap = {};
-        synonymLists.forEach(synonymList => {
-            synonymList.data.synonyms.forEach(s => {
-                s.synonym.forEach(word => {
+        synonymLists.forEach((synonymList) => {
+            synonymList.data.synonyms.forEach((s) => {
+                s.synonym.forEach((word) => {
                     // add all if its a new word
                     if (!synonymMap[word]) {
                         synonymMap[word] = [].concat(s.synonym);
                     } else {
                         // only add new unique words if it already exists
-                        s.synonym.forEach(syn => {
+                        s.synonym.forEach((syn) => {
                             if (syn !== word && synonymMap[word].indexOf(syn) === -1) {
                                 synonymMap[word].push(syn);
                             }
@@ -62,7 +62,7 @@ const getSynonyms = () => {
 };
 
 const getPriorities = () => {
-    return searchCache.get('priorites', () => {
+    return cache.get('priorites', () => {
         let priority = [];
         let start = 0;
         let count = 1000;
@@ -77,7 +77,7 @@ const getPriorities = () => {
             start += 1000;
             count = q.count;
             priority = priority.concat(
-                q.hits.map(el => {
+                q.hits.map((el) => {
                     return el._id;
                 })
             );
@@ -91,7 +91,7 @@ const activateEventListener = () => {
     libs.event.listener({
         type: 'node.*',
         localOnly: false,
-        callback: event => {
+        callback: (event) => {
             libs.context.run(
                 {
                     repository: 'com.enonic.cms.default',
@@ -104,10 +104,10 @@ const activateEventListener = () => {
                 },
                 () => {
                     // clear aggregation cache
-                    searchCache.remove('emptyaggs');
+                    cache.remove('emptyaggs');
                     // clear other empty search caches
-                    emptySearchKeys.forEach(key => {
-                        searchCache.remove(key);
+                    emptySearchKeys.forEach((key) => {
+                        cache.remove(key);
                     });
                     emptySearchKeys = [];
 
@@ -116,7 +116,7 @@ const activateEventListener = () => {
                         wipeAll();
                     } else {
                         // clear full cache if prioritized items or synonyms have changed
-                        event.data.nodes.forEach(node => {
+                        event.data.nodes.forEach((node) => {
                             if (
                                 node.branch === 'master' &&
                                 node.repo === 'com.enonic.cms.default'
@@ -144,7 +144,7 @@ const activateEventListener = () => {
     });
 };
 
-module.exports = {
+export {
     activateEventListener,
     getEmptyAggregation,
     getEmptyTimePeriod,

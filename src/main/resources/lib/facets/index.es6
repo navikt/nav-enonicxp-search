@@ -49,7 +49,7 @@ const newAgg = (fasetter, ids) => {
     // iterate over each facet update the ids which have been published
     resolver.forEach(function(value) {
         if (!ids) {
-            log.info('UPDATE FACETS ON ' + value.fasett + ' | ' + value.underfasett);
+            log.info(`Update facets on ${value.fasett} - ${value.underfasett}`);
         }
 
         const query = {
@@ -64,6 +64,7 @@ const newAgg = (fasetter, ids) => {
                 },
             };
         }
+
         const fasett = {
             fasett: value.fasett,
         };
@@ -87,6 +88,8 @@ const newAgg = (fasetter, ids) => {
         navUtils.addValidatedNodes(hits.map(c => c.id));
 
         hits.forEach(hit => {
+            log.info(`adding ${fasett.fasett} and ${fasett.underfasett} to ${hit.id}`);
+
             repo.modify({
                 key: hit.id,
                 editor: elem => {
@@ -176,6 +179,8 @@ const checkIfUpdateNeeded = nodeIds => {
         if (nodeInfo.update.length > 0) {
             tagAll(facetConfig, nodeInfo.update);
         }
+    } else {
+        log.error('no facetconfig');
     }
 };
 

@@ -1,6 +1,6 @@
 const libs = {
     i18n: require('/lib/xp/i18n'),
-    moment: require('/assets/momentjs/2.14.1/min/moment-with-locales.min.js'),
+    moment: require('/assets/momentjs/2.24.0/min/moment-with-locales.min.js'),
     repo: require('/lib/xp/repo'),
     node: require('/lib/xp/node'),
     context: require('/lib/xp/context'),
@@ -11,7 +11,7 @@ const libs = {
  * @param {string} date Date
  * @returns {string} Correctly formated date
  */
-const fixDateFormat = date => {
+const fixDateFormat = (date) => {
     return date.indexOf('.') !== -1 ? date.split('.')[0] + 'Z' : date;
 };
 
@@ -20,7 +20,7 @@ const fixDateFormat = date => {
  * @param {*} content Whatever is passed in
  * @returns {Object[]} Array containing the content or just content
  */
-const forceArray = content => {
+const forceArray = (content) => {
     if (content) {
         return Array.isArray(content) ? content : [content];
     }
@@ -113,10 +113,10 @@ const getFacetValidation = () => {
     return facetValidation;
 };
 
-const setUpdateAll = updateAll => {
+const setUpdateAll = (updateAll) => {
     getNavRepo().modify({
         key: getFacetValidation()._path,
-        editor: facetValidation => {
+        editor: (facetValidation) => {
             return { ...facetValidation, data: { ...facetValidation.data, updateAll: updateAll } };
         },
     });
@@ -126,10 +126,10 @@ const isUpdatingAll = () => {
     return getFacetValidation().data.updateAll;
 };
 
-const addValidatedNodes = ids => {
+const addValidatedNodes = (ids) => {
     getNavRepo().modify({
         key: getFacetValidation()._path,
-        editor: facetValidation => {
+        editor: (facetValidation) => {
             let justValidatedNodes = [];
             if (facetValidation.data.justValidatedNodes) {
                 justValidatedNodes = forceArray(facetValidation.data.justValidatedNodes);
@@ -140,15 +140,15 @@ const addValidatedNodes = ids => {
     });
 };
 
-const removeValidatedNodes = ids => {
+const removeValidatedNodes = (ids) => {
     getNavRepo().modify({
         key: getFacetValidation()._path,
-        editor: facetValidation => {
+        editor: (facetValidation) => {
             let justValidatedNodes = [];
             if (facetValidation.data.justValidatedNodes) {
                 justValidatedNodes = forceArray(facetValidation.data.justValidatedNodes);
             }
-            ids.forEach(id => {
+            ids.forEach((id) => {
                 justValidatedNodes.splice(justValidatedNodes.indexOf(id), 1);
             });
             return { ...facetValidation, data: { ...facetValidation.data, justValidatedNodes } };

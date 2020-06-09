@@ -11,6 +11,7 @@
         "global-require": "off",
         "import/no-unresolved": "off",
         "import/no-absolute-path": "off",
+        "import/extensions": "off",
         "no-underscore-dangle": "off",
         "object-shorthand": "off",
         "prefer-destructuring": "off",

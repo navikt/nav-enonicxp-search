@@ -4,13 +4,18 @@
     "description": "## Building",
     "main": "createPhrases.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "babel:watch": "babel src/main/resources --watch --extensions '.es6' --out-dir=build/resources/main",
-        "build": "npm-run-all lint babel",
-        "lint:watch": "onchange \"src/main/resources/**/*.es6\" -- npm run lint --silent",
-        "lint": "eslint --ext=es6 ./src/main/resources",
-        "babel": "babel src/main/resources --out-dir=build/resources/main --ignore \"**/*.js\"",
-        "dev": "npm-run-all -p lint:watch babel:watch"
+        "build": "npm-run-all lint:* build:*",
+        "test": "./gradlew test --info",
+        "watch": "npm-run-all watch:*",
+        "dev": "npm-run-all -p watch:lint watch:transpile-local watch:transpile-test",
+        "build:transpile-local": "babel src/main/resources --out-dir=build/resources/main --ignore \"**/*.js\"",
+        "build:transpile-test": "babel src/test/resources --out-dir=build/resources/test --ignore \"**/*.js\"",
+        "watch:lint": "onchange \"src/main/resources/**/*.es6\" -- npm run lint --silent",
+        "watch:transpile-local": "babel src/main/resources --watch --extensions '.es6' --out-dir=build/resources/main",
+        "watch:transpile-test": "babel src/test/resources --watch --extensions '.es6' --out-dir=build/resources/test",
+        "lint:backend": "eslint --ext=es6 ./src/main/resources",
+        "lint-staged": "lint-staged",
+        "lint:test": "eslint --ext=es6 ./src/test/resources"
     },
     "repository": {
         "type": "git",
@@ -20,6 +25,14 @@
     "license": "ISC",
     "bugs": {
         "url": "https://github.com/navikt/navno-search/issues"
+    },
+    "lint-staged": {
+        "*.es6": "eslint"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "npm run lint-staged"
+        }
     },
     "homepage": "https://github.com/navikt/navno-search#readme",
     "devDependencies": {
@@ -38,9 +51,11 @@
         "eslint-plugin-promise": "^4.2.1",
         "eslint-plugin-react": "^7.11.1",
         "eslint-plugin-standard": "^4.0.1",
+        "husky": "^4.2.5",
+        "lint-staged": "^10.1.3",
         "npm-run-all": "^4.1.2",
         "onchange": "^6.1.0",
-        "prettier": "^1.19.1",
+        "prettier": "^2.0.1",
         "prompt": "^1.0.0",
         "replace": "^0.3.0",
         "serve": "^11.2.0"

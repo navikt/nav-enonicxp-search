@@ -47,9 +47,10 @@ dependencies {
     include "com.enonic.xp:lib-portal:${xpVersion}"
     include "com.enonic.xp:lib-repo:${xpVersion}"
     include "com.enonic.xp:lib-task:${xpVersion}"
+    testCompile "com.enonic.xp:testing:${xpVersion}"
     include 'com.enonic.lib:lib-cache:2.1.0'
     include 'com.enonic.lib:lib-http-client:2.0.0'
-    webjar "org.webjars:momentjs:2.14.1"
+    webjar "org.webjars:momentjs:2.24.0"
 }
 
 repositories {
@@ -78,7 +79,5 @@ task babelJs(type: NpmTask, dependsOn: 'npmInstall') {
     inputs.dir 'src/main/resources'
     outputs.dir "$buildDir/resources/main"
 }
-
-
 
 jar.dependsOn += babelJs
