@@ -44,6 +44,14 @@ export default function searchWithoutAggregations(params) {
             modifiedTime: el.modifiedTime,
         };
     });
+    // Logging of search
+    // <queryString> => [searchWords] -- [numberOfHits | prioritizedHits]
+    log.info(
+        `Decorator search <${ord}> => ${JSON.stringify(wordList)} -- [${total} | ${
+            prioritiesItems.hits.length
+        }]`
+    );
+
     return {
         total: total,
         hits: hits,
