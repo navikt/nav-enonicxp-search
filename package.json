@@ -60,5 +60,7 @@
         "replace": "^1.2.0",
         "serve": "^11.3.2"
     },
-    "dependencies": {}
+    "dependencies": {
+        "@babel/compat-data": "^7.10.1"
+    }
 }
