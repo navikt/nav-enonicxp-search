@@ -14,7 +14,11 @@ export default function searchWithoutAggregations(params) {
     const config = getFacetConfiguration();
 
     // 4.
-    const { start, count } = getCountAndStart({ start: startParam, count: countParam });
+    const { start, count } = getCountAndStart({
+        start: startParam,
+        count: countParam,
+        block: 10,
+    });
     const ESQuery = createQuery(wordList, {
         filters: createFilters(params, config, prioritiesItems), // 6
         sort: '_score DESC', // 9
