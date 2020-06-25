@@ -1,12 +1,16 @@
 import { run } from '/lib/xp/context';
 import { get, query } from '/lib/xp/content';
 
-export function getCountAndStart({ start: startString = '0', count: countString = '20' }) {
+export function getCountAndStart({
+    start: startString = '0',
+    count: countString = '1',
+    block: blockSize = 20,
+}) {
     let count = countString ? parseInt(countString) || 0 : 0;
-    count = count ? count * 20 : 20;
+    count = count ? count * blockSize : blockSize;
 
     let start = startString ? parseInt(startString) || 0 : 0;
-    start *= 20;
+    start *= blockSize;
     count -= start;
     return { start, count };
 }
