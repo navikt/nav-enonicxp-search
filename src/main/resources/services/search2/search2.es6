@@ -12,7 +12,7 @@ function handleGet(req) {
 
     const result = searchUtils.runInContext(searchUtils.searchWithoutAggregations, params);
     const c = params.c ? parseInt(params.c) || 1 : 1;
-    const isMore = c * 20 < result.total;
+    const isMore = c * 10 < result.total;
     const isSortDate = !params.s || params.s === '0';
 
     const model = {
