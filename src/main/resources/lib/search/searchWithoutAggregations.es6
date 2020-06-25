@@ -8,27 +8,34 @@ import { calculateHighlightText, getHighLight } from './resultListing/createPrep
 import getSearchWords from './queryBuilder/getSearchWords';
 
 export default function searchWithoutAggregations(params) {
-    const { f: facet, uf: childFacet, ord, start } = params;
+    const { f: facet, uf: childFacet, ord, start: startParam, c: countParam } = params;
     const wordList = ord ? getSearchWords(ord) : []; // 1. 2.
     const prioritiesItems = getPrioritizedElements(wordList); // 3.
     const config = getFacetConfiguration();
 
     // 4.
+    const { start, count } = getCountAndStart({
+        start: startParam,
+        count: countParam,
+        block: 10,
+    });
     const ESQuery = createQuery(wordList, {
         filters: createFilters(params, config, prioritiesItems), // 6
         sort: '_score DESC', // 9
-        ...getCountAndStart(params),
+        start,
+        count,
     });
 
     let { hits = [], total = 0 } = query(ESQuery); // 10.
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
     if (
         (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
-        (!start || start === '0')
+        (!startParam || startParam === '0')
     ) {
         hits = prioritiesItems.hits.concat(hits);
         total += prioritiesItems.hits.length;
     }
+
     // 11.
     hits = hits.map((el) => {
         const highLight = getHighLight(el, wordList);

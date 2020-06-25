@@ -23,7 +23,7 @@ const newAgg = (fasetter, ids) => {
                 query: el.rulekey + ' LIKE "' + el.rulevalue + '"',
             });
         } else {
-            underfasett.forEach(value => {
+            underfasett.forEach((value) => {
                 t.push({
                     fasett: el.name,
                     underfasett: value.name,
@@ -47,7 +47,7 @@ const newAgg = (fasetter, ids) => {
         log.info('*** UPDATE FACETS ON ' + ids.join(', ') + ' ***');
     }
     // iterate over each facet update the ids which have been published
-    resolver.forEach(function(value) {
+    resolver.forEach(function (value) {
         if (!ids) {
             log.info(`Update facets on ${value.fasett} - ${value.underfasett}`);
         }
@@ -85,14 +85,14 @@ const newAgg = (fasetter, ids) => {
             hits = hits.concat(res);
         }
 
-        navUtils.addValidatedNodes(hits.map(c => c.id));
+        navUtils.addValidatedNodes(hits.map((c) => c.id));
 
-        hits.forEach(hit => {
+        hits.forEach((hit) => {
             log.info(`adding ${fasett.fasett} and ${fasett.underfasett} to ${hit.id}`);
 
             repo.modify({
                 key: hit.id,
-                editor: elem => {
+                editor: (elem) => {
                     const n = elem;
                     n.x = !n.x ? {} : n.x;
                     n.x['no-nav-navno'] = !n.x['no-nav-navno'] ? {} : n.x['no-nav-navno'];
@@ -124,7 +124,7 @@ const tagAll = (facetConfig, ids) => {
     newAgg(fasetter, ids);
 };
 
-const checkIfUpdateNeeded = nodeIds => {
+const checkIfUpdateNeeded = (nodeIds) => {
     // stop if update all is running
     if (navUtils.isUpdatingAll()) {
         log.info('blocked by update all');
@@ -141,7 +141,7 @@ const checkIfUpdateNeeded = nodeIds => {
 
     // run tagAll if the facet config is part of the nodes to update
     const IsFacetConfigPartOfUpdate =
-        nodeIds.filter(nodeId => {
+        nodeIds.filter((nodeId) => {
             return nodeId === facetConfig._id;
         }).length > 0;
 
@@ -184,9 +184,9 @@ const checkIfUpdateNeeded = nodeIds => {
     }
 };
 
-const checkConfiguration = event => {
+const checkConfiguration = (event) => {
     // stop fasett update if the node change is in another repo
-    const cmsNodesChanged = event.data.nodes.filter(node => {
+    const cmsNodesChanged = event.data.nodes.filter((node) => {
         return node.repo === 'com.enonic.cms.default';
     });
     if (cmsNodesChanged.length === 0) return;
@@ -196,7 +196,7 @@ const checkConfiguration = event => {
 
     // add node ids to next check
     toCheckOnNext = toCheckOnNext.concat(
-        cmsNodesChanged.map(node => {
+        cmsNodesChanged.map((node) => {
             return node.id;
         })
     );
