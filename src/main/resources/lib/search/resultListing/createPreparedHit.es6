@@ -65,8 +65,10 @@ const removeHTMLTags = (text) => {
     return text.replace(/<\/?[^>]+(>|$)/g, '');
 };
 
+const removeMacros = (text) => {
+    return text.replace(/ *\[[^\]]*]/g, '');
+};
 /*
-  --------- Test and replace ---------
   Find the match from any word character + word + any word character and surround the hits with <b> tag
 */
 const addBoldTag = (word, text) => {
@@ -109,6 +111,7 @@ const findSubstring = (word, text) => {
  */
 const highLightFragment = (searchText, wordList) => {
     let text = removeHTMLTags(searchText);
+    text = removeMacros(text);
     const highligthedText = wordList.reduce((t, word) => {
         let currentText = t;
         if (word.length < 2) {
