@@ -23,7 +23,7 @@ contextLib.run(
 
             eventLib.listener({
                 type: 'custom.appcreated',
-                callback: facetLib.checkConfiguration,
+                callback: facetLib.facetHandler,
             });
 
             // make sure the updateAll lock is released on startup
@@ -34,7 +34,7 @@ contextLib.run(
 
             eventLib.listener({
                 type: 'node.pushed',
-                callback: facetLib.checkConfiguration,
+                callback: facetLib.facetHandler,
                 localOnly: false,
             });
         }
