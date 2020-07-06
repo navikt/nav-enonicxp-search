@@ -184,7 +184,7 @@ const checkIfUpdateNeeded = (nodeIds) => {
     }
 };
 
-const facetHandler = (event) => {
+const checkConfiguration = (event) => {
     // stop fasett update if the node change is in another repo
     const cmsNodesChanged = event.data.nodes.filter((node) => {
         return node.repo === 'com.enonic.cms.default';
@@ -225,5 +225,5 @@ const facetHandler = (event) => {
 };
 
 module.exports = {
-    facetHandler,
+    checkConfiguration,
 };
