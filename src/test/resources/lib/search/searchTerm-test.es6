@@ -36,12 +36,12 @@ const testMostPopular = () => {
     const result = multipleSearch(mostPopularTerms, { debug: true });
 
     // no zero results
-    Object.keys(result).forEach(term => {
+    Object.keys(result).forEach((term) => {
         assertTrue(result[term].hits.length > 0, `No hits for ${term}`);
     });
 
     // No duplicates
-    Object.keys(result).forEach(term => {
+    Object.keys(result).forEach((term) => {
         const unique = {};
         const { hits = [], prioritized } = result[term];
         const searchResults = prioritized.concat(hits);
@@ -59,7 +59,7 @@ const testMostPopular = () => {
         debug: true,
     });
     // Normal results should include the prioritized results
-    Object.keys(normalSearchResult).forEach(term => {
+    Object.keys(normalSearchResult).forEach((term) => {
         const { hits = [] } = normalSearchResult[term];
         const { prioritized = [] } = result[term];
         const localPrioritized = prioritized.filter(

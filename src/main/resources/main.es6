@@ -21,25 +21,19 @@ contextLib.run(
         if (clusterLib.isMaster()) {
             __.newBean('no.nav.search.elastic.Analyze').createAnalyzerOnStartup();
 
+            eventLib.listener({
+                type: 'custom.appcreated',
+                callback: facetLib.facetHandler,
+            });
+
             // make sure the updateAll lock is released on startup
             const facetValidation = navUtils.getFacetValidation();
             if (facetValidation) {
                 navUtils.setUpdateAll(false);
             }
-            // set facets if new or content is moved
-            // TODO: check if this is needed custom event.
-            eventLib.listener({
-                type: 'custom.appcreated',
-                callback: facetLib.facetHandler,
-            });
-            eventLib.listener({
-                type: 'node.created',
-                callback: facetLib.facetHandler,
-                localOnly: false,
-            });
 
             eventLib.listener({
-                type: 'node.moved',
+                type: 'node.pushed',
                 callback: facetLib.facetHandler,
                 localOnly: false,
             });
