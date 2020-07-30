@@ -191,7 +191,7 @@ export default function createPreparedHit(hit, wordList) {
     }
 
     let publishedString = null;
-    if (hit.type === 'no.nav.navno:main-article') {
+    if (hit.type !== 'no.nav.navno:office-information') {
         publishedString = navUtils.dateTimePublished(hit, hit.language || 'no');
     }
 
