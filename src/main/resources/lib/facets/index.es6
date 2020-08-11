@@ -184,7 +184,7 @@ const checkIfUpdateNeeded = (nodeIds) => {
     }
 };
 
-const checkConfiguration = (event) => {
+const facetHandler = (event) => {
     // stop fasett update if the node change is in another repo
     const cmsNodesChanged = event.data.nodes.filter((node) => {
         return node.repo === 'com.enonic.cms.default';
@@ -221,9 +221,11 @@ const checkConfiguration = (event) => {
                 checkIfUpdateNeeded(toCheckOn);
             },
         });
+    } else {
+        log.info(`${currentTask} is blocking the new execution`);
     }
 };
 
 module.exports = {
-    checkConfiguration,
+    facetHandler,
 };
