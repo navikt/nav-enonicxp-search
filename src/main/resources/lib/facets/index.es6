@@ -221,6 +221,8 @@ const facetHandler = (event) => {
                 checkIfUpdateNeeded(toCheckOn);
             },
         });
+    } else {
+        log.info(`${currentTask} is blocking the new execution`);
     }
 };
 
