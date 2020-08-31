@@ -174,22 +174,33 @@ export default function createPreparedHit(hit, wordList) {
     let officeInformation;
     if (hit.type === 'no.nav.navno:office-information') {
         name = hit.data.enhet.navn ? hit.data.enhet.navn : hit.displayName;
+        let audienceReception = null;
+        if (
+            hit.data.kontaktinformasjon &&
+            hit.data.kontaktinformasjon.publikumsmottak &&
+            hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse &&
+            hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse.type === 'stedsadresse'
+        ) {
+            const {
+                postnummer,
+                poststed,
+                gatenavn,
+                husnummer,
+            } = hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse;
+            const base = [gatenavn, husnummer, postnummer, poststed].filter(
+                (item) => item !== undefined
+            );
 
+            const post = base.slice(Math.max(base.length - 2, 0)).join(' ');
+            const address = base.slice(0, base.length - 2).join(' ');
+            audienceReception = `${address}, ${post}`;
+        }
         officeInformation = {
             phone:
                 hit.data.kontaktinformasjon && hit.data.kontaktinformasjon.telefonnummer
                     ? hit.data.kontaktinformasjon.telefonnummer
                     : '',
-            audienceReceptions:
-                hit.data.kontaktinformasjon &&
-                hit.data.kontaktinformasjon.publikumsmottak &&
-                hit.data.kontaktinformasjon.publikumsmottak.length > 0
-                    ? hit.data.kontaktinformasjon.publikumsmottak.map((a) => {
-                          return a.besoeksadresse && a.besoeksadresse.poststed
-                              ? a.besoeksadresse.poststed
-                              : '';
-                      })
-                    : [],
+            audienceReception,
         };
     }
 
