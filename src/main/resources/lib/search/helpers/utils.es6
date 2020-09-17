@@ -1,6 +1,10 @@
 import { run } from '/lib/xp/context';
 import { get, query } from '/lib/xp/content';
 
+export function isSchemaSearch(ord) {
+    return /^\d\d-\d\d\.\d\d$/.test(ord);
+}
+
 export function getCountAndStart({
     start: startString = '0',
     count: countString = '1',
