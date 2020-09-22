@@ -5,6 +5,7 @@ import {
     getCountAndStart,
     getDateRange,
     getFacetConfiguration,
+    isSchemaSearch,
 } from './helpers/utils';
 import { tidsperiode } from './helpers/constants';
 import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
@@ -27,8 +28,14 @@ export default function search(params, skipCache) {
         c: countParam,
         daterange,
     } = params;
-    const wordList = ord ? getSearchWords(ord) : []; // 1. 2.
-    const excludePrioritized = excludePrioritizedParam === 'true';
+
+    let wordList = [];
+    if (isSchemaSearch(ord)) {
+        wordList = [ord];
+    } else {
+        wordList = ord ? getSearchWords(ord) : []; // 1. 2.
+    }
+    const excludePrioritized = excludePrioritizedParam === 'true' || isSchemaSearch(ord);
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {

@@ -1,5 +1,5 @@
 import { query } from '/lib/xp/content';
-import { getCountAndStart, getFacetConfiguration } from './helpers/utils';
+import { getCountAndStart, getFacetConfiguration, isSchemaSearch } from './helpers/utils';
 import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
 import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
@@ -9,7 +9,12 @@ import getSearchWords from './queryBuilder/getSearchWords';
 
 export default function searchWithoutAggregations(params) {
     const { f: facet, uf: childFacet, ord, start: startParam, c: countParam } = params;
-    const wordList = ord ? getSearchWords(ord) : []; // 1. 2.
+    let wordList = [];
+    if (isSchemaSearch(ord)) {
+        wordList = [ord];
+    } else {
+        wordList = ord ? getSearchWords(ord) : []; // 1. 2.
+    }
     const prioritiesItems = getPrioritizedElements(wordList); // 3.
     const config = getFacetConfiguration();
 
@@ -29,6 +34,7 @@ export default function searchWithoutAggregations(params) {
     let { hits = [], total = 0 } = query(ESQuery); // 10.
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
     if (
+        !isSchemaSearch(ord) &&
         (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
         (!startParam || startParam === '0')
     ) {
