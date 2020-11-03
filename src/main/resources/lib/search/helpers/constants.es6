@@ -9,12 +9,10 @@ const dateranges = [
     },
     {
         key: 'Siste 30 dager',
-        to: 'now-7d',
         from: 'now-30d',
     },
     {
         key: 'Siste 12 måneder',
-        to: 'now-30d',
         from: 'now-12M',
     },
     {
@@ -26,7 +24,7 @@ const dateranges = [
 const tidsperiode = {
     dateRange: {
         ranges: dateranges,
-        field: 'modifiedTime',
+        field: 'publish.from',
         format: 'dd-MM-yyyy',
     },
 };

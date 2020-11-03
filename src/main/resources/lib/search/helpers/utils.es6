@@ -64,10 +64,10 @@ export function getDateRange(daterange, buckets) {
     let s = '';
     const e = buckets[dateRangeValue];
     if ('to' in e) {
-        s += ' And modifiedTime < dateTime("' + e.to + '")';
+        s += ' AND publish.from < dateTime("' + e.to + '")';
     }
     if ('from' in e) {
-        s += ' And modifiedTime > dateTime("' + e.from + '")';
+        s += ' AND publish.from > dateTime("' + e.from + '")';
     }
     return s;
 }

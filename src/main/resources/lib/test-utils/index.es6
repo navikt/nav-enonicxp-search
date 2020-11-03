@@ -1,7 +1,7 @@
 const httpClientLib = require('/lib/http-client');
 
-const localBaseURL = 'http://localhost:8080/sok/_/service/navno.nav.no.search/search';
-const prodBaseURL = 'https://www.nav.no/sok/_/service/navno.nav.no.search/search';
+const localBaseURL = 'http://localhost:8080/_/service/navno.nav.no.search/search';
+const prodBaseURL = 'https://www.nav.no/_/service/navno.nav.no.search/search';
 
 const getDisplayNames = (hits) => {
     return hits.map((hit) => hit.displayName);
