@@ -67,6 +67,7 @@ export default function search(params, skipCache) {
 
     ESQuery.sort = params.s && params.s !== '0' ? 'publish.from DESC' : '_score DESC'; // 9.
 
+    log.info(ESQuery.query);
     let { hits, total } = query({
         ...ESQuery,
     }); // 10.
