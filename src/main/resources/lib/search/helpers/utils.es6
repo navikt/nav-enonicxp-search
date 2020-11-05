@@ -48,28 +48,11 @@ export function mapReducer(buckets) {
 }
 
 export function getAggregations(ESQuery, config) {
-    const { aggregations } = query(ESQuery);
+    const { aggregations } = query({ ...ESQuery, count: 0 });
     aggregations.fasetter.buckets = []
         .concat(config.data.fasetter)
         .reduce(mapReducer(aggregations.fasetter.buckets), []);
     return aggregations;
-}
-
-/*
-    -------- Add the date range to query if selected ----------
- */
-export function getDateRange(daterange, buckets) {
-    const dateRangeValue = Number(daterange);
-    if (!buckets || dateRangeValue.isNaN() || !buckets[dateRangeValue]) return '';
-    let s = '';
-    const e = buckets[dateRangeValue];
-    if ('to' in e) {
-        s += ' AND publish.from < dateTime("' + e.to + '") AND modifiedTime < dateTime("' + e.to + '")';
-    }
-    if ('from' in e) {
-        s += ' AND (publish.from > dateTime("' + e.from + '") OR modifiedTime > dateTime("' + e.from + '"))';
-    }
-    return s;
 }
 
 const FACETS_CONTENT_KEY = '/www.nav.no/fasetter';
@@ -80,7 +63,9 @@ export function getFacetConfiguration() {
 
 const getLastUpdatedUnixTime = (hit) => {
     const modifiedTime = new Date(hit.modifiedTime ? hit.modifiedTime.split('T')[0] : 0).getTime();
-    const publishFromTime = new Date(hit.publish && hit.publish.from ? hit.publish.from.split('T')[0] : 0).getTime();
+    const publishFromTime = new Date(
+        hit.publish && hit.publish.from ? hit.publish.from.split('T')[0] : 0
+    ).getTime();
     return Math.max(modifiedTime, publishFromTime);
 };
 
@@ -93,7 +78,9 @@ export function getSortedResult(ESQuery, sort, count) {
 
         result.hits = [...resultTemp.hits, ...result.hits]
             .sort(sortByLastUpdatedDesc)
-            .filter((item, index, arr) => index === 0 || arr[index-1].displayName !== item.displayName)
+            .filter(
+                (item, index, arr) => index === 0 || arr[index - 1].displayName !== item.displayName
+            )
             .slice(0, count);
 
         return result;

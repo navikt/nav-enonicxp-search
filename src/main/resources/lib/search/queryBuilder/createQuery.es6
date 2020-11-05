@@ -38,14 +38,7 @@ export default function createQuery(wordList, esQuery = {}) {
                         },
                     },
                 },
-            } /* ,
-            "Tidsperiode": {
-                "dateRange": {
-                    "ranges": dateranges,
-                    "field": "modifiedTime",
-                    "format": "dd-MM-yyyy"
-                }
-            } */,
+            },
         },
         ...esQuery,
     };

@@ -16,7 +16,7 @@ const bucket = (type, params, parent) => {
                 parent.checked &&
                 (Array.isArray(params.uf) ? params.uf : [params.uf]).indexOf(String(index)) > -1;
             const cname =
-                parent.key === 'Sentralt Innhold'
+                parent.key === 'Innhold'
                     ? el.key.split(' ')[0].toLowerCase() + ' '
                     : parent.key.split(' ')[0].toLowerCase() + ' ';
             el.className += cname;
@@ -29,15 +29,12 @@ const bucket = (type, params, parent) => {
 const parseAggs = (aggregations, params) => {
     const aggs = aggregations;
     const d = params.daterange ? Number(params.daterange) : -1;
-    let tp = 0;
     let tc = true;
     aggs.Tidsperiode.buckets = aggs.Tidsperiode.buckets.map((el, index) => {
-        tp += el.docCount;
         if (el.checked) tc = false;
         return { ...el, checked: d === index };
     });
 
-    aggs.Tidsperiode.docCount = tp.toString(10);
     aggs.Tidsperiode.checked = tc;
     aggs.fasetter.buckets = aggs.fasetter.buckets.map(bucket('fasett', params, false));
     return aggs;
@@ -46,9 +43,6 @@ const parseAggs = (aggregations, params) => {
 const handleGet = (req) => {
     const params = req.params || {};
 
-    let model = {
-        word: false,
-    };
     if (!params.ord) {
         params.ord = '';
     }
@@ -64,11 +58,18 @@ const handleGet = (req) => {
     params.debug = params.debug || false;
 
     const result = searchUtils.runInContext(searchUtils.search, params);
+
+    const timeStart = Date.now();
+    for (let i = 0; i < 100; i++) {
+        searchUtils.runInContext(searchUtils.search, params);
+    }
+    log.info(`Time spent: ${(Date.now() - timeStart) / 1000}`);
+
     const aggregations = parseAggs(result.aggregations, params);
     const c = params.c ? parseInt(params.c) || 1 : 1;
     const isMore = c * 20 < result.total;
     const isSortDate = !params.s || params.s === '0';
-    model = {
+    const model = {
         c,
         isSortDate,
         s: params.s ? params.s : '0',

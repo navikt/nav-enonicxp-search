@@ -11,7 +11,7 @@ const simpleSearch = (searchTerm, prod = false, params = null) => {
     const paramString = params
         ? Object.keys(params).reduce((memo, item) => `${memo}&${item}=${params[item]}`, '')
         : '';
-    const url = `${prod ? prodBaseURL : localBaseURL}?ord="${searchTerm}${paramString}`;
+    const url = `${prod ? prodBaseURL : localBaseURL}?ord=${searchTerm}${paramString}`;
     const result = httpClientLib.request({
         url: url,
         method: 'GET',

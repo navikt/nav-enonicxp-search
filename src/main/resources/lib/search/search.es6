@@ -1,20 +1,18 @@
-import { query } from '/lib/xp/content';
-import { getEmptySearchResult, getEmptyTimePeriod } from './helpers/cache';
+import { getEmptySearchResult } from './helpers/cache';
 import {
     getAggregations,
     getCountAndStart,
-    getDateRange,
     getFacetConfiguration,
     getSortedResult,
     isSchemaSearch,
 } from './helpers/utils';
-import { tidsperiode } from './helpers/constants';
 import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
 import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
 import getRepository from './helpers/repo';
 import getSearchWords from './queryBuilder/getSearchWords';
+import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
@@ -51,19 +49,10 @@ export default function search(params, skipCache) {
     const ESQuery = createQuery(wordList, { start, count }); // 4.
     const aggregations = getAggregations(ESQuery, config); // 5
     ESQuery.filters = createFilters(params, config, prioritiesItems); // 6.
-    ESQuery.aggregations.Tidsperiode = tidsperiode;
-    // run time period query, or fetch from cache if its an empty search with an earlier used combination on facet and subfacet
-    let enonicResultSet;
-    if (wordList.length > 0) {
-        enonicResultSet = query(ESQuery);
-    } else {
-        const timePeriodKey = facet + '_' + JSON.stringify(childFacet);
-        enonicResultSet = getEmptyTimePeriod(timePeriodKey, () => query(ESQuery));
-    }
-    aggregations.Tidsperiode = enonicResultSet.aggregations.Tidsperiode; // 7.
+    aggregations.Tidsperiode = getDateRanges(ESQuery); // 7.
 
     if (daterange) {
-        ESQuery.query += getDateRange(daterange, aggregations.Tidsperiode.buckets); // 8.;
+        ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets); // 8.
     }
 
     let { hits, total } = getSortedResult(ESQuery, params.s, count); // 9. 10.
@@ -74,13 +63,18 @@ export default function search(params, skipCache) {
         (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
         (!startParam || startParam === '0')
     ) {
+        const priHitCount = prioritiesItems.hits.length;
         hits = prioritiesItems.hits.concat(hits);
-        total += prioritiesItems.hits.length;
+        total += priHitCount;
 
         // add pri count to aggregations as well
-        aggregations.fasetter.buckets[0].docCount += prioritiesItems.hits.length;
-        aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount +=
-            prioritiesItems.hits.length;
+        aggregations.fasetter.buckets[0].docCount += priHitCount;
+        aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priHitCount;
+        aggregations.Tidsperiode.docCount += priHitCount;
+        aggregations.Tidsperiode.buckets = aggregations.Tidsperiode.buckets.map((bucket) => ({
+            ...bucket,
+            docCount: bucket.docCount + priHitCount,
+        }));
     }
 
     let scores = {};
@@ -99,6 +93,7 @@ export default function search(params, skipCache) {
             return { ...agg, [hit.id]: hit.score };
         }, {});
     }
+
     // prepare the hits with highlighting and such
     hits = hits.map((hit) => {
         let preparedHit = createPreparedHit(hit, wordList);
