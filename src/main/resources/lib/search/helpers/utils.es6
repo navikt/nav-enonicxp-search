@@ -61,7 +61,7 @@ export function getFacetConfiguration() {
     return get({ key: FACETS_CONTENT_KEY });
 }
 
-const getLastUpdatedUnixTime = (hit) => {
+const getLastUpdated = (hit) => {
     const modifiedTime = new Date(hit.modifiedTime ? hit.modifiedTime.split('T')[0] : 0).getTime();
     const publishFromTime = new Date(
         hit.publish && hit.publish.from ? hit.publish.from.split('T')[0] : 0
@@ -69,7 +69,7 @@ const getLastUpdatedUnixTime = (hit) => {
     return Math.max(modifiedTime, publishFromTime);
 };
 
-const sortByLastUpdatedDesc = (a, b) => getLastUpdatedUnixTime(b) - getLastUpdatedUnixTime(a);
+const sortByLastUpdatedDesc = (a, b) => getLastUpdated(b) - getLastUpdated(a);
 
 export function getSortedResult(ESQuery, sort, count) {
     if (sort && sort !== '0') {
