@@ -70,11 +70,11 @@ export default function search(params, skipCache) {
         // add pri count to aggregations as well
         aggregations.fasetter.buckets[0].docCount += priHitCount;
         aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priHitCount;
-        aggregations.Tidsperiode.docCount += priHitCount;
         aggregations.Tidsperiode.buckets = aggregations.Tidsperiode.buckets.map((bucket) => ({
             ...bucket,
             docCount: bucket.docCount + priHitCount,
         }));
+        aggregations.Tidsperiode.docCount += priHitCount;
     }
 
     let scores = {};

@@ -4,21 +4,22 @@ import { query } from '/lib/xp/content';
 const dateTimeFormat = 'YYYY-MM-DD[T]HH:mm:ss[Z]';
 
 const getDateRangeQueryStringFromBucket = (bucket) => {
+    const { to, from } = bucket;
     let s = '';
-    if (bucket.to) {
+    if (to) {
         s +=
-            ' AND publish.from <= dateTime("' +
-            bucket.to +
-            '") AND modifiedTime <= dateTime("' +
-            bucket.to +
-            '")';
+            ' AND (publish.from <= dateTime("' +
+            to +
+            '") OR publish.from NOT LIKE "*") AND (modifiedTime <= dateTime("' +
+            to +
+            '") OR modifiedTime NOT LIKE "*")';
     }
-    if (bucket.from) {
+    if (from) {
         s +=
             ' AND (publish.from > dateTime("' +
-            bucket.from +
+            from +
             '") OR modifiedTime > dateTime("' +
-            bucket.from +
+            from +
             '"))';
     }
     return s;
@@ -69,7 +70,7 @@ const getDateRanges = (ESQuery) => {
         },
     ].map((bucket) => setDocCount(ESQuery, bucket));
 
-    const totalCount = buckets.reduce((count, bucket) => count + bucket.docCount, 0);
+    const totalCount = buckets[0].docCount + buckets[1].docCount;
 
     return {
         buckets: buckets,
