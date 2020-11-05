@@ -58,13 +58,6 @@ const handleGet = (req) => {
     params.debug = params.debug || false;
 
     const result = searchUtils.runInContext(searchUtils.search, params);
-
-    const timeStart = Date.now();
-    for (let i = 0; i < 100; i++) {
-        searchUtils.runInContext(searchUtils.search, params);
-    }
-    log.info(`Time spent: ${(Date.now() - timeStart) / 1000}`);
-
     const aggregations = parseAggs(result.aggregations, params);
     const c = params.c ? parseInt(params.c) || 1 : 1;
     const isMore = c * 20 < result.total;
