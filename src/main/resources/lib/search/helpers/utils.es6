@@ -78,6 +78,30 @@ export function getFacetConfiguration() {
     return get({ key: FACETS_CONTENT_KEY });
 }
 
+const getLastUpdatedUnixTime = (hit) => {
+    const modifiedTime = new Date(hit.modifiedTime ? hit.modifiedTime.split('T')[0] : 0).getTime();
+    const publishFromTime = new Date(hit.publish && hit.publish.from ? hit.publish.from.split('T')[0] : 0).getTime();
+    return Math.max(modifiedTime, publishFromTime);
+};
+
+const sortByLastUpdatedDesc = (a, b) => getLastUpdatedUnixTime(b) - getLastUpdatedUnixTime(a);
+
+export function getSortedResult(ESQuery, sort, count) {
+    if (sort && sort !== '0') {
+        const resultTemp = query({ ...ESQuery, sort: 'modifiedTime DESC' });
+        const result = query({ ...ESQuery, sort: 'publish.from DESC' });
+
+        result.hits = [...resultTemp.hits, ...result.hits]
+            .sort(sortByLastUpdatedDesc)
+            .filter((item, index, arr) => index === 0 || arr[index-1].displayName !== item.displayName)
+            .slice(0, count);
+
+        return result;
+    }
+
+    return query({ ...ESQuery, sort: '_score DESC' });
+}
+
 export function runInContext(func, params) {
     return run(
         {

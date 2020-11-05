@@ -5,6 +5,7 @@ import {
     getCountAndStart,
     getDateRange,
     getFacetConfiguration,
+    getSortedResult,
     isSchemaSearch,
 } from './helpers/utils';
 import { tidsperiode } from './helpers/constants';
@@ -65,12 +66,7 @@ export default function search(params, skipCache) {
         ESQuery.query += getDateRange(daterange, aggregations.Tidsperiode.buckets); // 8.;
     }
 
-    ESQuery.sort = params.s && params.s !== '0' ? 'publish.from DESC' : '_score DESC'; // 9.
-
-    log.info(ESQuery.query);
-    let { hits, total } = query({
-        ...ESQuery,
-    }); // 10.
+    let { hits, total } = getSortedResult(ESQuery, params.s, count); // 9. 10.
 
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
     if (

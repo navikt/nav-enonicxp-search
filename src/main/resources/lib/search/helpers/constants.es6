@@ -24,7 +24,7 @@ const dateranges = [
 const tidsperiode = {
     dateRange: {
         ranges: dateranges,
-        field: 'publish.from',
+        field: 'modifiedTime',
         format: 'dd-MM-yyyy',
     },
 };
