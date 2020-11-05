@@ -32,9 +32,8 @@ const getDateRangeQueryString = (daterange, buckets) => {
     return getDateRangeQueryStringFromBucket(selectedBucket);
 };
 
-const setDocCount = (ESQuery, bucket) => ({
-    ...bucket,
-    docCount: Number(
+const getDocCount = (ESQuery, bucket) =>
+    Number(
         query({
             ...ESQuery,
             count: 0,
@@ -42,8 +41,7 @@ const setDocCount = (ESQuery, bucket) => ({
             aggregations: undefined,
             query: ESQuery.query + getDateRangeQueryStringFromBucket(bucket),
         }).total
-    ),
-});
+    ) || 0;
 
 const getDateRanges = (ESQuery) => {
     const now = dayjs();
@@ -68,7 +66,10 @@ const getDateRanges = (ESQuery) => {
             key: 'Siste 7 dager',
             from: sevenDaysAgo,
         },
-    ].map((bucket) => setDocCount(ESQuery, bucket));
+    ].map((bucket) => ({
+        ...bucket,
+        docCount: getDocCount(ESQuery, bucket),
+    }));
 
     const totalCount = buckets[0].docCount + buckets[1].docCount;
 

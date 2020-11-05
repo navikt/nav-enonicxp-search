@@ -57,19 +57,19 @@ export default function search(params, skipCache) {
 
     let { hits, total } = getSortedResult(ESQuery, params.s, count); // 9. 10.
 
-    // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
+    // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
+    // set of hits added. Handle this and update the relevant aggregation counters:
+    const priHitCount = prioritiesItems.hits.length;
+    aggregations.fasetter.buckets[0].docCount += priHitCount;
+    aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priHitCount;
     if (
         params.debug !== 'true' &&
         (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
         (!startParam || startParam === '0')
     ) {
-        const priHitCount = prioritiesItems.hits.length;
         hits = prioritiesItems.hits.concat(hits);
         total += priHitCount;
 
-        // add pri count to aggregations as well
-        aggregations.fasetter.buckets[0].docCount += priHitCount;
-        aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priHitCount;
         aggregations.Tidsperiode.buckets = aggregations.Tidsperiode.buckets.map((bucket) => ({
             ...bucket,
             docCount: bucket.docCount + priHitCount,
