@@ -59,22 +59,22 @@ export default function search(params, skipCache) {
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added. Handle this and update the relevant aggregation counters:
-    const priHitCount = prioritiesItems.hits.length;
-    aggregations.fasetter.buckets[0].docCount += priHitCount;
-    aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priHitCount;
+    const priorityHitCount = prioritiesItems.hits.length;
+    aggregations.fasetter.buckets[0].docCount += priorityHitCount;
+    aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priorityHitCount;
     if (
         params.debug !== 'true' &&
         (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
         (!startParam || startParam === '0')
     ) {
         hits = prioritiesItems.hits.concat(hits);
-        total += priHitCount;
+        total += priorityHitCount;
 
         aggregations.Tidsperiode.buckets = aggregations.Tidsperiode.buckets.map((bucket) => ({
             ...bucket,
-            docCount: bucket.docCount + priHitCount,
+            docCount: bucket.docCount + priorityHitCount,
         }));
-        aggregations.Tidsperiode.docCount += priHitCount;
+        aggregations.Tidsperiode.docCount += priorityHitCount;
     }
 
     let scores = {};
