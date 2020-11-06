@@ -161,7 +161,7 @@ const checkIfUpdateNeeded = (nodeIds) => {
         count: 1,
         query: 'type = "' + app.name + ':search-config2"',
     }).hits;
-    const facetConfig = hits.length > 0 ? draftRepo.get(hits[0].id) : null;
+    const facetConfig = hits.length > 0 ? masterRepo.get(hits[0].id) : null;
 
     // run tagAll if the facet config is part of the nodes to update
     const IsFacetConfigPartOfUpdate =
