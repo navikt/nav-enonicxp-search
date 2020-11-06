@@ -1,6 +1,8 @@
 import { run } from '/lib/xp/context';
 import { get, query } from '/lib/xp/content';
 
+const moment = require('/assets/momentjs/2.24.0/min/moment-with-locales.min.js');
+
 export function isSchemaSearch(ord) {
     return /^\d\d-\d\d\.\d\d$/.test(ord);
 }
@@ -62,10 +64,10 @@ export function getFacetConfiguration() {
 }
 
 const getLastUpdated = (hit) => {
-    const modifiedTime = new Date(hit.modifiedTime ? hit.modifiedTime.split('Z')[0] : 0).getTime();
-    const publishFromTime = new Date(
-        hit.publish && hit.publish.from ? hit.publish.from.split('Z')[0] : 0
-    ).getTime();
+    const modifiedTime = moment(hit.modifiedTime || 0).valueOf();
+    const publishFromTime = moment(
+        hit.publish && hit.publish.from ? hit.publish.from : 0
+    ).valueOf();
     return Math.max(modifiedTime, publishFromTime);
 };
 
@@ -78,9 +80,7 @@ export function getSortedResult(ESQuery, sort, count) {
 
         result.hits = [...resultTemp.hits, ...result.hits]
             .sort(sortByLastUpdatedDesc)
-            .filter(
-                (item, index, arr) => index === 0 || arr[index - 1].displayName !== item.displayName
-            )
+            .filter((item, index, arr) => index === 0 || arr[index - 1]._id !== item._id)
             .slice(0, count);
 
         return result;
