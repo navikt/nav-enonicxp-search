@@ -27,7 +27,9 @@ const getDateRangeQueryStringFromBucket = (bucket) => {
 
 const getDateRangeQueryString = (daterange, buckets) => {
     const dateRangeValue = Number(daterange);
-    if (!buckets || dateRangeValue.isNaN() || !buckets[dateRangeValue]) return '';
+    if (!buckets || dateRangeValue.isNaN() || !buckets[dateRangeValue]) {
+        return '';
+    }
     const selectedBucket = buckets[dateRangeValue];
     return getDateRangeQueryStringFromBucket(selectedBucket);
 };
@@ -74,7 +76,7 @@ const getDateRanges = (ESQuery) => {
     const totalCount = buckets[0].docCount + buckets[1].docCount;
 
     return {
-        buckets: buckets,
+        buckets,
         docCount: totalCount,
     };
 };
