@@ -26,6 +26,7 @@ export default function search(params, skipCache) {
         excludePrioritized: excludePrioritizedParam = 'false',
         c: countParam,
         daterange,
+        s: sorting,
     } = params;
 
     let wordList = [];
@@ -55,11 +56,14 @@ export default function search(params, skipCache) {
         ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets); // 8.
     }
 
-    let { hits, total } = getSortedResult(ESQuery, params.s); // 9. 10.
+    let { hits, total } = getSortedResult(ESQuery, sorting); // 9. 10.
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
-    if (!params.s || Number(params.s) === 0) {
+    if (
+        (sorting === undefined || Number(sorting) === 0) &&
+        (daterange === undefined || Number(daterange) === -1)
+    ) {
         const priorityHitCount = prioritiesItems.hits.length;
         aggregations.fasetter.buckets[0].docCount += priorityHitCount;
         aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priorityHitCount;
@@ -70,11 +74,6 @@ export default function search(params, skipCache) {
         ) {
             hits = prioritiesItems.hits.concat(hits);
             total += priorityHitCount;
-
-            aggregations.Tidsperiode.buckets = aggregations.Tidsperiode.buckets.map((bucket) => ({
-                ...bucket,
-                docCount: bucket.docCount + priorityHitCount,
-            }));
             aggregations.Tidsperiode.docCount += priorityHitCount;
         }
     }
