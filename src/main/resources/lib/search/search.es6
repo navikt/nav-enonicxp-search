@@ -58,23 +58,25 @@ export default function search(params, skipCache) {
     let { hits, total } = getSortedResult(ESQuery, params.s); // 9. 10.
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
-    // set of hits added. Handle this and update the relevant aggregation counters:
-    const priorityHitCount = prioritiesItems.hits.length;
-    aggregations.fasetter.buckets[0].docCount += priorityHitCount;
-    aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priorityHitCount;
-    if (
-        params.debug !== 'true' &&
-        (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
-        (!startParam || startParam === '0')
-    ) {
-        hits = prioritiesItems.hits.concat(hits);
-        total += priorityHitCount;
+    // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
+    if (!params.s || Number(params.s) === 0) {
+        const priorityHitCount = prioritiesItems.hits.length;
+        aggregations.fasetter.buckets[0].docCount += priorityHitCount;
+        aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priorityHitCount;
+        if (
+            params.debug !== 'true' &&
+            (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
+            (!startParam || startParam === '0')
+        ) {
+            hits = prioritiesItems.hits.concat(hits);
+            total += priorityHitCount;
 
-        aggregations.Tidsperiode.buckets = aggregations.Tidsperiode.buckets.map((bucket) => ({
-            ...bucket,
-            docCount: bucket.docCount + priorityHitCount,
-        }));
-        aggregations.Tidsperiode.docCount += priorityHitCount;
+            aggregations.Tidsperiode.buckets = aggregations.Tidsperiode.buckets.map((bucket) => ({
+                ...bucket,
+                docCount: bucket.docCount + priorityHitCount,
+            }));
+            aggregations.Tidsperiode.docCount += priorityHitCount;
+        }
     }
 
     let scores = {};
