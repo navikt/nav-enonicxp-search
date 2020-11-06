@@ -1,5 +1,6 @@
-import dayjs from 'dayjs.min.js';
 import { query } from '/lib/xp/content';
+
+const moment = require('/assets/momentjs/2.24.0/min/moment-with-locales.min.js');
 
 const dateTimeFormat = 'YYYY-MM-DD[T]HH:mm:ss[Z]';
 
@@ -46,7 +47,7 @@ const getDocCount = (ESQuery, bucket) =>
     ) || 0;
 
 const getDateRanges = (ESQuery) => {
-    const now = dayjs();
+    const now = moment();
     const sevenDaysAgo = now.subtract(7, 'day').format(dateTimeFormat);
     const thirtyDaysAgo = now.subtract(30, 'day').format(dateTimeFormat);
     const oneYearAgo = now.subtract(1, 'year').format(dateTimeFormat);
