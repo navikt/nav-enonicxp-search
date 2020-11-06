@@ -55,7 +55,7 @@ export default function search(params, skipCache) {
         ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets); // 8.
     }
 
-    let { hits, total } = getSortedResult(ESQuery, params.s, count); // 9. 10.
+    let { hits, total } = getSortedResult(ESQuery, params.s); // 9. 10.
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added. Handle this and update the relevant aggregation counters:

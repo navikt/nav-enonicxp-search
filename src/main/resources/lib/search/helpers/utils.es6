@@ -1,8 +1,6 @@
 import { run } from '/lib/xp/context';
 import { get, query } from '/lib/xp/content';
 
-const moment = require('/assets/momentjs/2.24.0/min/moment-with-locales.min.js');
-
 export function isSchemaSearch(ord) {
     return /^\d\d-\d\d\.\d\d$/.test(ord);
 }
@@ -63,27 +61,9 @@ export function getFacetConfiguration() {
     return get({ key: FACETS_CONTENT_KEY });
 }
 
-const getLastUpdated = (hit) => {
-    const modifiedTime = moment(hit.modifiedTime || 0).valueOf();
-    const publishFromTime = moment(
-        hit.publish && hit.publish.from ? hit.publish.from : 0
-    ).valueOf();
-    return Math.max(modifiedTime, publishFromTime);
-};
-
-const sortByLastUpdatedDesc = (a, b) => getLastUpdated(b) - getLastUpdated(a);
-
-export function getSortedResult(ESQuery, sort, count) {
+export function getSortedResult(ESQuery, sort) {
     if (sort && sort !== '0') {
-        const resultTemp = query({ ...ESQuery, sort: 'modifiedTime DESC' });
-        const result = query({ ...ESQuery, sort: 'publish.from DESC' });
-
-        result.hits = [...resultTemp.hits, ...result.hits]
-            .sort(sortByLastUpdatedDesc)
-            .filter((item, index, arr) => index === 0 || arr[index - 1]._id !== item._id)
-            .slice(0, count);
-
-        return result;
+        return query({ ...ESQuery, sort: 'publish.from DESC' });
     }
 
     return query({ ...ESQuery, sort: '_score DESC' });
