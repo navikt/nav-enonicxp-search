@@ -130,7 +130,10 @@ const newAgg = (fasetter, ids) => {
             });
             return hit.id;
         });
-        republishLiveElements(modifiedNodes);
+
+        if (modifiedNodes.length > 0) {
+            republishLiveElements(modifiedNodes);
+        }
     });
 
     if (!ids) {
