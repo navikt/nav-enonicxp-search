@@ -62,9 +62,9 @@ export function getFacetConfiguration() {
 }
 
 const getLastUpdated = (hit) => {
-    const modifiedTime = new Date(hit.modifiedTime ? hit.modifiedTime.split('T')[0] : 0).getTime();
+    const modifiedTime = new Date(hit.modifiedTime ? hit.modifiedTime.split('Z')[0] : 0).getTime();
     const publishFromTime = new Date(
-        hit.publish && hit.publish.from ? hit.publish.from.split('T')[0] : 0
+        hit.publish && hit.publish.from ? hit.publish.from.split('Z')[0] : 0
     ).getTime();
     return Math.max(modifiedTime, publishFromTime);
 };
