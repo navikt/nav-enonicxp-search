@@ -30,17 +30,17 @@ git clone https://github.com/navikt/nav-enonicxp-search.git
 
 ```
 enonic project deploy
-``` 
+```
 
 ## Deploy
 
 - **Q6:** Run **trigger-deploy-q6.sh** located in the .github folder <br>
 `.github/trigger-deploy-q6.sh`
 - **Q1:** Merge to develop
-- **P:**  Make a PR between master and develop __*__ and create a release at <br /> 
+- **P:**  Make a PR between master and develop __*__ and create a release at <br />
 https://github.com/navikt/nav-enonicxp-search/releases <br />
 **Obs:** Release must be formatted as **vX.X.X** (e.g v1.2.1)
- 
+
  __*__ PR between master and develop
 1. Make a pull request between master and develop
 2. Name it "Release: < iso-date of the release> "
@@ -60,3 +60,13 @@ For at søket skal fungere er man nødt til å legge hunspell inn i XP.
 cp hunspell $XP_HOME/repo/index/conf/
 ```
 - For mer info se: https://confluence.adeo.no/pages/viewpage.action?pageId=314051832
+
+## Troubleshooting
+
+#### Facet handling
+
+The facet handler has a locking mechanism which is stored in enonic under 'Data Toolbox / Data Tree /
+no.nav.navno/ master / root / facetValidation'. In case of a crash during deploy this lock could have been set during the crash. The error handling can't manage to release the lock so this might have to be done manually.
+
+1. Delete the facetValidation from data tool box
+2. Restart the search app, this will make the master recreate the structure during startup.

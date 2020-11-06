@@ -1,19 +1,18 @@
-import { query } from '/lib/xp/content';
-import { getEmptySearchResult, getEmptyTimePeriod } from './helpers/cache';
+import { getEmptySearchResult } from './helpers/cache';
 import {
     getAggregations,
     getCountAndStart,
-    getDateRange,
     getFacetConfiguration,
+    getSortedResult,
     isSchemaSearch,
 } from './helpers/utils';
-import { tidsperiode } from './helpers/constants';
 import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
 import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
 import getRepository from './helpers/repo';
 import getSearchWords from './queryBuilder/getSearchWords';
+import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
@@ -27,6 +26,7 @@ export default function search(params, skipCache) {
         excludePrioritized: excludePrioritizedParam = 'false',
         c: countParam,
         daterange,
+        s: sorting,
     } = params;
 
     let wordList = [];
@@ -50,40 +50,32 @@ export default function search(params, skipCache) {
     const ESQuery = createQuery(wordList, { start, count }); // 4.
     const aggregations = getAggregations(ESQuery, config); // 5
     ESQuery.filters = createFilters(params, config, prioritiesItems); // 6.
-    ESQuery.aggregations.Tidsperiode = tidsperiode;
-    // run time period query, or fetch from cache if its an empty search with an earlier used combination on facet and subfacet
-    let enonicResultSet;
-    if (wordList.length > 0) {
-        enonicResultSet = query(ESQuery);
-    } else {
-        const timePeriodKey = facet + '_' + JSON.stringify(childFacet);
-        enonicResultSet = getEmptyTimePeriod(timePeriodKey, () => query(ESQuery));
-    }
-    aggregations.Tidsperiode = enonicResultSet.aggregations.Tidsperiode; // 7.
+    aggregations.Tidsperiode = getDateRanges(ESQuery); // 7.
 
     if (daterange) {
-        ESQuery.query += getDateRange(daterange, aggregations.Tidsperiode.buckets); // 8.;
+        ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets); // 8.
     }
 
-    ESQuery.sort = params.s && params.s !== '0' ? 'publish.from DESC' : '_score DESC'; // 9.
+    let { hits, total } = getSortedResult(ESQuery, sorting); // 9. 10.
 
-    let { hits, total } = query({
-        ...ESQuery,
-    }); // 10.
-
-    // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
+    // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
+    // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
     if (
-        params.debug !== 'true' &&
-        (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
-        (!startParam || startParam === '0')
+        (sorting === undefined || Number(sorting) === 0) &&
+        (daterange === undefined || Number(daterange) === -1)
     ) {
-        hits = prioritiesItems.hits.concat(hits);
-        total += prioritiesItems.hits.length;
-
-        // add pri count to aggregations as well
-        aggregations.fasetter.buckets[0].docCount += prioritiesItems.hits.length;
-        aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount +=
-            prioritiesItems.hits.length;
+        const priorityHitCount = prioritiesItems.hits.length;
+        aggregations.fasetter.buckets[0].docCount += priorityHitCount;
+        aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priorityHitCount;
+        if (
+            params.debug !== 'true' &&
+            (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
+            (!startParam || startParam === '0')
+        ) {
+            hits = prioritiesItems.hits.concat(hits);
+            total += priorityHitCount;
+            aggregations.Tidsperiode.docCount += priorityHitCount;
+        }
     }
 
     let scores = {};
@@ -102,6 +94,7 @@ export default function search(params, skipCache) {
             return { ...agg, [hit.id]: hit.score };
         }, {});
     }
+
     // prepare the hits with highlighting and such
     hits = hits.map((hit) => {
         let preparedHit = createPreparedHit(hit, wordList);

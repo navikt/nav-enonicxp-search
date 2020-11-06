@@ -13,7 +13,7 @@
         "watch:lint": "onchange \"src/main/resources/**/*.es6\" -- npm run lint --silent",
         "watch:transpile-local": "babel src/main/resources --watch --extensions '.es6' --out-dir=build/resources/main",
         "watch:transpile-test": "babel src/test/resources --watch --extensions '.es6' --out-dir=build/resources/test",
-        "lint:backend": "eslint --ext=es6 ./src/main/resources",
+        "lint:backend": "eslint --ext=es6 ./src/main/resources --quiet",
         "lint-staged": "lint-staged",
         "lint:test": "eslint --ext=es6 ./src/test/resources"
     },
