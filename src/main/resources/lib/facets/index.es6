@@ -2,13 +2,7 @@ const navUtils = require('/lib/nav-utils');
 const nodeLib = require('/lib/xp/node');
 const taskLib = require('/lib/xp/task');
 
-const repoMaster = nodeLib.connect({
-    repoId: 'com.enonic.cms.default',
-    branch: 'master',
-    principals: ['role:system.admin'],
-});
-
-const draftRepo = nodeLib.connect({
+const repo = nodeLib.connect({
     repoId: 'com.enonic.cms.default',
     branch: 'draft',
     principals: ['role:system.admin'],
@@ -19,28 +13,6 @@ const debounceTime = 5000;
 let lastUpdate = 0;
 let currentTask = null;
 
-const republishLiveElements = (targetIds) => {
-    const masterHits = repoMaster.query({
-        count: targetIds.length,
-        filters: {
-            ids: {
-                values: targetIds,
-            },
-        },
-    }).hits;
-    const masterIds = masterHits.map((el) => el.id);
-
-    // important that we use resolve false when pushing objects to master, else we can get objects
-    // which were unpublished back to master without a published.from property
-    const pushResult = draftRepo.push({
-        keys: masterIds,
-        resolve: false,
-        target: 'master',
-    });
-
-    log.info(`Pushed ${masterIds.length} elements to master`);
-    log.info(JSON.stringify(pushResult, null, 4));
-};
 const newAgg = (fasetter, ids) => {
     // create queries for each facet and subfacet
     const resolver = fasetter.reduce((t, el) => {
@@ -107,7 +79,7 @@ const newAgg = (fasetter, ids) => {
             query.start = start;
             query.count = count;
 
-            const res = draftRepo.query(query).hits;
+            const res = repo.query(query).hits;
             count = res.length;
             start += count;
             hits = hits.concat(res);
@@ -115,10 +87,10 @@ const newAgg = (fasetter, ids) => {
 
         navUtils.addValidatedNodes(hits.map((c) => c.id));
 
-        const modifiedNodes = hits.map((hit) => {
+        hits.forEach((hit) => {
             log.info(`adding ${fasett.fasett} and ${fasett.underfasett} to ${hit.id}`);
 
-            draftRepo.modify({
+            repo.modify({
                 key: hit.id,
                 editor: (elem) => {
                     const n = elem;
@@ -128,12 +100,13 @@ const newAgg = (fasetter, ids) => {
                     return n;
                 },
             });
-            return hit.id;
-        });
 
-        if (modifiedNodes.length > 0) {
-            republishLiveElements(modifiedNodes);
-        }
+            // republish objects which have been updated with facets
+            repo.push({
+                key: hit.id,
+                target: 'master',
+            });
+        });
     });
 
     if (!ids) {
@@ -159,12 +132,12 @@ const checkIfUpdateNeeded = (nodeIds) => {
     }
 
     // get facet config
-    const hits = repoMaster.query({
+    const hits = repo.query({
         start: 0,
         count: 1,
         query: 'type = "' + app.name + ':search-config2"',
     }).hits;
-    const facetConfig = hits.length > 0 ? repoMaster.get(hits[0].id) : null;
+    const facetConfig = hits.length > 0 ? repo.get(hits[0].id) : null;
 
     // run tagAll if the facet config is part of the nodes to update
     const IsFacetConfigPartOfUpdate =
