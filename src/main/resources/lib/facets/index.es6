@@ -156,7 +156,7 @@ const checkIfUpdateNeeded = (nodeIds) => {
     }
 
     // get facet config
-    const hits = draftRepo.query({
+    const hits = masterRepo.query({
         start: 0,
         count: 1,
         query: 'type = "' + app.name + ':search-config2"',
