@@ -1,7 +1,7 @@
 const httpClientLib = require('/lib/http-client');
 
-const localBaseURL = 'http://localhost:8080/sok/_/service/navno.nav.no.search/search';
-const prodBaseURL = 'https://www.nav.no/sok/_/service/navno.nav.no.search/search';
+const localBaseURL = 'http://localhost:8080/_/service/navno.nav.no.search/search';
+const prodBaseURL = 'https://www.nav.no/_/service/navno.nav.no.search/search';
 
 const getDisplayNames = (hits) => {
     return hits.map((hit) => hit.displayName);
@@ -11,7 +11,7 @@ const simpleSearch = (searchTerm, prod = false, params = null) => {
     const paramString = params
         ? Object.keys(params).reduce((memo, item) => `${memo}&${item}=${params[item]}`, '')
         : '';
-    const url = `${prod ? prodBaseURL : localBaseURL}?ord="${searchTerm}${paramString}`;
+    const url = `${prod ? prodBaseURL : localBaseURL}?ord=${searchTerm}${paramString}`;
     const result = httpClientLib.request({
         url: url,
         method: 'GET',

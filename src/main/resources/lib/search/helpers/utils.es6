@@ -48,34 +48,25 @@ export function mapReducer(buckets) {
 }
 
 export function getAggregations(ESQuery, config) {
-    const { aggregations } = query(ESQuery);
+    const { aggregations } = query({ ...ESQuery, count: 0 });
     aggregations.fasetter.buckets = []
         .concat(config.data.fasetter)
         .reduce(mapReducer(aggregations.fasetter.buckets), []);
     return aggregations;
 }
 
-/*
-    -------- Add the date range to query if selected ----------
- */
-export function getDateRange(daterange, buckets) {
-    const dateRangeValue = Number(daterange);
-    if (!buckets || dateRangeValue.isNaN() || !buckets[dateRangeValue]) return '';
-    let s = '';
-    const e = buckets[dateRangeValue];
-    if ('to' in e) {
-        s += ' And modifiedTime < dateTime("' + e.to + '")';
-    }
-    if ('from' in e) {
-        s += ' And modifiedTime > dateTime("' + e.from + '")';
-    }
-    return s;
-}
-
 const FACETS_CONTENT_KEY = '/www.nav.no/fasetter';
 
 export function getFacetConfiguration() {
     return get({ key: FACETS_CONTENT_KEY });
+}
+
+export function getSortedResult(ESQuery, sort) {
+    if (sort && sort !== '0') {
+        return query({ ...ESQuery, sort: 'publish.from DESC' });
+    }
+
+    return query({ ...ESQuery, sort: '_score DESC' });
 }
 
 export function runInContext(func, params) {
