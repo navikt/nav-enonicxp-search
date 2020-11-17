@@ -60,10 +60,7 @@ export default function search(params, skipCache) {
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
-    if (
-        (sorting === undefined || Number(sorting) === 0) &&
-        (daterange === undefined || Number(daterange) === -1)
-    ) {
+    if (sorting === undefined || Number(sorting) === 0) {
         const priorityHitCount = prioritiesItems.hits.length;
         aggregations.fasetter.buckets[0].docCount += priorityHitCount;
         aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priorityHitCount;
@@ -72,9 +69,11 @@ export default function search(params, skipCache) {
             (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
             (!startParam || startParam === '0')
         ) {
-            hits = prioritiesItems.hits.concat(hits);
-            total += priorityHitCount;
             aggregations.Tidsperiode.docCount += priorityHitCount;
+            if (daterange === undefined || Number(daterange) === -1) {
+                hits = prioritiesItems.hits.concat(hits);
+                total += priorityHitCount;
+            }
         }
     }
 
