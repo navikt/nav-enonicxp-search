@@ -13,7 +13,6 @@ import createPreparedHit from './resultListing/createPreparedHit';
 import getRepository from './helpers/repo';
 import getSearchWords from './queryBuilder/getSearchWords';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
-import getPathFilter from './helpers/pathFilter';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
@@ -57,8 +56,6 @@ export default function search(params, skipCache) {
         ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets); // 8.
     }
 
-    // add path filter
-    ESQuery.query += getPathFilter();
     let { hits, total } = getSortedResult(ESQuery, sorting); // 9. 10.
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
