@@ -1,12 +1,16 @@
+import getPathFilter from '../helpers/pathFilter';
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
 export default function createQuery(wordList, esQuery = {}) {
     const navApp = 'no.nav.navno:';
-    const query =
+    let query =
         'fulltext("attachment.*, data.text, data.ingress, displayName^2, data.abstract, data.keywords^15, data.enhet.*, data.interface.*" ,"' +
         wordList.join(' ') +
         '", "OR") ';
+
+    // add path filter
+    query += getPathFilter();
 
     return {
         start: 0,

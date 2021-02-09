@@ -114,6 +114,7 @@ const newAgg = (fasetter, ids) => {
         navUtils.setUpdateAll(false);
     }
 };
+
 const tagAll = (facetConfig, ids) => {
     if (!ids) {
         log.info('TAG ALL FACETS');
