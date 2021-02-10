@@ -1,5 +1,13 @@
 export default function createFilters(params, config, prioritiesItems) {
-    let filters = { boolean: { must: [] } };
+    const filters = { boolean: { must: [], mustNot: [] } };
+
+    // exclude no index items
+    filters.boolean.mustNot.push({
+        hasValue: {
+            field: 'data.noindex',
+            values: [true],
+        },
+    });
 
     if (params.f) {
         filters.boolean.must.push({
@@ -26,32 +34,29 @@ export default function createFilters(params, config, prioritiesItems) {
         }
 
         if (prioritiesItems.ids.length > 0) {
-            filters.boolean.mustNot = {
+            filters.boolean.mustNot.push({
                 hasValue: {
                     field: '_id',
                     values: prioritiesItems.ids,
                 },
-            };
+            });
         }
         return filters;
     }
-    filters = {
-        boolean: {
-            must: {
-                hasValue: {
-                    field: 'x.no-nav-navno.fasetter.fasett',
-                    values: [config.data.fasetter[0].name],
-                },
-            },
+
+    filters.boolean.must.push({
+        hasValue: {
+            field: 'x.no-nav-navno.fasetter.fasett',
+            values: [config.data.fasetter[0].name],
         },
-    };
+    });
     if (prioritiesItems.ids.length > 0) {
-        filters.boolean.mustNot = {
+        filters.boolean.mustNot.push({
             hasValue: {
                 field: '_id',
                 values: prioritiesItems.ids,
             },
-        };
+        });
     }
     return filters;
 }
