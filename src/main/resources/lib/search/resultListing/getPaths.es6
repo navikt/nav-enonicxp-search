@@ -30,6 +30,7 @@ export default function getPaths(el) {
         // href for everything else
         paths.href = pageUrl({
             id: el._id,
+            type: 'absolute'
         });
     }
 
