@@ -5,7 +5,7 @@ import getPathFilter from '../helpers/pathFilter';
 export default function createQuery(wordList, esQuery = {}) {
     const navApp = 'no.nav.navno:';
     let query =
-        'fulltext("attachment.*, data.text, data.ingress, displayName^2, data.abstract, data.keywords^15, data.enhet.*, data.interface.*" ,"' +
+        'fulltext("attachment.*, data.text, data.ingress, data.description, displayName^2, data.abstract, data.keywords^15, data.enhet.*, data.interface.*" ,"' +
         wordList.join(' ') +
         '", "OR") ';
 
@@ -24,6 +24,8 @@ export default function createQuery(wordList, esQuery = {}) {
             navApp + 'main-article-chapter',
             navApp + 'large-table',
             navApp + 'external-link',
+            navApp + 'dynamic-page',
+            navApp + 'content-page-with-sidemenus',
             'media:document',
             'media:spreadsheet',
             // app.name + ':search-api',
