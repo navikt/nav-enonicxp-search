@@ -4,10 +4,10 @@ buildscript {
     if (project.hasProperty('build-inside-firewall')) {
         repositories {
             maven {
-                url "http://maven.adeo.no/nexus/content/groups/public/"
+                url "https://maven.adeo.no/nexus/content/groups/public/"
             }
             maven {
-                url "http://maven.adeo.no/nexus/content/repositories/m2internal/"
+                url "https://maven.adeo.no/nexus/content/repositories/m2internal/"
             }
         }
         dependencies {
@@ -17,7 +17,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.enonic.xp.app' version '2.0.0' // A plugin developed by Enonic that adds some needed things to Gradle and makes app-building easier. It is required to use in any Enonic App.
+    id 'com.enonic.xp.app' version '3.0.0' // A plugin developed by Enonic that adds some needed things to Gradle and makes app-building easier. It is required to use in any Enonic App.
     id "com.moowork.node" version '1.3.1'
 }
 node {
@@ -33,10 +33,25 @@ app {
     systemVersion = "${xpVersion}"
 }
 
+repositories {
+    // External dependencies
+    if (!project.hasProperty('build-inside-firewall')) {
+        mavenLocal()
+        mavenCentral()
+        xp.enonicRepo()
+    }
+    maven {
+        url "https://maven.adeo.no/nexus/content/groups/public"
+    }
+    maven {
+        url  "https://dl.bintray.com/ljl/maven"
+    }
+}
+
 dependencies {
-    compile 'org.elasticsearch:elasticsearch:2.4.6'
-    compile "com.enonic.xp:core-api:${xpVersion}"
-    compile "com.enonic.xp:portal-api:${xpVersion}"
+    implementation "org.elasticsearch:elasticsearch:2.4.6"
+    implementation "com.enonic.xp:core-api:${xpVersion}"
+    implementation "com.enonic.xp:portal-api:${xpVersion}"
     include "com.enonic.lib:lib-thymeleaf:2.0.0"
     include "com.enonic.xp:lib-cluster:${xpVersion}"
     include "com.enonic.xp:lib-content:${xpVersion}"
@@ -47,25 +62,10 @@ dependencies {
     include "com.enonic.xp:lib-portal:${xpVersion}"
     include "com.enonic.xp:lib-repo:${xpVersion}"
     include "com.enonic.xp:lib-task:${xpVersion}"
-    testCompile "com.enonic.xp:testing:${xpVersion}"
-    include 'com.enonic.lib:lib-cache:2.1.0'
-    include 'com.enonic.lib:lib-http-client:2.0.0'
+    testImplementation "com.enonic.xp:testing:${xpVersion}"
+    include "com.enonic.lib:lib-cache:2.1.0"
+    include "com.enonic.lib:lib-http-client:2.0.0"
     webjar "org.webjars:momentjs:2.24.0"
-}
-
-repositories {
-    // External dependencies
-    if (!project.hasProperty('build-inside-firewall')) {
-        mavenLocal()
-        jcenter()
-        xp.enonicRepo()
-    }
-	maven {
-	    url "http://maven.adeo.no/nexus/content/groups/public"
-	}
-    maven {
-        url  "https://dl.bintray.com/ljl/maven"
-    }
 }
 
 // Tasks
