@@ -9,22 +9,22 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Cleanup
-        run: rm -rf $(ls search-*.jar)
+        run: rm -rf $(ls search*.jar)
       - name: Download artifact
         env:
-          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+          DEPLOY_PAT: ${{ secrets.DEPLOY_PAT }}
           GITHUB_REPOSITORY: ${{ secrets.GITHUB_REPOSITORY }}
           GITHUB_BUILD_RUN_ID: ${{ github.event.client_payload.RUN_ID }}
         run: |
           ARTIFACT_ID="$(curl \
-          -H "authorization: Bearer ${GITHUB_PAT}" \
+          -H "authorization: Bearer ${DEPLOY_PAT}" \
           -s https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_BUILD_RUN_ID}/artifacts \
           | jq '.artifacts[0].id')"
 
           echo Downloading artifact $ARTIFACT_ID
           curl -o app.zip \
           --cacert /etc/pki/tls/cacert.pem \
-          -H "Authorization: Bearer ${GITHUB_PAT}" \
+          -H "Authorization: Bearer ${DEPLOY_PAT}" \
           -L "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/$ARTIFACT_ID/zip"
           unzip -o app.zip
       - name: Deploy application
@@ -33,8 +33,8 @@ jobs:
           ENONIC_CLI_REMOTE_USER: ${{ secrets.Q6_ENONIC_CLI_REMOTE_USER }}
           ENONIC_CLI_REMOTE_PASS: ${{ secrets.Q6_ENONIC_CLI_REMOTE_PASS }}
         run: |
-          echo Deploying $(ls search-*.jar)
+          echo Deploying $(ls search*.jar)
           curl \
             -k ${ENONIC_CLI_REMOTE_URL} \
             --user "${ENONIC_CLI_REMOTE_USER}:${ENONIC_CLI_REMOTE_PASS}" \
-            -F file=@$(ls search-*.jar)
+            -F file=@$(ls search*.jar)

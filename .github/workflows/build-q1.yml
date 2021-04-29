@@ -58,5 +58,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v1
         with:
           event-type: deploy-to-q1
-          token: ${{ secrets.GITHUB_PAT }}
+          token: ${{ secrets.DEPLOY_PAT }}
           client-payload: '{"RUN_ID": "${{ steps.vars.outputs.RUN_ID }}"}'
