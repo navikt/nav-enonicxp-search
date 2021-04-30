@@ -34,8 +34,7 @@ jobs:
       - name: Build application
         id: build
         run: |
-          version=${{ steps.vars.outputs.VERSION }}
-          gradle clean build deploy -Pversion=${version//v} -x test
+          gradle clean build deploy -x test
           echo ::set-output name=FILENAME::search-${version//v}.jar
       - uses: actions/upload-artifact@v1
         with:
@@ -64,5 +63,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v1
         with:
           event-type: deploy-to-prod
-          token: ${{ secrets.GITHUB_PAT }}
+          token: ${{ secrets.DEPLOY_PAT }}
           client-payload: '{"RUN_ID": "${{ steps.vars.outputs.RUN_ID }}"}'
