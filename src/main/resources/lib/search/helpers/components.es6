@@ -21,3 +21,4 @@ const componentFieldsToSearch = [
 ].map(item => `components.${item}`);
 
 export default componentFieldsToSearch;
+//
