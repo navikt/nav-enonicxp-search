@@ -1,7 +1,10 @@
-name: Build to Q1
+name: Build to dev
 
 on:
   push:
+    tags:
+      - "v*-*"
+      - "!v*-*-*"
     branches:
       - develop
 
@@ -28,9 +31,8 @@ jobs:
       - name: Build application
         id: build
         run: |
-          version=${{ steps.vars.outputs.VERSION }}
-          gradle clean build deploy -Pversion=${version//v} -x test
-          echo ::set-output name=FILENAME::search-${version//v}.jar
+          gradle clean build deploy -x test
+          echo ::set-output name=FILENAME::search.jar
       - uses: actions/upload-artifact@v1
         with:
           name: Application
@@ -57,6 +59,6 @@ jobs:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v1
         with:
-          event-type: deploy-to-q1
-          token: ${{ secrets.GITHUB_PAT }}
+          event-type: deploy-to-dev
+          token: ${{ secrets.DEPLOY_PAT }}
           client-payload: '{"RUN_ID": "${{ steps.vars.outputs.RUN_ID }}"}'

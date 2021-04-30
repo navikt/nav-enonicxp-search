@@ -24,8 +24,7 @@ jobs:
       - name: Build application
         id: build
         run: |
-          version=${{ steps.vars.outputs.VERSION }}
-          gradle clean build deploy -Pversion=${version//v} -x test
+          gradle clean build deploy -x test
       - uses: actions/upload-artifact@v1
         with:
           name: Application
