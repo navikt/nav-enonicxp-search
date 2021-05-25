@@ -34,6 +34,7 @@ export default function getSearchWords(queryWord) {
 
     // synonyms
     const synonymMap = getSynonyms();
+    JSON.stringify(`Synonym-map: ${synonymMap}`);
     return wordList.reduce((list, key) => {
         if (key && synonymMap[key]) {
             synonymMap[key].forEach((synonym) => {
