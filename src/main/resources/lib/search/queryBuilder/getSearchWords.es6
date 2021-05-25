@@ -35,7 +35,7 @@ export default function getSearchWords(queryWord) {
     // synonyms
     const synonymMap = getSynonyms();
     return wordList.reduce((list, key) => {
-        if (synonymMap[key]) {
+        if (key && synonymMap[key]) {
             synonymMap[key].forEach((synonym) => {
                 if (list.indexOf(synonym) === -1) {
                     list.push(synonym);
