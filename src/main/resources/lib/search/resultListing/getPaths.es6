@@ -50,11 +50,7 @@ export default function getPaths(el) {
         paths.displayPath = customPath;
     } else if (paths.href.indexOf('http') === 0) {
         // find display path for absolute urls
-        if (paths.href.indexOf('https://www.nav.no/') === 0) {
-            paths.displayPath = paths.href.replace('https://www.nav.no/', '/');
-        } else {
-            paths.displayPath = paths.href;
-        }
+        paths.displayPath = paths.href.replace(/^https:\/\/(www\.)?((dev|q6)\.)?nav\.no\//, '/');
     } else {
         // display path for everything else
         paths.displayPath = paths.href.split('/').slice(0, -1).join('/');
