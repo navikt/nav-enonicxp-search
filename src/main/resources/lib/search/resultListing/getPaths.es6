@@ -10,7 +10,9 @@ export default function getPaths(el) {
         href: '',
         displayPath: '',
     };
-    // find href for prioritised items
+
+    const customPath = el.data && el.data.customPath;
+
     if (
         el.type === app.name + ':search-api' ||
         el.type === app.name + ':search-api2' ||
@@ -26,21 +28,26 @@ export default function getPaths(el) {
         paths.href = attachmentUrl({
             id: el._id,
         });
+    } else if (customPath) {
+        paths.href = pageUrl({
+            path: `/www.nav.no${customPath}`,
+            type: 'absolute',
+        });
     } else {
-        // href for everything else
         paths.href = pageUrl({
             id: el._id,
-            type: 'absolute'
+            type: 'absolute',
         });
     }
 
-    // find display path for media/files
     if (
         el.type === 'media:document' ||
         el.type === 'media:spreadsheet' ||
         el.type === 'media:image'
     ) {
         paths.displayPath = pageUrl({ id: el._id }).split('/').slice(0, -1).join('/');
+    } else if (customPath) {
+        paths.displayPath = customPath;
     } else if (paths.href.indexOf('http') === 0) {
         // find display path for absolute urls
         if (paths.href.indexOf('https://www.nav.no/') === 0) {
