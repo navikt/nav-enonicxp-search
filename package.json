@@ -5,17 +5,13 @@
     "main": "createPhrases.js",
     "scripts": {
         "build": "npm-run-all lint:* build:*",
-        "test": "./gradlew test --info",
         "watch": "npm-run-all watch:*",
-        "dev": "npm-run-all -p watch:lint watch:transpile-local watch:transpile-test",
+        "dev": "npm-run-all -p watch:lint watch:transpile-local",
         "build:transpile-local": "babel src/main/resources --out-dir=build/resources/main --ignore \"**/*.js\"",
-        "build:transpile-test": "babel src/test/resources --out-dir=build/resources/test --ignore \"**/*.js\"",
         "watch:lint": "onchange \"src/main/resources/**/*.es6\" -- npm run lint --silent",
         "watch:transpile-local": "babel src/main/resources --watch --extensions '.es6' --out-dir=build/resources/main",
-        "watch:transpile-test": "babel src/test/resources --watch --extensions '.es6' --out-dir=build/resources/test",
         "lint:backend": "eslint --ext=es6 ./src/main/resources --quiet",
-        "lint-staged": "lint-staged",
-        "lint:test": "eslint --ext=es6 ./src/test/resources"
+        "lint-staged": "lint-staged"
     },
     "repository": {
         "type": "git",

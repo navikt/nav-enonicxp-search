@@ -6,7 +6,7 @@ import componentFieldsToSearch from '../helpers/components';
 export default function createQuery(wordList, esQuery = {}) {
     const navApp = 'no.nav.navno:';
     let query =
-        'fulltext("attachment.*, data.text, data.ingress, data.description, displayName^2, data.abstract, data.keywords^15, data.enhet.*, data.interface.*, ' +
+        'fulltext("attachment.*, data.title^3, data.text, data.ingress, data.description, displayName^2, data.abstract, data.keywords^15, data.enhet.*, data.interface.*, ' +
         componentFieldsToSearch.join(', ') + '" ,"' +
         wordList.join(' ') +
         '", "OR") ';
@@ -28,6 +28,7 @@ export default function createQuery(wordList, esQuery = {}) {
             navApp + 'external-link',
             navApp + 'dynamic-page',
             navApp + 'content-page-with-sidemenus',
+            navApp + 'situation-page',
             'media:document',
             'media:spreadsheet',
             // app.name + ':search-api',

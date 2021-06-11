@@ -34,7 +34,7 @@ jobs:
       - name: Build application
         id: build
         run: |
-          gradle clean build deploy -x test
+          gradle clean build deploy
           echo ::set-output name=FILENAME::search.jar
       - uses: actions/upload-artifact@v1
         with:
