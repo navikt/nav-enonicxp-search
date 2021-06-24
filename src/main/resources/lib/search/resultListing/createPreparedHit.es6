@@ -216,6 +216,7 @@ export default function createPreparedHit(hit, wordList) {
         displayPath: displayPath,
         highlight: highlightText,
         publish: hit.publish,
+        createdTime: hit.createdTime,
         modifiedTime: hit.modifiedTime,
         className: className,
         officeInformation: officeInformation,
