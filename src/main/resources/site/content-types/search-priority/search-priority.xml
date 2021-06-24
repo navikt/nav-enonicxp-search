@@ -10,19 +10,5 @@
             <label>Nøkkelord</label>
             <occurrences minimum="0" maximum="0"/>
         </input>
-        <input name="className" type="RadioButton">
-            <label>Søkeikon</label>
-            <config>
-                <option value="lokalt">Lokalt</option>
-                <option value="tjenester">Tjenester</option>
-                <option value="nyheter">Nyheter</option>
-                <option value="statistikk">Statistikk</option>
-                <option value="pdf">PDF</option>
-                <option value="excel">Excel</option>
-                <option value="informasjon">Informasjon</option>
-                <option value="kontor">Kontor</option>
-                <option value="skjema">Skjema</option>
-            </config>
-        </input>
     </form>
 </content-type>
