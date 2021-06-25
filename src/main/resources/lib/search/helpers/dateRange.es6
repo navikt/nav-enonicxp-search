@@ -9,17 +9,17 @@ const getDateRangeQueryStringFromBucket = (bucket) => {
     let s = '';
     if (to) {
         s +=
-            ' AND (publish.from <= dateTime("' +
+            ' AND (publish.first <= dateTime("' +
             to +
-            '") OR publish.from NOT LIKE "*") AND (modifiedTime <= dateTime("' +
+            '") OR publish.first NOT LIKE "*") AND (createdTime <= dateTime("' +
             to +
-            '") OR modifiedTime NOT LIKE "*")';
+            '") OR createdTime NOT LIKE "*")';
     }
     if (from) {
         s +=
-            ' AND (publish.from > dateTime("' +
+            ' AND (publish.first > dateTime("' +
             from +
-            '") OR modifiedTime > dateTime("' +
+            '") OR createdTime > dateTime("' +
             from +
             '"))';
     }
