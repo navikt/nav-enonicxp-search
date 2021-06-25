@@ -1,28 +1,5 @@
-import navUtils from '/lib/nav-utils';
 import getRepository from '../helpers/repo';
 import getPaths from './getPaths';
-
-/*
-  -------- Coarse algorithm for setting class name to an result element -------
-  1. Assume the classname is information, many prioritised elements dont have class names
-  2. If it is a file, set it to be pdf
-  TODO check what media file it is and set class name accordingly
-  3. If it has been mapped with facets, set the classname attribute as its classname
-*/
-const getClassName = (el) => {
-    let className = 'informasjon';
-    if (el.type.startsWith('media')) {
-        className = 'pdf';
-    }
-    if (el.x && el.x['no-nav-navno'] && el.x['no-nav-navno'].fasetter && !el.priority) {
-        if (el.x['no-nav-navno'].fasetter.className) {
-            className = el.x['no-nav-navno'].fasetter.className;
-        } else if (el.x['no-nav-navno'].fasetter.fasett === 'Statistikk') {
-            className = 'statistikk';
-        }
-    }
-    return className;
-};
 
 export function calculateHighlightText(highLight) {
     if (highLight.ingress.highlighted) {
@@ -168,7 +145,6 @@ export default function createPreparedHit(hit, wordList) {
     const paths = getPaths(hit);
     const href = paths.href;
     const displayPath = paths.displayPath;
-    const className = getClassName(hit);
     let name = hit.displayName;
 
     let officeInformation;
@@ -204,11 +180,6 @@ export default function createPreparedHit(hit, wordList) {
         };
     }
 
-    let publishedString = null;
-    if (hit.type !== 'no.nav.navno:office-information') {
-        publishedString = navUtils.dateTimePublished(hit, hit.language || 'no');
-    }
-
     return {
         priority: !!hit.priority,
         displayName: name,
@@ -216,9 +187,8 @@ export default function createPreparedHit(hit, wordList) {
         displayPath: displayPath,
         highlight: highlightText,
         publish: hit.publish,
+        createdTime: hit.createdTime,
         modifiedTime: hit.modifiedTime,
-        className: className,
         officeInformation: officeInformation,
-        publishedString: publishedString,
     };
 }

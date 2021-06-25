@@ -3,11 +3,9 @@ const searchUtils = require('/lib/search');
 const bucket = (type, params, parent) => {
     return (element, index) => {
         const el = element;
-        el.className = '';
         if (type === 'fasett') {
             el.checked = Number(params.f || 0) === index;
             el.default = el.checked && (!params.uf || Number(params.uf) === -1);
-            el.defaultClassName = el.default ? 'erValgt' : '';
             el.underaggregeringer.buckets = el.underaggregeringer.buckets.map(
                 bucket('under', params, el)
             );
@@ -15,13 +13,7 @@ const bucket = (type, params, parent) => {
             el.checked =
                 parent.checked &&
                 (Array.isArray(params.uf) ? params.uf : [params.uf]).indexOf(String(index)) > -1;
-            const cname =
-                parent.key === 'Innhold'
-                    ? el.key.split(' ')[0].toLowerCase() + ' '
-                    : parent.key.split(' ')[0].toLowerCase() + ' ';
-            el.className += cname;
         }
-        el.className += el.checked ? 'erValgt' : '';
         return el;
     };
 };

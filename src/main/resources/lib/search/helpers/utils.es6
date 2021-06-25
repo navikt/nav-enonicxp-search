@@ -63,7 +63,7 @@ export function getFacetConfiguration() {
 
 export function getSortedResult(ESQuery, sort) {
     if (sort && sort !== '0') {
-        return query({ ...ESQuery, sort: 'publish.from DESC' });
+        return query({ ...ESQuery, sort: 'publish.first DESC, createdTime DESC' });
     }
 
     return query({ ...ESQuery, sort: '_score DESC' });
