@@ -1,74 +1,7 @@
 <content-type>
     <display-name>Søkegrensesnitt</display-name>
     <super-type>base:structured</super-type>
+    <is-abstract>true</is-abstract>
     <form>
-        <input type="TextLine" name="applicationName">
-            <label>Applikasjonsnavn</label>
-        </input>
-        <input type="Tag" name="keywords">
-            <label>Nøkkelord</label>
-            <occurrences minimum="0" maximum="0"/>
-        </input>
-        <input name="host" type="TextLine">
-            <label>Tjenernavn</label>
-            <occurrences maximum="1" minimum="1"/>
-        </input>
-        <option-set name="interface">
-            <occurrences minimum="1" maximum="1"/>
-            <label>Grensesnitt for applikasjonen</label>
-            <help-text>Hvordan nå applikasjonen</help-text>
-            <options minimum="1" maximum="1">
-                <option name="index">
-                    <label>Direkteindeksering</label>
-                    <help-text>Skriv teksten som søket skal treffe på her</help-text>
-                    <items>
-                        <input name="body" type="TextArea">
-                            <label>Fyll inn tekst som skal søkes på</label>
-                        </input>
-                    </items>
-                </option>
-                <option name="url">
-                    <label>URL</label>
-                    <items>
-                        <option-set name="options">
-                            <label>HTTP metode</label>
-                            <options maximum="1" minimum="1">
-                                <option name="get">
-                                    <label>GET</label>
-                                    <items>
-                                        <item-set name="body">
-                                            <label>Parametere</label>
-                                            <items>
-                                                <input name="query" type="TextLine">
-                                                    <label>Queryparametere</label>
-                                                </input>
-                                            </items>
-                                            <occurrences maximum="0" minimum="0"/>
-                                        </item-set>
-                                    </items>
-                                </option>
-                                <option name="post">
-                                    <label>POST</label>
-                                    <items>
-                                        <item-set name="body">
-                                            <label>Bodynøkler </label>
-                                            <items>
-                                                <input name="query" type="TextLine">
-                                                    <label>Nøkkelnavn</label>
-                                                </input>
-                                            </items>
-                                            <occurrences minimum="1" maximum="0"/>
-                                        </item-set>
-                                    </items>
-                                </option>
-                            </options>
-                        </option-set>
-                    </items>
-                </option>
-            </options>
-        </option-set>
-        <input type="TextLine" name="resultkeys">
-            <label>Nøkkel for resultat</label>
-        </input>
     </form>
 </content-type>
