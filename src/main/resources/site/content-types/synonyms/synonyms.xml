@@ -1,6 +1,7 @@
 <content-type>
     <display-name>Synonymer</display-name>
-    <description>Synonymer for søket</description>
+    <description>Skal bare finnes 1 av denne</description>
+    <is-abstract>true</is-abstract>
     <super-type>base:unstructured</super-type>
     <form>
         <item-set name="synonyms">
