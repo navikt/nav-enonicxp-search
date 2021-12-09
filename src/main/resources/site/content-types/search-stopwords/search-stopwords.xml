@@ -1,5 +1,7 @@
 <content-type>
     <display-name>Søk - Stoppord</display-name>
+    <description>Skal bare finnes 1 av denne</description>
+    <is-abstract>true</is-abstract>
     <super-type>base:structured</super-type>
     <form>
         <input name="words" type="Tag">
