@@ -9,12 +9,9 @@ import getSearchWords from './queryBuilder/getSearchWords';
 
 export default function searchWithoutAggregations(params) {
     const { f: facet, uf: childFacet, ord, start: startParam, c: countParam } = params;
-    let wordList = [];
-    if (isSchemaSearch(ord)) {
-        wordList = [ord];
-    } else {
-        wordList = ord ? getSearchWords(ord) : []; // 1. 2.
-    }
+
+    const wordList = getSearchWords(ord);
+
     const prioritiesItems = getPrioritizedElements(wordList); // 3.
     const config = getFacetConfiguration();
 

@@ -29,12 +29,8 @@ export default function search(params, skipCache) {
         s: sorting,
     } = params;
 
-    let wordList = [];
-    if (isSchemaSearch(ord)) {
-        wordList = [ord];
-    } else {
-        wordList = ord ? getSearchWords(ord) : []; // 1. 2.
-    }
+    const wordList = getSearchWords(ord);
+
     const excludePrioritized = excludePrioritizedParam === 'true' || isSchemaSearch(ord);
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit

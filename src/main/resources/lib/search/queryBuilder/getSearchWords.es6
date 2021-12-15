@@ -1,4 +1,5 @@
 import { getSynonyms } from '../helpers/cache';
+import { isSchemaSearch } from '../helpers/utils';
 /*
     ---------------- 1.1 Extract and optimize search words --------------
     1. Use the nb_NO analyzer to remove stop words and find the stemmed version of the word
@@ -12,13 +13,22 @@ const isExactSearch = (query) =>
 
 const formatExactSearch = (query) => [`"${query.replace(/["']/g, '')}"`]
 
-export default function getSearchWords(queryWord) {
-    const queryTrimmed = queryWord.trim();
+export default function getSearchWords(query) {
+    const queryTrimmed = query.trim();
+
+    if (!queryTrimmed) {
+        return [];
+    }
+
+    if (isSchemaSearch(queryTrimmed)) {
+        return [query];
+    }
+
     if (isExactSearch(queryTrimmed)) {
         return formatExactSearch(queryTrimmed);
     }
 
-    const word = queryWord.replace(/æ/g, 'ae').replace(/ø/g, 'o');
+    const word = queryTrimmed.replace(/æ/g, 'ae').replace(/ø/g, 'o');
     // run analyzer to remove stopwords
     const analyze = __.newBean('no.nav.search.elastic.Analyze');
     analyze.text = __.nullOrValue(word);
