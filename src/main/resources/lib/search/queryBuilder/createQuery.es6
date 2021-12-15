@@ -1,15 +1,17 @@
 import getPathFilter from '../helpers/pathFilter';
-import componentFieldsToSearch from '../helpers/components';
+import { componentFieldsToSearch, dataFieldsToSearch } from '../helpers/components';
 /*
     ---------------- Inject the search words and count to the query and return the query --------------
  */
 export default function createQuery(wordList, esQuery = {}) {
     const navApp = 'no.nav.navno:';
     let query =
-        'fulltext("attachment.*, data.title^5, data.text, data.ingress, data.description, displayName^2, data.abstract, data.keywords^15, data.enhet.*, data.interface.*, ' +
-        componentFieldsToSearch.join(', ') + '" ,"' +
+        "fulltext('attachment.*, displayName^2, " +
+        dataFieldsToSearch + " ," + componentFieldsToSearch + "' ,'" +
         wordList.join(' ') +
-        '", "AND") ';
+        "', 'AND') ";
+
+    log.info(`Query: ${query}`)
 
     // add path filter
     query += getPathFilter();

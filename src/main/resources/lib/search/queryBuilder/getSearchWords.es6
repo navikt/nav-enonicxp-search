@@ -6,7 +6,18 @@ import { getSynonyms } from '../helpers/cache';
        to the search string
     3.
 */
+
+const isExactSearch = (query) =>
+    (query.startsWith('"') && query.endsWith('"')) || (query.startsWith('\'') && query.endsWith('\''));
+
+const formatExactSearch = (query) => `"${query.replace(/["']/g, '')}"`
+
 export default function getSearchWords(queryWord) {
+    const queryTrimmed = queryWord.trim();
+    if (isExactSearch(queryTrimmed)) {
+        return formatExactSearch(queryTrimmed);
+    }
+
     const word = queryWord.replace(/æ/g, 'ae').replace(/ø/g, 'o');
     // run analyzer to remove stopwords
     const analyze = __.newBean('no.nav.search.elastic.Analyze');

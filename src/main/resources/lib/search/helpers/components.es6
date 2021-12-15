@@ -18,6 +18,10 @@ const componentFieldsToSearch = [
     ...pageConfigFields,
     ...layoutConfigFields,
     ...partConfigFields
-].map(item => `components.${item}`);
+].map(item => `components.${item}`).join(', ');
 
-export default componentFieldsToSearch;
+const dataFieldsToSearch = [
+    'title^5', 'text', 'ingress', 'description', 'abstract', 'keywords^15', 'enhet.*',
+].map(item => `data.${item}`).join(', ')
+
+module.exports = { componentFieldsToSearch, dataFieldsToSearch };
