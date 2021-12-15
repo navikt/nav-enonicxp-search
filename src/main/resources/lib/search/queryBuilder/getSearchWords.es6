@@ -10,7 +10,7 @@ import { getSynonyms } from '../helpers/cache';
 const isExactSearch = (query) =>
     (query.startsWith('"') && query.endsWith('"')) || (query.startsWith('\'') && query.endsWith('\''));
 
-const formatExactSearch = (query) => `"${query.replace(/["']/g, '')}"`
+const formatExactSearch = (query) => [`"${query.replace(/["']/g, '')}"`]
 
 export default function getSearchWords(queryWord) {
     const queryTrimmed = queryWord.trim();
