@@ -1,5 +1,6 @@
 import { query, get } from '/lib/xp/content';
 import { getPriorities } from '../helpers/cache';
+import { fieldsToSearch } from '../helpers/searchFields';
 
 function getSearchPriorityContent(id) {
     const content = get({
@@ -20,16 +21,14 @@ export default function getPrioritizedElements(wordList) {
 
     // add hits on pri content and not keyword
     let { hits } = query({
-        query:
-            'fulltext("data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*" ,"' +
-            wordList.join(' ') +
-            '", "OR") ',
+        query: `fulltext('${fieldsToSearch}', '${wordList.join(' ')}', 'OR')`,
         filters: {
             ids: {
                 values: priorityIds,
             },
         },
     });
+
     // remove search-priority and add the content it points to instead
     hits = hits.reduce((list, el) => {
         if (el.type === 'navno.nav.no.search:search-priority') {
