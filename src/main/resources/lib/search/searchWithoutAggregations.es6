@@ -12,7 +12,8 @@ export default function searchWithoutAggregations(params) {
 
     const { wordList, queryString } = generateSearchQuery(ord);
 
-    const prioritiesItems = getPrioritizedElements(queryString);
+    const prioritiesItems =
+        { ids: [], hits: [], count: 0, total: 0 } || getPrioritizedElements(queryString);
     const config = getFacetConfiguration();
 
     const { start, count } = getCountAndStart({

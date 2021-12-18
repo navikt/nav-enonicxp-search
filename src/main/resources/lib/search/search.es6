@@ -23,7 +23,7 @@ export default function search(params, skipCache) {
         ord,
         start: startParam,
         debug,
-        excludePrioritized: excludePrioritizedParam = 'false',
+        excludePrioritized: excludePrioritizedParam = 'true',
         c: countParam,
         daterange,
         s: sorting,
