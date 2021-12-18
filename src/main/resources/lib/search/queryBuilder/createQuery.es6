@@ -21,6 +21,7 @@ const contentTypes = [
         'content-page-with-sidemenus',
         'situation-page',
         'employer-situation-page',
+        'guide-page',
     ].map((item) => `${navApp}:${item}`),
 ];
 
