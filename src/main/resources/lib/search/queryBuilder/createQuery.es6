@@ -1,8 +1,5 @@
 import pathFilter from '../helpers/pathFilter';
 import { fieldsToSearch } from '../helpers/searchFields';
-/*
-    ---------------- Inject the search words and count to the query and return the query --------------
- */
 
 const navApp = 'no.nav.navno';
 

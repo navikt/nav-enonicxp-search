@@ -1,13 +1,6 @@
 import { getSynonymMap } from '../helpers/cache';
 import { formatExactSearch, isExactSearch, isSchemaSearch } from '../helpers/utils';
 
-/*
-    ---------------- 1.1 Extract and optimize search words --------------
-    1. Use the nb_NO analyzer to remove stop words and find the stemmed version of the word
-    2. From the analyzed version, split the words and see if there is any misspellings and add the correct spelled word
-       to the search string
-*/
-
 const getSuggestions = (words) => {
     const suggest = __.newBean('no.nav.search.elastic.Suggest');
     suggest.texts = __.nullOrValue(words);
@@ -26,6 +19,7 @@ const getWordsMap = (queryString) => {
     const analyze = __.newBean('no.nav.search.elastic.Analyze');
     analyze.text = __.nullOrValue(queryString);
 
+    // Use the nb_NO analyzer to remove stop words and find stemmed version of the words
     const wordsAnalyzedMap = __.toNativeObject(analyze.analyze()).reduce((acc, token) => {
         const { startOffset, endOffset, term } = token;
 
@@ -50,7 +44,7 @@ const getWordsMap = (queryString) => {
         const synonyms = getSynonyms(words, synonymMap);
 
         const uniqueWords = [...words, ...suggestions, ...synonyms].filter(
-            (word2, index, array) => array.indexOf(word2) === index
+            (word, index, array) => array.indexOf(word) === index
         );
 
         return {
@@ -94,8 +88,6 @@ const generateSearchTerms = (queryString) => {
     const queryCleaned = queryTrimmed.toLowerCase().replace(/æ/g, 'ae').replace(/ø/g, 'o');
 
     const wordsMap = getWordsMap(queryCleaned);
-
-    log.info(`Words map for query: ${JSON.stringify(wordsMap)}`);
 
     return { wordList: getUniqueWords(wordsMap), queryString: buildFinalQueryString(wordsMap) };
 };
