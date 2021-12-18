@@ -17,7 +17,7 @@ const getSuggestions = (words) => {
 const getSynonyms = (words, synonymMap) => {
     return words.reduce((acc, word) => {
         const synonyms = synonymMap[word];
-        return synonyms ? [...acc, ...synonyms] : acc;
+        return synonyms ? [...acc, ...synonyms.map((synonym) => `"${synonym}"`)] : acc;
     }, []);
 };
 

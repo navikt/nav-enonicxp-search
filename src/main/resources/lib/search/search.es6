@@ -116,9 +116,7 @@ export default function search(params, skipCache) {
         facetsLog += ` / ${daterange}`;
     }
     log.info(
-        `Full search <${ord}${facetsLog}> => ${JSON.stringify(wordList)} -- [${total} | ${
-            prioritiesItems.hits.length
-        }]`
+        `Full search <${ord}${facetsLog}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
     );
 
     return {
