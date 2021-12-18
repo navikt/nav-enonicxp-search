@@ -11,7 +11,7 @@ import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
 import getRepository from './helpers/repo';
-import { generateSearchQuery } from './queryBuilder/generateSearchQuery';
+import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
@@ -29,7 +29,7 @@ export default function search(params, skipCache) {
         s: sorting,
     } = params;
 
-    const { wordList, queryString } = generateSearchQuery(ord);
+    const { wordList, queryString } = generateSearchTerms(ord);
 
     const excludePrioritized = excludePrioritizedParam === 'true' || isSchemaSearch(ord);
 

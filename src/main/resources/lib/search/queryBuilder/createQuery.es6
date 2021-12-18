@@ -28,8 +28,6 @@ const contentTypes = [
 export default function createQuery(queryString, esQuery = {}) {
     const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') ${pathFilter}`;
 
-    log.info(`Query string: ${queryString}`);
-
     return {
         start: 0,
         count: 0,

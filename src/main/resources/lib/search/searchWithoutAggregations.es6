@@ -5,12 +5,12 @@ import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import getPaths from './resultListing/getPaths';
 import { calculateHighlightText, getHighLight } from './resultListing/createPreparedHit';
-import { generateSearchQuery } from './queryBuilder/generateSearchQuery';
+import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 
 export default function searchWithoutAggregations(params) {
     const { f: facet, uf: childFacet, ord, start: startParam, c: countParam } = params;
 
-    const { wordList, queryString } = generateSearchQuery(ord);
+    const { wordList, queryString } = generateSearchTerms(ord);
 
     const prioritiesItems = getPrioritizedElements(queryString);
     const config = getFacetConfiguration();

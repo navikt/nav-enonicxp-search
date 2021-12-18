@@ -75,7 +75,7 @@ const buildFinalQueryString = (wordMap) => {
         .join(' ');
 };
 
-const generateSearchQuery = (queryString) => {
+const generateSearchTerms = (queryString) => {
     const queryTrimmed = queryString.trim();
 
     if (!queryTrimmed) {
@@ -101,5 +101,5 @@ const generateSearchQuery = (queryString) => {
 };
 
 module.exports = {
-    generateSearchQuery,
+    generateSearchTerms,
 };

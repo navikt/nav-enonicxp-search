@@ -33,6 +33,6 @@ const fieldsToSearch = [
     'displayName^2',
     ...componentFieldsToSearch,
     ...dataFieldsToSearch,
-];
+].join(' ');
 
 module.exports = { fieldsToSearch };
