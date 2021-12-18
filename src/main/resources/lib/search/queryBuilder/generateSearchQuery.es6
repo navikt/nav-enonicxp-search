@@ -29,11 +29,15 @@ const getWordsMap = (queryString) => {
     const wordsAnalyzedMap = __.toNativeObject(analyze.analyze()).reduce((acc, token) => {
         const { startOffset, endOffset, term } = token;
 
-        const oldWord = queryString.substring(startOffset, endOffset);
-        const prevWords = acc[oldWord] || [oldWord];
+        const originalWord = queryString.substring(startOffset, endOffset);
+        const prevWords = acc[originalWord] || [originalWord];
 
         if (prevWords.indexOf(term) === -1) {
-            return { ...acc, [oldWord]: [...prevWords, term] };
+            return { ...acc, [originalWord]: [...prevWords, term] };
+        }
+
+        if (!acc[originalWord]) {
+            return { ...acc, [originalWord]: prevWords };
         }
 
         return acc;
@@ -87,7 +91,7 @@ const generateSearchQuery = (queryString) => {
         return { wordList: [queryStringExact], queryString: queryStringExact };
     }
 
-    const queryCleaned = queryTrimmed.replace(/æ/g, 'ae').replace(/ø/g, 'o');
+    const queryCleaned = queryTrimmed.toLowerCase().replace(/æ/g, 'ae').replace(/ø/g, 'o');
 
     const wordsMap = getWordsMap(queryCleaned);
 
