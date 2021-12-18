@@ -4,34 +4,36 @@ import { fieldsToSearch } from '../helpers/searchFields';
     ---------------- Inject the search words and count to the query and return the query --------------
  */
 
-const navApp = 'no.nav.navno:';
+const navApp = 'no.nav.navno';
 
-export default function createQuery(wordList, esQuery = {}) {
-    log.info(`Word list: ${JSON.stringify(wordList)}`);
+const contentTypes = [
+    'media:document',
+    'media:spreadsheet',
+    ...[
+        'main-article',
+        'section-page',
+        'page-list',
+        'office-information',
+        'main-article-chapter',
+        'large-table',
+        'external-link',
+        'dynamic-page',
+        'content-page-with-sidemenus',
+        'situation-page',
+        'employer-situation-page',
+    ].map((item) => `${navApp}:${item}`),
+];
 
-    const query = `fulltext('${fieldsToSearch}', '${wordList.join(' ')}', 'AND') ${pathFilter}`;
+export default function createQuery(queryString, esQuery = {}) {
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') ${pathFilter}`;
 
-    log.info(`Query: ${query}`);
+    log.info(`Query string: ${queryString}`);
 
     return {
         start: 0,
         count: 0,
-        query: query,
-        contentTypes: [
-            navApp + 'main-article',
-            navApp + 'section-page',
-            navApp + 'page-list',
-            navApp + 'office-information',
-            navApp + 'main-article-chapter',
-            navApp + 'large-table',
-            navApp + 'external-link',
-            navApp + 'dynamic-page',
-            navApp + 'content-page-with-sidemenus',
-            navApp + 'situation-page',
-            navApp + 'employer-situation-page',
-            'media:document',
-            'media:spreadsheet',
-        ],
+        query,
+        contentTypes,
         aggregations: {
             fasetter: {
                 terms: {

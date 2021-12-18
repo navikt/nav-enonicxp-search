@@ -11,7 +11,7 @@ import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
 import getRepository from './helpers/repo';
-import getSearchWords from './queryBuilder/getSearchWords';
+import { generateSearchQuery } from './queryBuilder/generateSearchQuery';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
@@ -29,7 +29,7 @@ export default function search(params, skipCache) {
         s: sorting,
     } = params;
 
-    const wordList = getSearchWords(ord);
+    const { wordList, queryString } = generateSearchQuery(ord);
 
     const excludePrioritized = excludePrioritizedParam === 'true' || isSchemaSearch(ord);
 
@@ -40,10 +40,10 @@ export default function search(params, skipCache) {
     const config = getFacetConfiguration();
     const prioritiesItems = excludePrioritized
         ? EMPTY_RESULT_SET
-        : getPrioritizedElements(wordList); // 3.
+        : getPrioritizedElements(queryString); // 3.
 
     const { start, count } = getCountAndStart({ start: startParam, count: countParam });
-    const ESQuery = createQuery(wordList, { start, count }); // 4.
+    const ESQuery = createQuery(queryString, { start, count }); // 4.
     const aggregations = getAggregations(ESQuery, config); // 5
     ESQuery.filters = createFilters(params, config, prioritiesItems); // 6.
     aggregations.Tidsperiode = getDateRanges(ESQuery); // 7.

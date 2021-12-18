@@ -5,30 +5,31 @@ import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import getPaths from './resultListing/getPaths';
 import { calculateHighlightText, getHighLight } from './resultListing/createPreparedHit';
-import getSearchWords from './queryBuilder/getSearchWords';
+import { generateSearchQuery } from './queryBuilder/generateSearchQuery';
 
 export default function searchWithoutAggregations(params) {
     const { f: facet, uf: childFacet, ord, start: startParam, c: countParam } = params;
 
-    const wordList = getSearchWords(ord);
+    const { wordList, queryString } = generateSearchQuery(ord);
 
-    const prioritiesItems = getPrioritizedElements(wordList); // 3.
+    const prioritiesItems = getPrioritizedElements(queryString);
     const config = getFacetConfiguration();
 
-    // 4.
     const { start, count } = getCountAndStart({
         start: startParam,
         count: countParam,
         block: 10,
     });
-    const ESQuery = createQuery(wordList, {
-        filters: createFilters(params, config, prioritiesItems), // 6
+
+    const ESQuery = createQuery(queryString, {
+        filters: createFilters(params, config, prioritiesItems),
         sort: '_score DESC', // 9
         start,
         count,
     });
 
-    let { hits = [], total = 0 } = query(ESQuery); // 10.
+    let { hits = [], total = 0 } = query(ESQuery);
+
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
     if (
         !isSchemaSearch(ord) &&
@@ -39,7 +40,6 @@ export default function searchWithoutAggregations(params) {
         total += prioritiesItems.hits.length;
     }
 
-    // 11.
     hits = hits.map((el) => {
         const highLight = getHighLight(el, wordList);
         const highlightText = calculateHighlightText(highLight);
@@ -54,6 +54,7 @@ export default function searchWithoutAggregations(params) {
             modifiedTime: el.modifiedTime,
         };
     });
+
     // Logging of search
     // <queryString> => [searchWords] -- [numberOfHits | prioritizedHits]
     log.info(

@@ -16,12 +16,12 @@ function getSearchPriorityContent(id) {
 /*
     ----------- Retrieve the list of prioritised elements and check if the search would hit any of the elements -----
  */
-export default function getPrioritizedElements(wordList) {
+export default function getPrioritizedElements(queryString) {
     const priorityIds = getPriorities();
 
     // add hits on pri content and not keyword
     let { hits } = query({
-        query: `fulltext('${fieldsToSearch}', '${wordList.join(' ')}', 'OR')`,
+        query: `fulltext('${fieldsToSearch}', '${queryString}', 'OR')`,
         filters: {
             ids: {
                 values: priorityIds,
