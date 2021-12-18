@@ -12,8 +12,7 @@ export default function searchWithoutAggregations(params) {
 
     const { wordList, queryString } = generateSearchQuery(ord);
 
-    const prioritiesItems =
-        { ids: [], hits: [], count: 0, total: 0 } || getPrioritizedElements(queryString);
+    const prioritiesItems = getPrioritizedElements(queryString);
     const config = getFacetConfiguration();
 
     const { start, count } = getCountAndStart({
@@ -59,9 +58,7 @@ export default function searchWithoutAggregations(params) {
     // Logging of search
     // <queryString> => [searchWords] -- [numberOfHits | prioritizedHits]
     log.info(
-        `Decorator search <${ord}> => ${JSON.stringify(wordList)} -- [${total} | ${
-            prioritiesItems.hits.length
-        }]`
+        `Decorator search <${ord}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
     );
 
     return {

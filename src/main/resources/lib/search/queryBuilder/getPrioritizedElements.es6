@@ -1,6 +1,8 @@
 import { query, get } from '/lib/xp/content';
 import { getPriorities } from '../helpers/cache';
-import { fieldsToSearch } from '../helpers/searchFields';
+
+const fieldsToSearch =
+    'data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*';
 
 function getSearchPriorityContent(id) {
     const content = get({
