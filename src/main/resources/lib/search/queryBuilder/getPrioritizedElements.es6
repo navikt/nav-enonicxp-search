@@ -23,7 +23,7 @@ export default function getPrioritizedElements(queryString) {
 
     // add hits on pri content and not keyword
     let { hits } = query({
-        query: `fulltext('${fieldsToSearch}', '${queryString}', 'OR')`,
+        query: `fulltext('${fieldsToSearch}', '${queryString}', 'AND')`,
         filters: {
             ids: {
                 values: priorityIds,

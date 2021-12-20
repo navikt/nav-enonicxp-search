@@ -40,19 +40,19 @@ export default function search(params, skipCache) {
     const config = getFacetConfiguration();
     const prioritiesItems = excludePrioritized
         ? EMPTY_RESULT_SET
-        : getPrioritizedElements(queryString); // 3.
+        : getPrioritizedElements(queryString);
 
     const { start, count } = getCountAndStart({ start: startParam, count: countParam });
-    const ESQuery = createQuery(queryString, { start, count }); // 4.
-    const aggregations = getAggregations(ESQuery, config); // 5
-    ESQuery.filters = createFilters(params, config, prioritiesItems); // 6.
-    aggregations.Tidsperiode = getDateRanges(ESQuery); // 7.
+    const ESQuery = createQuery(queryString, { start, count });
+    const aggregations = getAggregations(ESQuery, config);
+    ESQuery.filters = createFilters(params, config, prioritiesItems);
+    aggregations.Tidsperiode = getDateRanges(ESQuery);
 
     if (daterange) {
-        ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets); // 8.
+        ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets);
     }
 
-    let { hits, total } = getSortedResult(ESQuery, sorting); // 9. 10.
+    let { hits, total } = getSortedResult(ESQuery, sorting);
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
@@ -106,8 +106,7 @@ export default function search(params, skipCache) {
         }
         return preparedHit;
     });
-    // Logging of search
-    // <queryString - mainfacet|subfacets / timeInterval> => [searchWords] -- [numberOfHits | prioritizedHits]
+
     let facetsLog = '';
     if (facet) {
         facetsLog = ` - ${facet}|${childFacet ? [].concat(childFacet).join(', ') : ''}`;

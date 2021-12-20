@@ -23,7 +23,7 @@ export default function searchWithoutAggregations(params) {
 
     const ESQuery = createQuery(queryString, {
         filters: createFilters(params, config, prioritiesItems),
-        sort: '_score DESC', // 9
+        sort: '_score DESC',
         start,
         count,
     });
@@ -55,8 +55,6 @@ export default function searchWithoutAggregations(params) {
         };
     });
 
-    // Logging of search
-    // <queryString> => [searchWords] -- [numberOfHits | prioritizedHits]
     log.info(
         `Decorator search <${ord}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
     );
