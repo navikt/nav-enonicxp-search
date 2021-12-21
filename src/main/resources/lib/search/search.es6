@@ -17,6 +17,7 @@ import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
 export default function search(params, skipCache) {
+    const tsStart = Date.now();
     const {
         f: facet,
         uf: childFacet,
@@ -28,9 +29,7 @@ export default function search(params, skipCache) {
         daterange,
         s: sorting,
     } = params;
-
     const { wordList, queryString } = generateSearchTerms(ord);
-
     const excludePrioritized = excludePrioritizedParam === 'true' || isSchemaSearch(ord);
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
@@ -114,8 +113,9 @@ export default function search(params, skipCache) {
     if (daterange && daterange !== '-1') {
         facetsLog += ` / ${daterange}`;
     }
+    const tsEnd = Date.now();
     log.info(
-        `Full search <${ord}${facetsLog}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
+        `Full search (${tsEnd-tsStart}ms) <${ord}${facetsLog}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
     );
 
     return {
