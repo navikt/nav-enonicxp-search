@@ -8,26 +8,22 @@ import { calculateHighlightText, getHighLight } from './resultListing/createPrep
 import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 
 export default function searchWithoutAggregations(params) {
+    const tsStart = Date.now();
     const { f: facet, uf: childFacet, ord, start: startParam, c: countParam } = params;
-
     const { wordList, queryString } = generateSearchTerms(ord);
-
     const prioritiesItems = getPrioritizedElements(queryString);
     const config = getFacetConfiguration();
-
     const { start, count } = getCountAndStart({
         start: startParam,
         count: countParam,
         block: 10,
     });
-
     const ESQuery = createQuery(queryString, {
         filters: createFilters(params, config, prioritiesItems),
         sort: '_score DESC',
         start,
         count,
     });
-
     let { hits = [], total = 0 } = query(ESQuery);
 
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
@@ -54,9 +50,9 @@ export default function searchWithoutAggregations(params) {
             modifiedTime: el.modifiedTime,
         };
     });
-
+    const tsEnd = Date.now();
     log.info(
-        `Decorator search <${ord}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
+        `Decorator search (${tsEnd-tsStart}ms) <${ord}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
     );
 
     return {
