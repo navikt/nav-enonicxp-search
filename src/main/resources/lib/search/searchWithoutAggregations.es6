@@ -5,33 +5,27 @@ import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import getPaths from './resultListing/getPaths';
 import { calculateHighlightText, getHighLight } from './resultListing/createPreparedHit';
-import getSearchWords from './queryBuilder/getSearchWords';
+import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 
 export default function searchWithoutAggregations(params) {
+    const tsStart = Date.now();
     const { f: facet, uf: childFacet, ord, start: startParam, c: countParam } = params;
-    let wordList = [];
-    if (isSchemaSearch(ord)) {
-        wordList = [ord];
-    } else {
-        wordList = ord ? getSearchWords(ord) : []; // 1. 2.
-    }
-    const prioritiesItems = getPrioritizedElements(wordList); // 3.
+    const { wordList, queryString } = generateSearchTerms(ord);
+    const prioritiesItems = getPrioritizedElements(queryString);
     const config = getFacetConfiguration();
-
-    // 4.
     const { start, count } = getCountAndStart({
         start: startParam,
         count: countParam,
         block: 10,
     });
-    const ESQuery = createQuery(wordList, {
-        filters: createFilters(params, config, prioritiesItems), // 6
-        sort: '_score DESC', // 9
+    const ESQuery = createQuery(queryString, {
+        filters: createFilters(params, config, prioritiesItems),
+        sort: '_score DESC',
         start,
         count,
     });
+    let { hits = [], total = 0 } = query(ESQuery);
 
-    let { hits = [], total = 0 } = query(ESQuery); // 10.
     // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
     if (
         !isSchemaSearch(ord) &&
@@ -42,7 +36,6 @@ export default function searchWithoutAggregations(params) {
         total += prioritiesItems.hits.length;
     }
 
-    // 11.
     hits = hits.map((el) => {
         const highLight = getHighLight(el, wordList);
         const highlightText = calculateHighlightText(highLight);
@@ -57,12 +50,9 @@ export default function searchWithoutAggregations(params) {
             modifiedTime: el.modifiedTime,
         };
     });
-    // Logging of search
-    // <queryString> => [searchWords] -- [numberOfHits | prioritizedHits]
+    const tsEnd = Date.now();
     log.info(
-        `Decorator search <${ord}> => ${JSON.stringify(wordList)} -- [${total} | ${
-            prioritiesItems.hits.length
-        }]`
+        `Decorator search (${tsEnd-tsStart}ms) <${ord}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
     );
 
     return {

@@ -1,39 +1,35 @@
-import getPathFilter from '../helpers/pathFilter';
-import componentFieldsToSearch from '../helpers/components';
-/*
-    ---------------- Inject the search words and count to the query and return the query --------------
- */
-export default function createQuery(wordList, esQuery = {}) {
-    const navApp = 'no.nav.navno:';
-    let query =
-        'fulltext("attachment.*, data.title^3, data.text, data.ingress, data.description, displayName^2, data.abstract, data.keywords^15, data.enhet.*, data.interface.*, ' +
-        componentFieldsToSearch.join(', ') + '" ,"' +
-        wordList.join(' ') +
-        '", "OR") ';
+import pathFilter from '../helpers/pathFilter';
+import { fieldsToSearch } from '../helpers/searchFields';
 
-    // add path filter
-    query += getPathFilter();
+const navApp = 'no.nav.navno';
+
+const contentTypes = [
+    'media:document',
+    'media:spreadsheet',
+    ...[
+        'main-article',
+        'section-page',
+        'page-list',
+        'office-information',
+        'main-article-chapter',
+        'large-table',
+        'external-link',
+        'dynamic-page',
+        'content-page-with-sidemenus',
+        'situation-page',
+        'employer-situation-page',
+        'guide-page',
+    ].map((item) => `${navApp}:${item}`),
+];
+
+export default function createQuery(queryString, esQuery = {}) {
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') ${pathFilter}`;
 
     return {
         start: 0,
         count: 0,
-        query: query,
-        contentTypes: [
-            navApp + 'main-article',
-            navApp + 'section-page',
-            navApp + 'page-list',
-            navApp + 'office-information',
-            navApp + 'main-article-chapter',
-            navApp + 'large-table',
-            navApp + 'external-link',
-            navApp + 'dynamic-page',
-            navApp + 'content-page-with-sidemenus',
-            navApp + 'situation-page',
-            'media:document',
-            'media:spreadsheet',
-            // app.name + ':search-api',
-            // app.name + ':search-api2'
-        ],
+        query,
+        contentTypes,
         aggregations: {
             fasetter: {
                 terms: {

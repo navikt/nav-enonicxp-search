@@ -1,6 +1,12 @@
 import { run } from '/lib/xp/context';
 import { get, query } from '/lib/xp/content';
 
+export const isExactSearch = (queryString) =>
+    (queryString.startsWith('"') && queryString.endsWith('"')) ||
+    (queryString.startsWith("'") && queryString.endsWith("'"));
+
+export const formatExactSearch = (queryString) => `"${queryString.replace(/["']/g, '')}"`;
+
 export function isSchemaSearch(ord) {
     return /^\d\d-\d\d\.\d\d$/.test(ord);
 }

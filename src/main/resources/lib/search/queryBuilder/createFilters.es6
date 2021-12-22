@@ -28,7 +28,9 @@ export default function createFilters(params, config, prioritiesItems) {
                 const underfasett = underfasetter[Number(uf)];
 
                 if (!underfasett) {
-                    log.info(`Invalid underfacet parameter specified - facet: ${params.f} - underfacet: ${uf}`);
+                    log.info(
+                        `Invalid underfacet parameter specified - facet: ${params.f} - underfacet: ${uf}`
+                    );
                     return acc;
                 }
 

@@ -30,7 +30,7 @@ const getEmptySearchResult = (key, fallback) => {
     return cache.get(key, fallback);
 };
 
-const getSynonyms = () => {
+const getSynonymMap = () => {
     return cache.get('synonyms', () => {
         const synonymLists = libs.content.query({
             start: 0,
@@ -149,6 +149,6 @@ export {
     getEmptyAggregation,
     getEmptyTimePeriod,
     getEmptySearchResult,
-    getSynonyms,
+    getSynonymMap,
     getPriorities,
 };
