@@ -61,8 +61,12 @@ const getUniqueWords = (wordMap) =>
 
 const buildFinalQueryString = (wordMap) => {
     return Object.keys(wordMap)
-        .map((word) => {
+        .map((word, index, array) => {
             const words = wordMap[word];
+
+            if (index === array.length - 1) {
+                words[0] = `${words[0]}*`
+            }
 
             return `(${words.join('|')})`;
         })
