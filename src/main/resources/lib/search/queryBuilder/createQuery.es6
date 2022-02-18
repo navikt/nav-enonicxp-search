@@ -19,6 +19,7 @@ const contentTypes = [
         'situation-page',
         'employer-situation-page',
         'guide-page',
+        'themed-article-page'
     ].map((item) => `${navApp}:${item}`),
 ];
 
