@@ -64,9 +64,9 @@ const buildFinalQueryString = (wordMap) => {
         .map((word, index, array) => {
             const words = wordMap[word];
 
-            // Insert a wildcard after the last user-submitted word to make this a prefix query
+            // Insert a wildcard-version of the last user-submitted word to make this a prefix query
             if (index === array.length - 1) {
-                words[0] = `${words[0]}*`
+                words.push(`${words[0]}*`);
             }
 
             return `(${words.join('|')})`;
