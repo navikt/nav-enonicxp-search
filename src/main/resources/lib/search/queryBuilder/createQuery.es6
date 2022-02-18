@@ -24,7 +24,7 @@ const contentTypes = [
 ];
 
 export default function createQuery(queryString, esQuery = {}) {
-    const query = `fulltext('${fieldsToSearch}', '${queryString}*', 'AND') ${pathFilter}`;
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') ${pathFilter}`;
 
     return {
         start: 0,
