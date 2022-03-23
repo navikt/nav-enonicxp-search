@@ -30,9 +30,9 @@ export function mapReducer(buckets) {
         const under =
             'underfasetter' in el
                 ? (Array.isArray(el.underfasetter) ? el.underfasetter : [el.underfasetter]).reduce(
-                    mapReducer(match ? match.underaggregeringer.buckets || [] : []),
-                    []
-                )
+                      mapReducer(match ? match.underaggregeringer.buckets || [] : []),
+                      []
+                  )
                 : [];
         t.push({
             key: el.name,
@@ -58,11 +58,11 @@ export function getFacetConfiguration() {
 }
 
 export function getSortedResult(ESQuery, sort) {
-    if (sort && sort !== '0') {
-        return query({ ...ESQuery, sort: 'publish.first DESC, createdTime DESC' });
+    if (sort === 0) {
+        return query({ ...ESQuery, sort: '_score DESC' });
     }
 
-    return query({ ...ESQuery, sort: '_score DESC' });
+    return query({ ...ESQuery, sort: 'publish.first DESC, createdTime DESC' });
 }
 
 export function runInContext(func, params) {
@@ -79,3 +79,12 @@ export function runInContext(func, params) {
         () => func(params)
     );
 }
+
+// Prioritized elements should be included with the first batch for queries for the first facet + child facet
+export const shouldIncludePrioHits = (params) => {
+    const { f, uf, ord, start } = params;
+
+    return (
+        !isSchemaSearch(ord) && f === 0 && (uf.length === 0 || uf.indexOf(0) !== -1) && start === 0
+    );
+};

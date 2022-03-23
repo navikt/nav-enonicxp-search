@@ -5,6 +5,7 @@ import {
     getFacetConfiguration,
     getSortedResult,
     isSchemaSearch,
+    shouldIncludePrioHits,
 } from './helpers/utils';
 import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
 import createQuery from './queryBuilder/createQuery';
@@ -12,7 +13,7 @@ import createFilters from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
 import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
-import { validateParams } from "./helpers/validateInput";
+import { parseAndValidateParams } from './helpers/validateInput';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
@@ -21,14 +22,14 @@ export default function search(params, skipCache) {
 
     const {
         f: facet,
-        uf: childFacet,
+        uf: underfacets,
         ord,
         start: startParam,
         excludePrioritized: excludePrioritizedParam,
         c: countParam,
         daterange,
         s: sorting,
-    } = validateParams(params);
+    } = parseAndValidateParams(params);
 
     const { wordList, queryString } = generateSearchTerms(ord);
     const excludePrioritized = excludePrioritizedParam || isSchemaSearch(ord);
@@ -56,16 +57,14 @@ export default function search(params, skipCache) {
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
-    if (sorting === undefined || Number(sorting) === 0) {
+    if (sorting === 0) {
         const priorityHitCount = prioritiesItems.hits.length;
         aggregations.fasetter.buckets[0].docCount += priorityHitCount;
         aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priorityHitCount;
-        if (
-            (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
-            (!startParam || startParam === '0')
-        ) {
+
+        if (shouldIncludePrioHits(params)) {
             aggregations.Tidsperiode.docCount += priorityHitCount;
-            if (daterange === undefined || Number(daterange) === -1) {
+            if (daterange === -1) {
                 hits = prioritiesItems.hits.concat(hits);
                 total += priorityHitCount;
             }
@@ -77,14 +76,18 @@ export default function search(params, skipCache) {
 
     let facetsLog = '';
     if (facet) {
-        facetsLog = ` - ${facet}|${childFacet ? [].concat(childFacet).join(', ') : ''}`;
+        facetsLog = ` - ${facet}|${underfacets.join(', ')}`;
     }
-    if (daterange && daterange !== '-1') {
+
+    if (daterange !== -1) {
         facetsLog += ` / ${daterange}`;
     }
+
     const tsEnd = Date.now();
     log.info(
-        `Full search (${tsEnd-tsStart}ms) <${ord}${facetsLog}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
+        `Full search (${tsEnd - tsStart}ms) <${ord}${facetsLog}> => ${queryString} -- [${total} | ${
+            prioritiesItems.hits.length
+        }]`
     );
 
     return {

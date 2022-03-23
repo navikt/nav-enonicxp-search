@@ -27,11 +27,10 @@ const getDateRangeQueryStringFromBucket = (bucket) => {
 };
 
 const getDateRangeQueryString = (daterange, buckets) => {
-    const dateRangeValue = Number(daterange);
-    if (!buckets || dateRangeValue.isNaN() || !buckets[dateRangeValue]) {
+    if (!buckets || !buckets[daterange]) {
         return '';
     }
-    const selectedBucket = buckets[dateRangeValue];
+    const selectedBucket = buckets[daterange];
     return getDateRangeQueryStringFromBucket(selectedBucket);
 };
 

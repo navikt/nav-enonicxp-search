@@ -1,5 +1,5 @@
 import { query } from '/lib/xp/content';
-import { getCountAndStart, getFacetConfiguration, isSchemaSearch } from './helpers/utils';
+import { getCountAndStart, getFacetConfiguration, shouldIncludePrioHits } from './helpers/utils';
 import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
 import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
@@ -12,14 +12,14 @@ export const noAggregationsBatchSize = 10;
 export default function searchWithoutAggregations(params) {
     const tsStart = Date.now();
 
-    const { f: facet, uf: childFacet, ord, start: startParam, c: countParam } = params;
+    const { ord, start: startParam, c: countParam } = params;
     const { wordList, queryString } = generateSearchTerms(ord);
     const prioritiesItems = getPrioritizedElements(queryString);
     const config = getFacetConfiguration();
     const { start, count } = getCountAndStart({
         start: startParam,
         count: countParam,
-        batchSize: noAggregationsBatchSize
+        batchSize: noAggregationsBatchSize,
     });
     const ESQuery = createQuery(queryString, {
         filters: createFilters(params, config, prioritiesItems),
@@ -29,12 +29,7 @@ export default function searchWithoutAggregations(params) {
     });
     let { hits = [], total = 0 } = query(ESQuery);
 
-    // Add prioritized elements to the first batch for queries for the first facet + child facet
-    if (
-        !isSchemaSearch(ord) &&
-        (facet === 0 && (!childFacet || childFacet === 0)) &&
-        startParam === 0
-    ) {
+    if (shouldIncludePrioHits(params)) {
         hits = prioritiesItems.hits.concat(hits);
         total += prioritiesItems.hits.length;
     }
@@ -55,7 +50,9 @@ export default function searchWithoutAggregations(params) {
     });
     const tsEnd = Date.now();
     log.info(
-        `Decorator search (${tsEnd - tsStart}ms) <${ord}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
+        `Decorator search (${tsEnd - tsStart}ms) <${ord}> => ${queryString} -- [${total} | ${
+            prioritiesItems.hits.length
+        }]`
     );
 
     return {
@@ -63,4 +60,3 @@ export default function searchWithoutAggregations(params) {
         hits: hits,
     };
 }
-

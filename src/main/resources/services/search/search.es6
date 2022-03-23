@@ -1,18 +1,17 @@
 const searchUtils = require('/lib/search');
+const { parseAndValidateParams } = require("../../lib/search/helpers/validateInput");
 
 const bucket = (type, params, parent) => {
     return (element, index) => {
         const el = element;
         if (type === 'fasett') {
-            el.checked = Number(params.f || 0) === index;
-            el.default = el.checked && (!params.uf || Number(params.uf) === -1);
+            el.checked = params.f === index;
+            el.default = el.checked && params.uf.length === 0;
             el.underaggregeringer.buckets = el.underaggregeringer.buckets.map(
                 bucket('under', params, el)
             );
         } else {
-            el.checked =
-                parent.checked &&
-                (Array.isArray(params.uf) ? params.uf : [params.uf]).indexOf(String(index)) > -1;
+            el.checked = parent.checked && params.uf.indexOf(index) !== -1;
         }
         return el;
     };
@@ -20,11 +19,14 @@ const bucket = (type, params, parent) => {
 
 const parseAggs = (aggregations, params) => {
     const aggs = aggregations;
-    const d = params.daterange ? Number(params.daterange) : -1;
+    const { daterange } = params;
+
     let tc = true;
     aggs.Tidsperiode.buckets = aggs.Tidsperiode.buckets.map((el, index) => {
-        if (el.checked) tc = false;
-        return { ...el, checked: d === index };
+        if (el.checked) {
+            tc = false
+        }
+        return { ...el, checked: daterange === index };
     });
 
     aggs.Tidsperiode.checked = tc;
@@ -33,44 +35,30 @@ const parseAggs = (aggregations, params) => {
 };
 
 const handleGet = (req) => {
-    const params = req.params || {};
+    const params = parseAndValidateParams(req.params);
 
-    if (!params.ord) {
-        params.ord = '';
-    }
-
-    if (params.ord.length > 200) {
-        params.ord = params.ord.substring(0, 200);
-    }
-
-    if (params.uf && params.uf.indexOf('[') !== -1) {
-        params.uf = JSON.parse(params.uf);
-    }
+    const { c: count, s: sorting, daterange, ord } = params;
 
     const result = searchUtils.runInContext(searchUtils.search, params);
     const aggregations = parseAggs(result.aggregations, params);
-    const c = params.c ? parseInt(params.c) || 1 : 1;
-    const isMore = c * 20 < result.total;
-    const isSortDate = !params.s || params.s === '0';
-    const model = {
-        c,
-        isSortDate,
-        s: params.s ? params.s : '0',
-        daterange: params.daterange ? params.daterange : '',
-        isMore,
-        word: params.ord,
-        total: result.total.toString(10),
-        fasett: aggregations.fasetter.buckets.reduce((t, el) => {
-            if (el.checked) return el.key;
-            return t;
-        }, ''),
-        aggregations,
-        hits: result.hits,
-        prioritized: result.prioritized,
-    };
 
     return {
-        body: model,
+        body: {
+            c: count,
+            isSortDate: sorting === 0,
+            s: sorting,
+            daterange,
+            isMore: count * 20 < result.total,
+            word: ord,
+            total: result.total.toString(10),
+            fasett: aggregations.fasetter.buckets.reduce((t, el) => {
+                if (el.checked) return el.key;
+                return t;
+            }, ''),
+            aggregations,
+            hits: result.hits,
+            prioritized: result.prioritized,
+        },
         contentType: 'application/json',
     };
 };

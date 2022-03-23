@@ -1,10 +1,10 @@
 const searchUtils = require('/lib/search');
-const { validateParams } = require("../../lib/search/helpers/validateInput");
+const { parseAndValidateParams } = require("../../lib/search/helpers/validateInput");
 const { noAggregationsBatchSize } = require("../../lib/search/searchWithoutAggregations");
 
 
 function handleGet(req) {
-    const params = validateParams(req.params);
+    const params = parseAndValidateParams(req.params);
 
     const {c: count, s: sorting, ord} = params;
 

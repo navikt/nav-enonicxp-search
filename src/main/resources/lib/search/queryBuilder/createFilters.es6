@@ -1,8 +1,10 @@
 import { forceArray } from '../../nav-utils';
 
 export default function createFilters(params, config, prioritiesItems) {
+    const { f: facetIndex, uf: underfacets } = params;
+
     const filters = { boolean: { must: [], mustNot: [] } };
-    const fasett = config.data.fasetter[Number(params.f)];
+    const facetData = config.data.fasetter[facetIndex];
 
     // exclude no index items
     filters.boolean.mustNot.push({
@@ -12,24 +14,23 @@ export default function createFilters(params, config, prioritiesItems) {
         },
     });
 
-    if (fasett) {
+    if (facetData) {
         filters.boolean.must.push({
             hasValue: {
                 field: 'x.no-nav-navno.fasetter.fasett',
-                values: [fasett.name],
+                values: [facetData.name],
             },
         });
 
-        if (params.uf) {
-            const ufParams = forceArray(params.uf);
-            const underfasetter = forceArray(fasett.underfasetter);
+        if (underfacets.length > 0) {
+            const underfacetsData = forceArray(facetData.underfasetter);
 
-            const values = ufParams.reduce((acc, uf) => {
-                const underfasett = underfasetter[Number(uf)];
+            const values = underfacets.reduce((acc, uf) => {
+                const underfasett = underfacetsData[uf];
 
                 if (!underfasett) {
                     log.info(
-                        `Invalid underfacet parameter specified - facet: ${params.f} - underfacet: ${uf}`
+                        `Invalid underfacet parameter specified - facet: ${facetIndex} - underfacet: ${uf}`
                     );
                     return acc;
                 }
