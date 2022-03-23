@@ -11,18 +11,8 @@ export function isSchemaSearch(ord) {
     return /^\d\d-\d\d\.\d\d$/.test(ord);
 }
 
-export function getCountAndStart({
-    start: startString = '0',
-    count: countString = '1',
-    block: blockSize,
-}) {
-    let count = countString ? parseInt(countString) || 0 : 0;
-    count = count ? count * blockSize : blockSize;
-
-    let start = startString ? parseInt(startString) || 0 : 0;
-    start *= blockSize;
-    count -= start;
-    return { start, count };
+export function getCountAndStart({ start, count, batchSize }) {
+    return { start: start * batchSize, count: count * batchSize };
 }
 
 /*
@@ -40,9 +30,9 @@ export function mapReducer(buckets) {
         const under =
             'underfasetter' in el
                 ? (Array.isArray(el.underfasetter) ? el.underfasetter : [el.underfasetter]).reduce(
-                      mapReducer(match ? match.underaggregeringer.buckets || [] : []),
-                      []
-                  )
+                    mapReducer(match ? match.underaggregeringer.buckets || [] : []),
+                    []
+                )
                 : [];
         t.push({
             key: el.name,

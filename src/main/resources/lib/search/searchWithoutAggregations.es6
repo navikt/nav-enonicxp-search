@@ -7,8 +7,11 @@ import getPaths from './resultListing/getPaths';
 import { calculateHighlightText, getHighLight } from './resultListing/createPreparedHit';
 import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 
+export const noAggregationsBatchSize = 10;
+
 export default function searchWithoutAggregations(params) {
     const tsStart = Date.now();
+
     const { f: facet, uf: childFacet, ord, start: startParam, c: countParam } = params;
     const { wordList, queryString } = generateSearchTerms(ord);
     const prioritiesItems = getPrioritizedElements(queryString);
@@ -16,7 +19,7 @@ export default function searchWithoutAggregations(params) {
     const { start, count } = getCountAndStart({
         start: startParam,
         count: countParam,
-        block: 10,
+        batchSize: noAggregationsBatchSize
     });
     const ESQuery = createQuery(queryString, {
         filters: createFilters(params, config, prioritiesItems),
@@ -60,3 +63,4 @@ export default function searchWithoutAggregations(params) {
         hits: hits,
     };
 }
+
