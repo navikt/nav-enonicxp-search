@@ -47,8 +47,6 @@ const handleGet = (req) => {
         params.uf = JSON.parse(params.uf);
     }
 
-    params.debug = params.debug || false;
-
     const result = searchUtils.runInContext(searchUtils.search, params);
     const aggregations = parseAggs(result.aggregations, params);
     const c = params.c ? parseInt(params.c) || 1 : 1;

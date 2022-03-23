@@ -14,7 +14,7 @@ export function isSchemaSearch(ord) {
 export function getCountAndStart({
     start: startString = '0',
     count: countString = '1',
-    block: blockSize = 20,
+    block: blockSize,
 }) {
     let count = countString ? parseInt(countString) || 0 : 0;
     count = count ? count * blockSize : blockSize;

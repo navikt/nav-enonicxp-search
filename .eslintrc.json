@@ -2,7 +2,7 @@
     "extends": ["airbnb", "prettier"],
     "plugins": ["prettier"],
     "rules": {
-        "prettier/prettier": ["warn"],
+        "prettier/prettier": ["off"],
         "comma-dangle": ["error", "only-multiline"],
         "no-cond-assign": ["error", "except-parens"],
         "no-unused-vars": ["error", { "vars": "all", "args": "none"}],

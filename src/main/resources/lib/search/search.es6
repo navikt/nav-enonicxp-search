@@ -10,7 +10,6 @@ import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
 import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
-import getRepository from './helpers/repo';
 import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 
@@ -23,7 +22,6 @@ export default function search(params, skipCache) {
         uf: childFacet,
         ord,
         start: startParam,
-        debug,
         excludePrioritized: excludePrioritizedParam = 'false',
         c: countParam,
         daterange,
@@ -41,7 +39,7 @@ export default function search(params, skipCache) {
         ? EMPTY_RESULT_SET
         : getPrioritizedElements(queryString);
 
-    const { start, count } = getCountAndStart({ start: startParam, count: countParam });
+    const { start, count } = getCountAndStart({ start: startParam, count: countParam, block: 20 });
     const ESQuery = createQuery(queryString, { start, count });
     const aggregations = getAggregations(ESQuery, config);
     ESQuery.filters = createFilters(params, config, prioritiesItems);
@@ -60,7 +58,6 @@ export default function search(params, skipCache) {
         aggregations.fasetter.buckets[0].docCount += priorityHitCount;
         aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priorityHitCount;
         if (
-            params.debug !== 'true' &&
             (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
             (!startParam || startParam === '0')
         ) {
@@ -72,39 +69,8 @@ export default function search(params, skipCache) {
         }
     }
 
-    let scores = {};
-    let prioritized = [];
-    if (debug === 'true') {
-        prioritized = prioritiesItems.hits.map((hit) => ({
-            ...createPreparedHit(hit, wordList),
-            id: hit._id || 0,
-            keywords: hit.data.keywords || [],
-        }));
-        scores = getRepository().query({
-            ...ESQuery,
-            explain: true,
-        });
-        scores = scores.hits.reduce((agg, hit) => {
-            return { ...agg, [hit.id]: hit.score };
-        }, {});
-    }
-
     // prepare the hits with highlighting and such
-    hits = hits.map((hit) => {
-        let preparedHit = createPreparedHit(hit, wordList);
-        if (params.debug) {
-            // if debug on, add
-            // 1. score
-            // 2. id
-            preparedHit = {
-                ...preparedHit,
-                id: hit._id || 0,
-                score: scores[hit._id] || 0,
-                keywords: hit.data.keywords || [],
-            };
-        }
-        return preparedHit;
-    });
+    hits = hits.map((hit) => createPreparedHit(hit, wordList));
 
     let facetsLog = '';
     if (facet) {
@@ -122,6 +88,6 @@ export default function search(params, skipCache) {
         total,
         hits,
         aggregations,
-        prioritized,
+        prioritized: [],
     };
 }

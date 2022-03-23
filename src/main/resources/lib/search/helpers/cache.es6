@@ -16,15 +16,6 @@ const wipeAll = () => {
     cache.clear();
 };
 
-const getEmptyAggregation = (fallback) => {
-    return cache.get('emptyaggs', fallback);
-};
-
-const getEmptyTimePeriod = (key, fallback) => {
-    emptySearchKeys.push(key);
-    return cache.get(key, fallback);
-};
-
 const getEmptySearchResult = (key, fallback) => {
     emptySearchKeys.push(key);
     return cache.get(key, fallback);
@@ -146,8 +137,6 @@ const activateEventListener = () => {
 
 export {
     activateEventListener,
-    getEmptyAggregation,
-    getEmptyTimePeriod,
     getEmptySearchResult,
     getSynonymMap,
     getPriorities,
