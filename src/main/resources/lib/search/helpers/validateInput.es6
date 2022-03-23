@@ -24,13 +24,13 @@ const validateParams = (params) => {
     const { f, uf, ord, start, excludePrioritized, c, daterange, s } = params;
 
     return {
-        f: validNumber(f, 0), // Facet, this must be a number (valid range can vary depending on nav.no app settings)
-        uf: validNumber(uf, undefined, 0), // Underfacet, optional number (valid range can vary depending on nav.no app settings)
+        f: validNumber(f, 0), // Facet (valid range can vary depending on nav.no app settings)
+        uf: validNumber(uf, 0), // Underfacet (valid range can vary depending on nav.no app settings)
         start: validNumber(start, 0), // Start batch
         c: validNumber(c, 1, 1), // Number of batches
         s: validNumber(s, 0, 0, 1), // Sorting (0 = by best match, 1 = by date)
         daterange: validNumber(daterange, -1, -1, 3), // Date range (-1: all, 0: > 12 months, 1: < 12 months, 2: < 30 days, 3: < 7 days)
-        excludePriorizied: excludePrioritized === 'true',
+        excludePrioritized: excludePrioritized === 'true',
         ord: sanitizeTerm(ord),
     }
 }

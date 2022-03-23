@@ -29,11 +29,11 @@ export default function searchWithoutAggregations(params) {
     });
     let { hits = [], total = 0 } = query(ESQuery);
 
-    // add pri to hits if the first fasett and first subfasett, and start index is missin or 0
+    // Add prioritized elements to the first batch for queries for the first facet + child facet
     if (
         !isSchemaSearch(ord) &&
-        (!facet || (facet === '0' && (!childFacet || childFacet === '0'))) &&
-        (!startParam || startParam === '0')
+        (facet === 0 && (!childFacet || childFacet === 0)) &&
+        startParam === 0
     ) {
         hits = prioritiesItems.hits.concat(hits);
         total += prioritiesItems.hits.length;
@@ -55,7 +55,7 @@ export default function searchWithoutAggregations(params) {
     });
     const tsEnd = Date.now();
     log.info(
-        `Decorator search (${tsEnd-tsStart}ms) <${ord}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
+        `Decorator search (${tsEnd - tsStart}ms) <${ord}> => ${queryString} -- [${total} | ${prioritiesItems.hits.length}]`
     );
 
     return {
