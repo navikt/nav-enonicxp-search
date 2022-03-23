@@ -1,32 +1,23 @@
 const searchUtils = require('/lib/search');
+const { validateParams } = require("../../lib/search/helpers/validateInput");
 
 function handleGet(req) {
-    const params = req.params || {};
-
-    if (!params.ord) {
-        params.ord = '';
-    }
-    if (params.ord.length > 200) {
-        params.ord = params.ord.substring(0, 200);
-    }
+    const params = validateParams(req.params);
 
     const result = searchUtils.runInContext(searchUtils.searchWithoutAggregations, params);
-    const c = params.c ? parseInt(params.c) || 1 : 1;
-    const isMore = c * 10 < result.total;
-    const isSortDate = !params.s || params.s === '0';
-
-    const model = {
-        c,
-        isMore,
-        isSortDate,
-        s: params.s ? params.s : '0',
-        word: params.ord,
-        total: result.total.toString(10),
-        hits: result.hits,
-    };
+    const isMore = params.c * 10 < result.total;
+    const isSortDate = !params.s;
 
     return {
-        body: model,
+        body: {
+            c: params.c,
+            isMore,
+            isSortDate,
+            s: params.s ? params.s : '0',
+            word: params.ord,
+            total: result.total.toString(10),
+            hits: result.hits,
+        },
         contentType: 'application/json',
     };
 }

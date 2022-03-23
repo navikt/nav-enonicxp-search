@@ -12,23 +12,26 @@ import createFilters from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
 import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
+import { validateParams } from "./helpers/validateInput";
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
 export default function search(params, skipCache) {
     const tsStart = Date.now();
+
     const {
         f: facet,
         uf: childFacet,
         ord,
         start: startParam,
-        excludePrioritized: excludePrioritizedParam = 'false',
+        excludePrioritized: excludePrioritizedParam,
         c: countParam,
         daterange,
         s: sorting,
-    } = params;
+    } = validateParams(params);
+
     const { wordList, queryString } = generateSearchTerms(ord);
-    const excludePrioritized = excludePrioritizedParam === 'true' || isSchemaSearch(ord);
+    const excludePrioritized = excludePrioritizedParam || isSchemaSearch(ord);
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {
