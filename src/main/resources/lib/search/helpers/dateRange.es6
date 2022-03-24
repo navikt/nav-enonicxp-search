@@ -27,10 +27,15 @@ const getDateRangeQueryStringFromBucket = (bucket) => {
 };
 
 const getDateRangeQueryString = (daterange, buckets) => {
-    if (!buckets || !buckets[daterange]) {
+    if (!buckets) {
         return '';
     }
+
     const selectedBucket = buckets[daterange];
+    if (!selectedBucket) {
+        return '';
+    }
+
     return getDateRangeQueryStringFromBucket(selectedBucket);
 };
 

@@ -55,10 +55,7 @@ export default function search(params, skipCache) {
     const aggregations = getAggregations(ESQuery, config);
     ESQuery.filters = createFilters(params, config, prioritiesItems);
     aggregations.Tidsperiode = getDateRanges(ESQuery);
-
-    if (daterange) {
-        ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets);
-    }
+    ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets);
 
     let { hits, total } = getSortedResult(ESQuery, sorting);
 
