@@ -1,7 +1,7 @@
 import { forceArray } from '../../nav-utils';
 
 export default function createFilters(params, config, prioritiesItems) {
-    const { f: facetIndex, uf: underfacets } = params;
+    const { f: facetIndex, uf: underfacetIndices } = params;
 
     const filters = { boolean: { must: [], mustNot: [] } };
     const facetData = config.data.fasetter[facetIndex];
@@ -22,20 +22,20 @@ export default function createFilters(params, config, prioritiesItems) {
             },
         });
 
-        if (underfacets.length > 0) {
-            const underfacetsData = forceArray(facetData.underfasetter);
+        if (underfacetIndices.length > 0) {
+            const ufDataArray = forceArray(facetData.underfasetter);
 
-            const values = underfacets.reduce((acc, uf) => {
-                const underfasett = underfacetsData[uf];
+            const values = underfacetIndices.reduce((acc, ufIndex) => {
+                const ufData = ufDataArray[ufIndex];
 
-                if (!underfasett) {
+                if (!ufData) {
                     log.info(
-                        `Invalid underfacet parameter specified - facet: ${facetIndex} - underfacet: ${uf}`
+                        `Invalid underfacet parameter specified - facet: ${facetIndex} - underfacet: ${ufIndex}`
                     );
                     return acc;
                 }
 
-                return [...acc, underfasett.name];
+                return [...acc, ufData.name];
             }, []);
 
             filters.boolean.must.push({

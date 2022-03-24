@@ -1,12 +1,11 @@
 const searchUtils = require('/lib/search');
-const { parseAndValidateParams } = require("../../lib/search/helpers/validateInput");
-const { noAggregationsBatchSize } = require("../../lib/search/searchWithoutAggregations");
-
+const { parseAndValidateParams } = require('../../lib/search/helpers/validateInput');
+const { noAggregationsBatchSize } = require('../../lib/search/searchWithoutAggregations');
 
 function handleGet(req) {
     const params = parseAndValidateParams(req.params);
 
-    const {c: count, s: sorting, ord} = params;
+    const { c: count, s: sorting, ord } = params;
 
     const result = searchUtils.runInContext(searchUtils.searchWithoutAggregations, params);
     const isMore = count * noAggregationsBatchSize < result.total;

@@ -1,5 +1,6 @@
 const searchUtils = require('/lib/search');
-const { parseAndValidateParams } = require("../../lib/search/helpers/validateInput");
+const { parseAndValidateParams } = require('../../lib/search/helpers/validateInput');
+const { withAggregationsBatchSize } = require('../../lib/search/search');
 
 const bucket = (type, params, parent) => {
     return (element, index) => {
@@ -24,7 +25,7 @@ const parseAggs = (aggregations, params) => {
     let tc = true;
     aggs.Tidsperiode.buckets = aggs.Tidsperiode.buckets.map((el, index) => {
         if (el.checked) {
-            tc = false
+            tc = false;
         }
         return { ...el, checked: daterange === index };
     });
@@ -35,7 +36,9 @@ const parseAggs = (aggregations, params) => {
 };
 
 const handleGet = (req) => {
+    log.info(`Params raw: ${JSON.stringify(req.params)}`);
     const params = parseAndValidateParams(req.params);
+    log.info(`Params validated: ${JSON.stringify(params)}`);
 
     const { c: count, s: sorting, daterange, ord } = params;
 
@@ -48,9 +51,9 @@ const handleGet = (req) => {
             isSortDate: sorting === 0,
             s: sorting,
             daterange,
-            isMore: count * 20 < result.total,
+            isMore: count * withAggregationsBatchSize < result.total,
             word: ord,
-            total: result.total.toString(10),
+            total: result.total,
             fasett: aggregations.fasetter.buckets.reduce((t, el) => {
                 if (el.checked) return el.key;
                 return t;

@@ -13,9 +13,10 @@ import createFilters from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
 import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
-import { parseAndValidateParams } from './helpers/validateInput';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
+
+export const withAggregationsBatchSize = 20;
 
 export default function search(params, skipCache) {
     const tsStart = Date.now();
@@ -29,10 +30,12 @@ export default function search(params, skipCache) {
         c: countParam,
         daterange,
         s: sorting,
-    } = parseAndValidateParams(params);
+    } = params;
 
     const { wordList, queryString } = generateSearchTerms(ord);
     const excludePrioritized = excludePrioritizedParam || isSchemaSearch(ord);
+
+    log.info(`Query string: ${queryString}`);
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {
@@ -43,7 +46,11 @@ export default function search(params, skipCache) {
         ? EMPTY_RESULT_SET
         : getPrioritizedElements(queryString);
 
-    const { start, count } = getCountAndStart({ start: startParam, count: countParam, block: 20 });
+    const { start, count } = getCountAndStart({
+        start: startParam,
+        count: countParam,
+        batchSize: withAggregationsBatchSize,
+    });
     const ESQuery = createQuery(queryString, { start, count });
     const aggregations = getAggregations(ESQuery, config);
     ESQuery.filters = createFilters(params, config, prioritiesItems);
