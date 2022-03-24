@@ -21,16 +21,11 @@ const validNumber = (rawValue, defaultValue = undefined, min = 0, max = 255) => 
 };
 
 const validUnderfacets = (ufInput) => {
-    try {
-        const parsed = JSON.parse(ufInput);
-        if (Array.isArray(parsed)) {
-            return parsed
-                .map((value) => validNumber(value))
-                .filter(
-                    (value, index, array) => value !== undefined && array.indexOf(value) === index
-                ); // remove undefined and duplicates
-        }
-    } catch (e) {}
+    if (Array.isArray(ufInput)) {
+        return ufInput
+            .map((value) => validNumber(value))
+            .filter((value, index, array) => value !== undefined && array.indexOf(value) === index); // remove undefined and duplicates
+    }
 
     const numberValue = validNumber(ufInput);
 
