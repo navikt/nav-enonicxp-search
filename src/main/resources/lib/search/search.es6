@@ -32,8 +32,6 @@ export default function search(params, skipCache) {
         queryString,
     } = params;
 
-    log.info(`Query string: ${queryString}`);
-
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {
         return getEmptySearchResult(JSON.stringify(params), () => search(params, true));
