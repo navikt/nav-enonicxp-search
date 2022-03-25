@@ -11,18 +11,8 @@ export function isSchemaSearch(ord) {
     return /^\d\d-\d\d\.\d\d$/.test(ord);
 }
 
-export function getCountAndStart({
-    start: startString = '0',
-    count: countString = '1',
-    block: blockSize = 20,
-}) {
-    let count = countString ? parseInt(countString) || 0 : 0;
-    count = count ? count * blockSize : blockSize;
-
-    let start = startString ? parseInt(startString) || 0 : 0;
-    start *= blockSize;
-    count -= start;
-    return { start, count };
+export function getCountAndStart({ start, count, batchSize }) {
+    return { start: start * batchSize, count: (count - start) * batchSize };
 }
 
 /*
@@ -68,11 +58,11 @@ export function getFacetConfiguration() {
 }
 
 export function getSortedResult(ESQuery, sort) {
-    if (sort && sort !== '0') {
-        return query({ ...ESQuery, sort: 'publish.first DESC, createdTime DESC' });
+    if (sort === 0) {
+        return query({ ...ESQuery, sort: '_score DESC' });
     }
 
-    return query({ ...ESQuery, sort: '_score DESC' });
+    return query({ ...ESQuery, sort: 'publish.first DESC, createdTime DESC' });
 }
 
 export function runInContext(func, params) {
@@ -89,3 +79,15 @@ export function runInContext(func, params) {
         () => func(params)
     );
 }
+
+// Prioritized elements should be included with the first batch for queries for the first facet + underfacet
+export const shouldIncludePrioHits = (params) => {
+    const { f, uf, ord, start } = params;
+
+    return (
+        !isSchemaSearch(ord) &&
+        f === 0 &&
+        (uf.length === 0 || (uf.length === 1 && uf[0] === 0)) &&
+        start === 0
+    );
+};

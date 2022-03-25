@@ -1,3 +1,4 @@
+import { sanitize } from '/lib/xp/common';
 import { getSynonymMap } from '../helpers/cache';
 import { formatExactSearch, isExactSearch, isSchemaSearch } from '../helpers/utils';
 
@@ -74,29 +75,23 @@ const buildFinalQueryString = (wordMap) => {
         .join(' ');
 };
 
-const generateSearchTerms = (queryString) => {
-    const queryTrimmed = queryString.trim();
-
-    if (!queryTrimmed) {
+export const generateSearchInput = (userInput) => {
+    if (!userInput) {
         return { wordList: [], queryString: '' };
     }
 
-    if (isSchemaSearch(queryTrimmed)) {
-        return { wordList: [queryTrimmed], queryString: queryTrimmed };
+    if (isSchemaSearch(userInput)) {
+        return { wordList: [userInput], queryString: userInput };
     }
 
-    if (isExactSearch(queryTrimmed)) {
-        const queryStringExact = formatExactSearch(queryTrimmed);
+    const sanitizedTerm = sanitize(userInput);
+
+    if (isExactSearch(userInput)) {
+        const queryStringExact = formatExactSearch(sanitizedTerm);
         return { wordList: [queryStringExact], queryString: queryStringExact };
     }
 
-    const queryCleaned = queryTrimmed.toLowerCase().replace(/æ/g, 'ae').replace(/ø/g, 'o');
-
-    const wordsMap = getWordsMap(queryCleaned);
+    const wordsMap = getWordsMap(sanitizedTerm);
 
     return { wordList: getUniqueWords(wordsMap), queryString: buildFinalQueryString(wordsMap) };
-};
-
-module.exports = {
-    generateSearchTerms,
 };
