@@ -4,14 +4,12 @@ import {
     getCountAndStart,
     getFacetConfiguration,
     getSortedResult,
-    isSchemaSearch,
     shouldIncludePrioHits,
 } from './helpers/utils';
 import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
 import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
-import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
@@ -26,14 +24,13 @@ export default function search(params, skipCache) {
         uf: underfacets,
         ord,
         start: startParam,
-        excludePrioritized: excludePrioritizedParam,
+        excludePrioritized,
         c: countParam,
         daterange,
         s: sorting,
+        wordList,
+        queryString,
     } = params;
-
-    const { wordList, queryString } = generateSearchTerms(ord);
-    const excludePrioritized = excludePrioritizedParam || isSchemaSearch(ord);
 
     log.info(`Query string: ${queryString}`);
 
@@ -41,6 +38,7 @@ export default function search(params, skipCache) {
     if (wordList.length === 0 && !skipCache) {
         return getEmptySearchResult(JSON.stringify(params), () => search(params, true));
     }
+
     const config = getFacetConfiguration();
     const prioritiesItems = excludePrioritized
         ? EMPTY_RESULT_SET

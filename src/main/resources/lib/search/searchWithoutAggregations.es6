@@ -5,15 +5,14 @@ import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import getPaths from './resultListing/getPaths';
 import { calculateHighlightText, getHighLight } from './resultListing/createPreparedHit';
-import { generateSearchTerms } from './queryBuilder/generateSearchTerms';
 
 export const noAggregationsBatchSize = 10;
 
 export default function searchWithoutAggregations(params) {
     const tsStart = Date.now();
 
-    const { ord, start: startParam, c: countParam } = params;
-    const { wordList, queryString } = generateSearchTerms(ord);
+    const { ord, start: startParam, c: countParam, wordList, queryString } = params;
+
     const prioritiesItems = getPrioritizedElements(queryString);
     const config = getFacetConfiguration();
     const { start, count } = getCountAndStart({
@@ -48,6 +47,7 @@ export default function searchWithoutAggregations(params) {
             modifiedTime: el.modifiedTime,
         };
     });
+
     const tsEnd = Date.now();
     log.info(
         `Decorator search (${tsEnd - tsStart}ms) <${ord}> => ${queryString} -- [${total} | ${

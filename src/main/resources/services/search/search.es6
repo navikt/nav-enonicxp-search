@@ -1,5 +1,5 @@
 const searchUtils = require('/lib/search');
-const { parseAndValidateParams } = require('../../lib/search/helpers/validateInput');
+const { validateAndTransformParams } = require('../../lib/search/helpers/validateInput');
 const { withAggregationsBatchSize } = require('../../lib/search/search');
 
 const bucket = (type, params, parent) => {
@@ -36,13 +36,13 @@ const parseAggs = (aggregations, params) => {
 };
 
 const handleGet = (req) => {
-    const params = parseAndValidateParams(req.params);
-
-    const { c: count, s: sorting, daterange, ordRaw } = params;
+    const params = validateAndTransformParams(req.params);
 
     const result = searchUtils.runInContext(searchUtils.search, params);
     const aggregations = parseAggs(result.aggregations, params);
     const fasett = aggregations.fasetter.buckets.reduce((t, el) => (el.checked ? el.key : t), '');
+
+    const { c: count, s: sorting, daterange, ord } = params;
 
     return {
         body: {
@@ -51,7 +51,7 @@ const handleGet = (req) => {
             s: sorting,
             daterange,
             isMore: count * withAggregationsBatchSize < result.total,
-            word: ordRaw,
+            word: ord,
             total: result.total,
             fasett,
             aggregations,
