@@ -84,7 +84,7 @@ export const generateSearchInput = (userInput) => {
         return { wordList: [userInput], queryString: userInput };
     }
 
-    const sanitizedTerm = sanitize(userInput).substring(0, 200).trim();
+    const sanitizedTerm = sanitize(userInput);
 
     if (isExactSearch(userInput)) {
         const queryStringExact = formatExactSearch(sanitizedTerm);
