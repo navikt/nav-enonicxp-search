@@ -12,7 +12,7 @@ export function isSchemaSearch(ord) {
 }
 
 export function getCountAndStart({ start, count, batchSize }) {
-    return { start: start * batchSize, count: count * batchSize };
+    return { start: start * batchSize, count: (count - start) * batchSize };
 }
 
 /*
