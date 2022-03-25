@@ -80,11 +80,14 @@ export function runInContext(func, params) {
     );
 }
 
-// Prioritized elements should be included with the first batch for queries for the first facet + child facet
+// Prioritized elements should be included with the first batch for queries for the first facet + underfacet
 export const shouldIncludePrioHits = (params) => {
     const { f, uf, ord, start } = params;
 
     return (
-        !isSchemaSearch(ord) && f === 0 && (uf.length === 0 || uf.indexOf(0) !== -1) && start === 0
+        !isSchemaSearch(ord) &&
+        f === 0 &&
+        (uf.length === 0 || (uf.length === 1 && uf[0] === 0)) &&
+        start === 0
     );
 };
