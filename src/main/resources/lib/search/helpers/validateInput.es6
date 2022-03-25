@@ -30,7 +30,6 @@ export const validateAndTransformParams = (params) => {
 
     const startValid = validNumber(start, 0);
     const countMin = startValid + 1; // end batch must be at least one step above the start batch
-    const countValid = validNumber(c, countMin, countMin);
 
     const { wordList, queryString } = generateSearchInput(ordTrimmed);
 
@@ -38,7 +37,7 @@ export const validateAndTransformParams = (params) => {
         f: validNumber(f, 0), // Facet (valid range can vary depending on nav.no app settings)
         uf: validUnderfacets(uf), // Underfacet(s) - input can be a number or array of numbers (valid range, see above)
         start: startValid, // Start batch
-        c: countValid, // End batch/count
+        c: validNumber(c, countMin, countMin), // End batch/count
         s: validNumber(s, 0, 0, 1), // Sorting (0: by best match, 1: by date)
         daterange: validNumber(daterange, -1, -1, 3), // Date range (-1: all, 0: > 12 months, 1: < 12 months, 2: < 30 days, 3: < 7 days)
         excludePrioritized: excludePrioritized === 'true' || isSchemaSearch(ord),
