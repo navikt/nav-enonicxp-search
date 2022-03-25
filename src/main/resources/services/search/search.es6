@@ -36,14 +36,13 @@ const parseAggs = (aggregations, params) => {
 };
 
 const handleGet = (req) => {
-    log.info(`Params raw: ${JSON.stringify(req.params)}`);
     const params = parseAndValidateParams(req.params);
-    log.info(`Params validated: ${JSON.stringify(params)}`);
 
-    const { c: count, s: sorting, daterange, ord } = params;
+    const { c: count, s: sorting, daterange, ordRaw } = params;
 
     const result = searchUtils.runInContext(searchUtils.search, params);
     const aggregations = parseAggs(result.aggregations, params);
+    const fasett = aggregations.fasetter.buckets.reduce((t, el) => (el.checked ? el.key : t), '');
 
     return {
         body: {
@@ -52,12 +51,9 @@ const handleGet = (req) => {
             s: sorting,
             daterange,
             isMore: count * withAggregationsBatchSize < result.total,
-            word: ord,
+            word: ordRaw,
             total: result.total,
-            fasett: aggregations.fasetter.buckets.reduce((t, el) => {
-                if (el.checked) return el.key;
-                return t;
-            }, ''),
+            fasett,
             aggregations,
             hits: result.hits,
             prioritized: result.prioritized,

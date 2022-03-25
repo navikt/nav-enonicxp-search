@@ -5,19 +5,17 @@ const { noAggregationsBatchSize } = require('../../lib/search/searchWithoutAggre
 function handleGet(req) {
     const params = parseAndValidateParams(req.params);
 
-    const { c: count, s: sorting, ord } = params;
+    const { c: count, s: sorting, ordRaw } = params;
 
     const result = searchUtils.runInContext(searchUtils.searchWithoutAggregations, params);
-    const isMore = count * noAggregationsBatchSize < result.total;
-    const isSortDate = sorting === 1;
 
     return {
         body: {
             c: count,
-            isMore,
-            isSortDate,
+            isMore: count * noAggregationsBatchSize < result.total,
+            isSortDate: sorting === 1,
             s: sorting,
-            word: ord,
+            word: ordRaw,
             total: result.total,
             hits: result.hits,
         },

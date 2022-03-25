@@ -48,5 +48,6 @@ export const parseAndValidateParams = (params) => {
         daterange: validNumber(daterange, -1, -1, 3), // Date range (-1: all, 0: > 12 months, 1: < 12 months, 2: < 30 days, 3: < 7 days)
         excludePrioritized: excludePrioritized === 'true',
         ord: sanitizeTerm(ord),
+        ordRaw: ord,
     };
 };
