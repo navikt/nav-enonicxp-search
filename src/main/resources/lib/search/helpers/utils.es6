@@ -67,6 +67,7 @@ const resultWithCustomScoreWeights = (result) => ({
             }
             return {
                 ...hit,
+                // Pages targeted towards private individuals should be weighted higher
                 _score: data.audience === 'person' ? _score * 1.25 : _score,
                 _rawScore: _score,
             };
