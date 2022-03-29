@@ -61,15 +61,29 @@ const resultWithCustomScoreWeights = (result) => ({
     ...result,
     hits: result.hits
         .map((hit) => {
-            const { _score, data } = hit;
-            if (!data || !_score) {
+            const { _score: _rawScore, data, language } = hit;
+            if (!_rawScore) {
                 return hit;
             }
+
+            let scoreFactor = 1;
+
+            // Pages targeted towards private individuals should be weighted higher
+            if (data && data.audience === 'person') {
+                scoreFactor *= 1.25;
+            }
+
+            // Norwegian languages should be weighted slightly higher
+            if (language === 'no') {
+                scoreFactor *= 1.1;
+            } else if (language === 'nn') {
+                scoreFactor *= 1.05;
+            }
+
             return {
                 ...hit,
-                // Pages targeted towards private individuals should be weighted higher
-                _score: data.audience === 'person' ? _score * 1.25 : _score,
-                _rawScore: _score,
+                _score: _rawScore * scoreFactor,
+                _rawScore,
             };
         })
         .sort((a, b) => b._score - a._score),
