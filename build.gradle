@@ -1,20 +1,4 @@
 // Build dependencies
-buildscript {
-    // Internal dependencies
-    if (project.hasProperty('build-inside-firewall')) {
-        repositories {
-            maven {
-                url "https://maven.adeo.no/nexus/content/groups/public/"
-            }
-            maven {
-                url "https://maven.adeo.no/nexus/content/repositories/m2internal/"
-            }
-        }
-        dependencies {
-            classpath "gradle.plugin.com.enonic.gradle:xp-gradle-plugin:1.1.0"
-        }
-    }
-}
 
 plugins {
     id 'com.enonic.xp.app' version '3.0.0' // A plugin developed by Enonic that adds some needed things to Gradle and makes app-building easier. It is required to use in any Enonic App.
@@ -34,17 +18,11 @@ app {
 }
 
 repositories {
-    // External dependencies
-    if (!project.hasProperty('build-inside-firewall')) {
-        mavenLocal()
-        mavenCentral()
-        xp.enonicRepo()
-    }
+    mavenLocal()
+    mavenCentral()
+    xp.enonicRepo()
     maven {
         url "https://maven.adeo.no/nexus/content/groups/public"
-    }
-    maven {
-        url  "https://dl.bintray.com/ljl/maven"
     }
 }
 
@@ -52,20 +30,14 @@ dependencies {
     implementation "org.elasticsearch:elasticsearch:2.4.6"
     implementation "com.enonic.xp:core-api:${xpVersion}"
     implementation "com.enonic.xp:portal-api:${xpVersion}"
-    include "com.enonic.lib:lib-thymeleaf:2.0.0"
     include "com.enonic.xp:lib-cluster:${xpVersion}"
     include "com.enonic.xp:lib-content:${xpVersion}"
     include "com.enonic.xp:lib-context:${xpVersion}"
     include "com.enonic.xp:lib-event:${xpVersion}"
-    include "com.enonic.xp:lib-i18n:${xpVersion}"
     include "com.enonic.xp:lib-node:${xpVersion}"
     include "com.enonic.xp:lib-portal:${xpVersion}"
-    include "com.enonic.xp:lib-repo:${xpVersion}"
-    include "com.enonic.xp:lib-task:${xpVersion}"
-    testImplementation "com.enonic.xp:testing:${xpVersion}"
     include "com.enonic.lib:lib-cache:2.1.0"
-    include "com.enonic.lib:lib-http-client:2.0.0"
-    webjar "org.webjars:momentjs:2.24.0"
+    webjar "org.webjars:momentjs:2.29.1"
 }
 
 // Tasks

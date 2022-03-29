@@ -1,5 +1,9 @@
-import { query } from '/lib/xp/content';
-import { getCountAndStart, getFacetConfiguration, shouldIncludePrioHits } from './helpers/utils';
+import {
+    getCountAndStart,
+    getFacetConfiguration,
+    getSortedResult,
+    shouldIncludePrioHits,
+} from './helpers/utils';
 import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
 import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
@@ -22,29 +26,31 @@ export default function searchWithoutAggregations(params) {
     });
     const ESQuery = createQuery(queryString, {
         filters: createFilters(params, config, prioritiesItems),
-        sort: '_score DESC',
         start,
         count,
     });
-    let { hits = [], total = 0 } = query(ESQuery);
+
+    let { hits = [], total = 0 } = getSortedResult(ESQuery, 0);
 
     if (shouldIncludePrioHits(params)) {
         hits = prioritiesItems.hits.concat(hits);
         total += prioritiesItems.hits.length;
     }
 
-    hits = hits.map((el) => {
-        const highLight = getHighLight(el, wordList);
+    hits = hits.map((hit) => {
+        const highLight = getHighLight(hit, wordList);
         const highlightText = calculateHighlightText(highLight);
-        const href = getPaths(el).href;
+        const href = getPaths(hit).href;
 
         return {
-            priority: !!el.priority,
-            displayName: el.displayName,
+            priority: !!hit.priority,
+            displayName: hit.displayName,
             href: href,
             highlight: highlightText,
-            publish: el.publish,
-            modifiedTime: el.modifiedTime,
+            publish: hit.publish,
+            modifiedTime: hit.modifiedTime,
+            score: hit._score,
+            rawScore: hit._rawScore,
         };
     });
 
