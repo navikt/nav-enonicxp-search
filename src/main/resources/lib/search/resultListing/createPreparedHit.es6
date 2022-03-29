@@ -137,7 +137,7 @@ export function getHighLight(el, wordList) {
 }
 
 export default function createPreparedHit(hit, wordList) {
-    // 11. Join the prioritised search with the result and map the contents with: highlighting,
+    // Join the prioritised search with the result and map the contents with: highlighting,
     // href, displayName and so on
 
     const highLight = getHighLight(hit, wordList);
@@ -189,6 +189,8 @@ export default function createPreparedHit(hit, wordList) {
         publish: hit.publish,
         createdTime: hit.createdTime,
         modifiedTime: hit.modifiedTime,
+        score: hit._score,
+        rawScore: hit._rawScore,
         officeInformation: officeInformation,
     };
 }

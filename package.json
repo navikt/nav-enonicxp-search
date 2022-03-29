@@ -1,8 +1,7 @@
 {
     "name": "navno-search",
     "version": "1.0.0",
-    "description": "## Building",
-    "main": "createPhrases.js",
+    "description": "Ye olde nav.no search",
     "scripts": {
         "build": "npm-run-all lint:* build:*",
         "watch": "npm-run-all watch:*",
@@ -17,11 +16,7 @@
         "type": "git",
         "url": "git+https://github.com/navikt/navno-search.git"
     },
-    "author": "",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/navikt/navno-search/issues"
-    },
+    "license": "MIT",
     "lint-staged": {
         "*.es6": "eslint"
     },
@@ -30,7 +25,7 @@
             "pre-commit": "npm run lint-staged"
         }
     },
-    "homepage": "https://github.com/navikt/navno-search#readme",
+    "homepage": "https://github.com/navikt/nav-enonicxp-search#readme",
     "devDependencies": {
         "@babel/cli": "^7.10.1",
         "@babel/core": "^7.10.2",

@@ -57,9 +57,27 @@ export function getFacetConfiguration() {
     return get({ key: FACETS_CONTENT_KEY });
 }
 
+const resultWithCustomScoreWeights = (result) => ({
+    ...result,
+    hits: result.hits
+        .map((hit) => {
+            const { _score, data } = hit;
+            if (!data || !_score) {
+                return hit;
+            }
+            return {
+                ...hit,
+                // Pages targeted towards private individuals should be weighted higher
+                _score: data.audience === 'person' ? _score * 1.25 : _score,
+                _rawScore: _score,
+            };
+        })
+        .sort((a, b) => b._score - a._score),
+});
+
 export function getSortedResult(ESQuery, sort) {
     if (sort === 0) {
-        return query({ ...ESQuery, sort: '_score DESC' });
+        return resultWithCustomScoreWeights(query(ESQuery));
     }
 
     return query({ ...ESQuery, sort: 'publish.first DESC, createdTime DESC' });

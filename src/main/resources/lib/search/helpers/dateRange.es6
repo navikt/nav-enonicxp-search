@@ -1,6 +1,6 @@
 import { query } from '/lib/xp/content';
 
-const moment = require('/assets/momentjs/2.24.0/min/moment-with-locales.min.js');
+const moment = require('/assets/momentjs/2.29.1/min/moment-with-locales.min.js');
 
 const dateTimeFormat = 'YYYY-MM-DD[T]HH:mm:ss[Z]';
 
