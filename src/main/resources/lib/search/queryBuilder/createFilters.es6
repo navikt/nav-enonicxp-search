@@ -3,16 +3,26 @@ import { forceArray } from '../../nav-utils';
 export default function createFilters(params, config, prioritiesItems) {
     const { f: facetIndex, uf: underfacetIndices } = params;
 
-    const filters = { boolean: { must: [], mustNot: [] } };
-    const facetData = config.data.fasetter[facetIndex];
-
-    // exclude no index items
-    filters.boolean.mustNot.push({
-        hasValue: {
-            field: 'data.noindex',
-            values: [true],
+    const filters = {
+        boolean: {
+            must: [],
+            mustNot: [
+                {
+                    hasValue: {
+                        field: 'data.noindex',
+                        values: [true],
+                    },
+                },
+                {
+                    hasValue: {
+                        field: 'data.externalProductUrl',
+                        values: [true],
+                    },
+                },
+            ],
         },
-    });
+    };
+    const facetData = config.data.fasetter[facetIndex];
 
     if (facetData) {
         filters.boolean.must.push({
