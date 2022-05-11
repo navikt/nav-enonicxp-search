@@ -13,14 +13,13 @@ export default function createFilters(params, config, prioritiesItems) {
                         values: [true],
                     },
                 },
-                {
-                    hasValue: {
-                        field: 'data.externalProductUrl',
-                        values: [true],
-                    },
-                },
             ],
         },
+        notExists: [
+            {
+                field: 'data.externalProductUrl',
+            },
+        ],
     };
     const facetData = config.data.fasetter[facetIndex];
 
