@@ -17,9 +17,9 @@ const contentTypes = [
         'dynamic-page',
         'content-page-with-sidemenus',
         'situation-page',
-        'employer-situation-page',
         'guide-page',
-        'themed-article-page'
+        'themed-article-page',
+        'overview',
     ].map((item) => `${navApp}:${item}`),
 ];
 
