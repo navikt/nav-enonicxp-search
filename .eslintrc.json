@@ -19,7 +19,8 @@
         "radix": ["error", "as-needed"],
         "no-plusplus": "off",
         "func-names": "off",
-        "no-empty": "off"
+        "no-empty": "off",
+        "arrow-body-style": "off"
     },
     "globals": {
         "require": true,
