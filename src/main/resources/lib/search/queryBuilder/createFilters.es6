@@ -13,6 +13,12 @@ export default function createFilters(params, config, prioritiesItems) {
                         values: [true],
                     },
                 },
+                {
+                    hasValue: {
+                        field: 'x.no-nav-navno.previewOnly.previewOnly',
+                        values: [true],
+                    },
+                },
             ],
         },
         notExists: [
