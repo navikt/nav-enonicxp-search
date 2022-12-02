@@ -69,7 +69,7 @@ export default function search(params, skipCache) {
         if (firstFacet?.docCount) {
             firstFacet.docCount += priorityHitCount;
             const firstUnderFacet = firstFacet.underaggregeringer.buckets[0];
-            if (firstUnderFacet.docCount) {
+            if (firstUnderFacet?.docCount) {
                 firstUnderFacet.docCount += priorityHitCount;
             }
         }
