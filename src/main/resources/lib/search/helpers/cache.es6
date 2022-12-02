@@ -15,12 +15,12 @@ const wipeAll = () => {
     cache.clear();
 };
 
-const getEmptySearchResult = (key, fallback) => {
+export const getEmptySearchResult = (key, fallback) => {
     emptySearchKeys.push(key);
     return cache.get(key, fallback);
 };
 
-const getSynonymMap = () => {
+export const getSynonymMap = () => {
     return cache.get('synonyms', () => {
         const synonymLists = contentLib.query({
             start: 0,
@@ -54,7 +54,7 @@ const getSynonymMap = () => {
     });
 };
 
-const getPriorities = () => {
+export const getPriorities = () => {
     return cache.get('priorites', () => {
         let priority = [];
         let start = 0;
@@ -79,7 +79,7 @@ const getPriorities = () => {
     });
 };
 
-const activateEventListener = () => {
+export const activateEventListener = () => {
     wipeAll();
     eventLib.listener({
         type: 'node.*',
@@ -140,11 +140,4 @@ const activateEventListener = () => {
             );
         },
     });
-};
-
-export default {
-    activateEventListener,
-    getEmptySearchResult,
-    getSynonymMap,
-    getPriorities,
 };

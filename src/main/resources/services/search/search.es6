@@ -1,6 +1,9 @@
-import searchUtils from '../../lib/search';
 import { validateAndTransformParams } from '../../lib/search/helpers/validateInput';
-import { withAggregationsBatchSize } from '../../lib/search/search';
+import {
+    searchWithAggregations,
+    withAggregationsBatchSize,
+} from '../../lib/search/searchWithAggregations';
+import { runInContext } from '../../lib/search/helpers/utils';
 
 const bucket = (type, params, parent) => (element, index) => {
     if (type === 'fasett') {
@@ -37,7 +40,7 @@ const parseAggs = (aggregations, params) => {
 export const get = (req) => {
     const params = validateAndTransformParams(req.params);
 
-    const result = searchUtils.runInContext(searchUtils.search, params);
+    const result = runInContext(searchWithAggregations, params);
     const aggregations = parseAggs(result.aggregations, params);
     const fasett = aggregations.fasetter.buckets.reduce(
         (t, el) => (el.checked ? el.key : t),

@@ -1,14 +1,14 @@
-import searchUtils from '../../lib/search';
 import { validateAndTransformParams } from '../../lib/search/helpers/validateInput';
-import { noAggregationsBatchSize } from '../../lib/search/searchWithoutAggregations';
+import {
+    noAggregationsBatchSize,
+    searchWithoutAggregations,
+} from '../../lib/search/searchWithoutAggregations';
+import { runInContext } from '../../lib/search/helpers/utils';
 
 export const get = (req) => {
     const params = validateAndTransformParams(req.params);
 
-    const result = searchUtils.runInContext(
-        searchUtils.searchWithoutAggregations,
-        params
-    );
+    const result = runInContext(searchWithoutAggregations, params);
 
     const { c: count, s: sorting, ord } = params;
 

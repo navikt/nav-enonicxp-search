@@ -8,14 +8,23 @@ import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
 import createQuery from './queryBuilder/createQuery';
 import createFilters from './queryBuilder/createFilters';
 import getPaths from './resultListing/getPaths';
-import { calculateHighlightText, getHighLight } from './resultListing/createPreparedHit';
+import {
+    calculateHighlightText,
+    getHighLight,
+} from './resultListing/createPreparedHit';
 
 export const noAggregationsBatchSize = 10;
 
-export default function searchWithoutAggregations(params) {
+export const searchWithoutAggregations = (params) => {
     const tsStart = Date.now();
 
-    const { ord, start: startParam, c: countParam, wordList, queryString } = params;
+    const {
+        ord,
+        start: startParam,
+        c: countParam,
+        wordList,
+        queryString,
+    } = params;
 
     const prioritiesItems = getPrioritizedElements(queryString);
     const config = getFacetConfiguration();
@@ -56,7 +65,9 @@ export default function searchWithoutAggregations(params) {
 
     const tsEnd = Date.now();
     log.info(
-        `Decorator search (${tsEnd - tsStart}ms) <${ord}> => ${queryString} -- [${total} | ${
+        `Decorator search (${
+            tsEnd - tsStart
+        }ms) <${ord}> => ${queryString} -- [${total} | ${
             prioritiesItems.hits.length
         }]`
     );
@@ -65,4 +76,4 @@ export default function searchWithoutAggregations(params) {
         total: total,
         hits: hits,
     };
-}
+};

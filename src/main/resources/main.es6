@@ -4,7 +4,7 @@ import './lib/polyfills';
 
 import contextLib from '/lib/xp/context';
 import clusterLib from '/lib/xp/cluster';
-import searchCache from './lib/search/helpers/cache';
+import { activateEventListener } from './lib/search/helpers/cache';
 
 contextLib.run(
     {
@@ -24,7 +24,7 @@ contextLib.run(
             ).createAnalyzerOnStartup();
         }
 
-        searchCache.activateEventListener();
+        activateEventListener();
     }
 );
 

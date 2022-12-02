@@ -16,7 +16,7 @@ const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
 export const withAggregationsBatchSize = 20;
 
-export default function search(params, skipCache) {
+export const searchWithAggregations = (params, skipCache) => {
     const tsStart = Date.now();
 
     const {
@@ -35,7 +35,7 @@ export default function search(params, skipCache) {
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {
         return getEmptySearchResult(JSON.stringify(params), () =>
-            search(params, true)
+            searchWithAggregations(params, true)
         );
     }
 
@@ -110,4 +110,4 @@ export default function search(params, skipCache) {
         aggregations,
         prioritized: [],
     };
-}
+};
