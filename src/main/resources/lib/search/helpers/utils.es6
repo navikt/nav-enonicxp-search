@@ -53,6 +53,10 @@ const addZeroHitsFacetsToBuckets = (buckets, facets) =>
 
 export const getAggregations = (ESQuery, config) => {
     const { aggregations } = contentLib.query({ ...ESQuery, count: 0 });
+
+    log.info(`Buckets: ${JSON.stringify(aggregations.fasetter.buckets)}`);
+    log.info(`Facets: ${JSON.stringify(config.data.fasetter)}`);
+
     aggregations.fasetter.buckets = addZeroHitsFacetsToBuckets(
         aggregations.fasetter.buckets,
         config.data.fasetter
