@@ -26,18 +26,16 @@ export const getCountAndStart = ({ start, count, batchSize }) => {
 // aggregation result as a bucket with docCount = 0
 const addZeroHitsFacetsToBuckets = (buckets, facets) =>
     forceArray(facets).map((facet) => {
-        const foundBucketIndex = buckets.indexOf(
-            (bucket) => bucket.key === facet.name.toLowerCase()
-        );
-        if (foundBucketIndex === -1) {
+        const foundBucket = buckets.find((bucket) => {
+            return bucket.key === facet.name.toLowerCase();
+        });
+        if (!foundBucket) {
             return {
                 key: facet.name,
                 docCount: 0,
                 underaggregeringer: { buckets: [] },
             };
         }
-
-        const foundBucket = buckets[foundBucketIndex];
 
         const foundUnderBuckets = foundBucket.underaggregeringer?.buckets;
         const underBuckets = foundUnderBuckets
@@ -53,9 +51,6 @@ const addZeroHitsFacetsToBuckets = (buckets, facets) =>
 
 export const getAggregations = (ESQuery, config) => {
     const { aggregations } = contentLib.query({ ...ESQuery, count: 0 });
-
-    log.info(`Buckets: ${JSON.stringify(aggregations.fasetter.buckets)}`);
-    log.info(`Facets: ${JSON.stringify(config.data.fasetter)}`);
 
     aggregations.fasetter.buckets = addZeroHitsFacetsToBuckets(
         aggregations.fasetter.buckets,

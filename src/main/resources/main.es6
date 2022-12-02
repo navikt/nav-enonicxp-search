@@ -1,3 +1,5 @@
+require('./lib/polyfills');
+
 const contextLib = require('/lib/xp/context');
 const searchCache = require('/lib/search/helpers/cache');
 const clusterLib = require('/lib/xp/cluster');
@@ -16,7 +18,9 @@ contextLib.run(
     () => {
         // create analyzer indices on startup, but only on master
         if (clusterLib.isMaster()) {
-            __.newBean('no.nav.search.elastic.Analyze').createAnalyzerOnStartup();
+            __.newBean(
+                'no.nav.search.elastic.Analyze'
+            ).createAnalyzerOnStartup();
         }
 
         searchCache.activateEventListener();
