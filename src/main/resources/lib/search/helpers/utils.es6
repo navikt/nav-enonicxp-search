@@ -32,6 +32,7 @@ const addZeroHitsFacetsToBuckets = (buckets, facets) =>
         if (!foundBucket) {
             return {
                 key: facet.name,
+                displayIndex: facet.displayIndex,
                 docCount: 0,
                 underaggregeringer: { buckets: [] },
             };
@@ -44,6 +45,7 @@ const addZeroHitsFacetsToBuckets = (buckets, facets) =>
 
         return {
             key: facet.name,
+            displayIndex: facet.displayIndex,
             docCount: foundBucket.docCount,
             underaggregeringer: { buckets: underBuckets },
         };
