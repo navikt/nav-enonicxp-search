@@ -2,20 +2,17 @@ const searchUtils = require('/lib/search');
 const { validateAndTransformParams } = require('../../lib/search/helpers/validateInput');
 const { withAggregationsBatchSize } = require('../../lib/search/search');
 
-const bucket = (type, params, parent) => {
-    return (element, index) => {
-        const el = element;
-        if (type === 'fasett') {
-            el.checked = params.f === index;
-            el.default = el.checked && params.uf.length === 0;
-            el.underaggregeringer.buckets = el.underaggregeringer.buckets.map(
-                bucket('under', params, el)
-            );
-        } else {
-            el.checked = parent.checked && params.uf.indexOf(index) !== -1;
-        }
-        return el;
-    };
+const bucket = (type, params, parent) => (element, index) => {
+    if (type === 'fasett') {
+        element.checked = params.f === index;
+        element.default = element.checked && params.uf.length === 0;
+        element.underaggregeringer.buckets = element.underaggregeringer.buckets.map(
+            bucket('under', params, element)
+        );
+    } else {
+        element.checked = parent.checked && params.uf.indexOf(index) !== -1;
+    }
+    return element;
 };
 
 const parseAggs = (aggregations, params) => {

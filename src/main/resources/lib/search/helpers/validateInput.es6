@@ -1,4 +1,4 @@
-import { isSchemaSearch } from './utils';
+import { isFormSearch } from './utils';
 import { generateSearchInput } from '../queryBuilder/generateSearchInput';
 
 const validNumber = (rawValue, defaultValue = undefined, min = 0, max = 255) => {
@@ -40,7 +40,7 @@ export const validateAndTransformParams = (params) => {
         c: validNumber(c, countMin, countMin), // End batch/count
         s: validNumber(s, 0, 0, 1), // Sorting (0: by best match, 1: by date)
         daterange: validNumber(daterange, -1, -1, 3), // Date range (-1: all, 0: > 12 months, 1: < 12 months, 2: < 30 days, 3: < 7 days)
-        excludePrioritized: excludePrioritized === 'true' || isSchemaSearch(ord),
+        excludePrioritized: excludePrioritized === 'true' || isFormSearch(ord),
         ord: ordTrimmed,
         queryString,
         wordList,

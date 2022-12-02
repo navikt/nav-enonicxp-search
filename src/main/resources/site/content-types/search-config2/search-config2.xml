@@ -1,37 +1,54 @@
-<content-type>
+<content-type xmlns="urn:enonic:xp:model:1.0">
     <display-name>Søkekonfigurasjon (fasetter)</display-name>
     <description>Skal bare finnes 1 av denne</description>
-    <is-abstract>true</is-abstract>
     <super-type>base:structured</super-type>
+    <is-abstract>true</is-abstract>
     <form>
         <item-set name="fasetter">
-            <display-name>Fasetter</display-name>
+            <label>Fasetter</label>
             <items>
                 <input type="TextLine" name="name">
                     <label>Navn</label>
                 </input>
+                <input type="TextLine" name="ruleQuery">
+                    <label>Query</label>
+                </input>
+                <input type="Long" name="displayIndex">
+                    <label>Visuell rekkefølge</label>
+                    <config>
+                        <min>0</min>
+                    </config>
+                </input>
                 <input name="rulekey" type="TextLine">
-                    <label>Regelnøkkel</label>
+                    <label>Regelnøkkel (deprecated)</label>
                 </input>
                 <input name="rulevalue" type="TextLine">
-                    <label>Regelverdi</label>
+                    <label>Regelverdi (deprecated)</label>
                 </input>
                 <item-set name="underfasetter">
-                    <display-name>Underfasetter</display-name>
+                    <label>Underfasetter</label>
                     <items>
                         <input type="TextLine" name="name">
                             <label>Navn</label>
                         </input>
+                        <input type="Long" name="displayIndex">
+                            <label>Visuell rekkefølge</label>
+                            <config>
+                                <min>0</min>
+                            </config>
+                        </input>
+                        <input type="TextLine" name="ruleQuery">
+                            <label>Query</label>
+                        </input>
                         <input name="rulekey" type="TextLine">
-                            <label>Regelnøkkel</label>
+                            <label>Regelnøkkel (deprecated)</label>
                         </input>
                         <input name="rulevalue" type="TextLine">
-                            <label>Regelverdi</label>
+                            <label>Regelverdi (deprecated)</label>
                         </input>
                     </items>
                     <occurrences minimum="0" maximum="0"/>
                 </item-set>
-
             </items>
             <occurrences minimum="0" maximum="0"/>
         </item-set>

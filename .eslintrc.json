@@ -1,13 +1,17 @@
 {
-    "extends": ["airbnb", "prettier"],
-    "plugins": ["prettier"],
+    "extends": [
+      "prettier",
+      "eslint:recommended",
+      "plugin:import/recommended"
+    ],
+    "plugins": ["prettier", "import"],
     "rules": {
         "prettier/prettier": ["off"],
         "comma-dangle": ["error", "only-multiline"],
         "no-cond-assign": ["error", "except-parens"],
         "no-unused-vars": ["error", { "vars": "all", "args": "none"}],
         "prefer-template": "off",
-        "no-console": "off",
+        "no-console": "error",
         "global-require": "off",
         "import/no-unresolved": "off",
         "import/no-absolute-path": "off",
@@ -20,7 +24,9 @@
         "no-plusplus": "off",
         "func-names": "off",
         "no-empty": "off",
-        "arrow-body-style": "off"
+        "arrow-body-style": "off",
+        "no-param-reassign": "off",
+        "no-unsafe-optional-chaining": "off"
     },
     "globals": {
         "require": true,
@@ -40,5 +46,8 @@
                 "max-len": "off"
             }
         }
-    ]
+    ],
+    "parserOptions": {
+        "ecmaVersion": 2020
+    }
 }
