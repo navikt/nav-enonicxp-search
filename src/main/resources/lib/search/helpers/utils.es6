@@ -25,14 +25,19 @@ export const getCountAndStart = ({ start, count, batchSize }) => {
 // As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
 // aggregation result as a bucket with docCount = 0
 const addZeroHitsFacetsToBuckets = (buckets, facets) =>
-    forceArray(facets).map((facet) => {
+    forceArray(facets).map((facet, index) => {
+        const common = {
+            key: facet.name,
+            index,
+            displayIndex: facet.displayIndex,
+        };
+
         const foundBucket = buckets.find((bucket) => {
             return bucket.key === facet.name.toLowerCase();
         });
         if (!foundBucket) {
             return {
-                key: facet.name,
-                displayIndex: facet.displayIndex,
+                ...common,
                 docCount: 0,
                 underaggregeringer: { buckets: [] },
             };
@@ -44,8 +49,7 @@ const addZeroHitsFacetsToBuckets = (buckets, facets) =>
             : [];
 
         return {
-            key: facet.name,
-            displayIndex: facet.displayIndex,
+            ...common,
             docCount: foundBucket.docCount,
             underaggregeringer: { buckets: underBuckets },
         };
