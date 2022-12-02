@@ -1,11 +1,18 @@
 const searchUtils = require('/lib/search');
-const { validateAndTransformParams } = require('../../lib/search/helpers/validateInput');
-const { noAggregationsBatchSize } = require('../../lib/search/searchWithoutAggregations');
+const {
+    validateAndTransformParams,
+} = require('../../lib/search/helpers/validateInput');
+const {
+    noAggregationsBatchSize,
+} = require('../../lib/search/searchWithoutAggregations');
 
-function handleGet(req) {
+export const get = (req) => {
     const params = validateAndTransformParams(req.params);
 
-    const result = searchUtils.runInContext(searchUtils.searchWithoutAggregations, params);
+    const result = searchUtils.runInContext(
+        searchUtils.searchWithoutAggregations,
+        params
+    );
 
     const { c: count, s: sorting, ord } = params;
 
@@ -21,6 +28,4 @@ function handleGet(req) {
         },
         contentType: 'application/json',
     };
-}
-
-exports.get = handleGet;
+};

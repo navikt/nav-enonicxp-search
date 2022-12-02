@@ -10,7 +10,8 @@ export const isExactSearch = (queryString) =>
     (queryString.startsWith('"') && queryString.endsWith('"')) ||
     (queryString.startsWith("'") && queryString.endsWith("'"));
 
-export const formatExactSearch = (queryString) => `"${queryString.replace(/["']/g, '')}"`;
+export const formatExactSearch = (queryString) =>
+    `"${queryString.replace(/["']/g, '')}"`;
 
 // Matches form numbers
 export const isFormSearch = (ord) => {
@@ -21,21 +22,24 @@ export const getCountAndStart = ({ start, count, batchSize }) => {
     return { start: start * batchSize, count: (count - start) * batchSize };
 };
 
-/*
-    As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
-    aggregation result as a bucket with docCount = 0
- */
+// As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
+// aggregation result as a bucket with docCount = 0
 const addZeroHitsFacetsToBuckets = (buckets, facets) =>
     forceArray(facets).map((facet) => {
-        const foundBucket = buckets.find((bucket) => bucket.key === facet.name.toLowerCase());
-        log.info(`Found bucket: ${foundBucket?.key}`);
-
-        if (!foundBucket) {
-            return { key: facet.name, docCount: 0, underaggregeringer: [] };
+        const foundBucketIndex = buckets.indexOf(
+            (bucket) => bucket.key === facet.name.toLowerCase()
+        );
+        if (foundBucketIndex === -1) {
+            return {
+                key: facet.name,
+                docCount: 0,
+                underaggregeringer: { buckets: [] },
+            };
         }
 
-        const foundUnderBuckets = foundBucket.underaggregeringer?.buckets;
+        const foundBucket = buckets[foundBucketIndex];
 
+        const foundUnderBuckets = foundBucket.underaggregeringer?.buckets;
         const underBuckets = foundUnderBuckets
             ? addZeroHitsFacetsToBuckets(foundUnderBuckets, facet.underfasetter)
             : [];
@@ -84,7 +88,9 @@ const resultWithCustomScoreWeights = (result) => ({
             }
 
             const currentTime = Date.now();
-            const modifiedUnixTime = getUnixTimeFromDateTimeString(modifiedTime);
+            const modifiedUnixTime = getUnixTimeFromDateTimeString(
+                modifiedTime
+            );
             const modifiedDelta = currentTime - modifiedUnixTime;
 
             // If the content was last modified more than one year ago, apply a gradually lower weight
@@ -92,7 +98,9 @@ const resultWithCustomScoreWeights = (result) => ({
             if (modifiedDelta > oneYear) {
                 const twoYearsAgo = currentTime - oneYear * 2;
                 const timeFactor =
-                    0.5 + (0.5 * Math.max(modifiedUnixTime - twoYearsAgo, 0)) / oneYear;
+                    0.5 +
+                    (0.5 * Math.max(modifiedUnixTime - twoYearsAgo, 0)) /
+                        oneYear;
                 scoreFactor *= timeFactor;
             }
 
@@ -110,7 +118,10 @@ export const getSortedResult = (ESQuery, sort) => {
         return resultWithCustomScoreWeights(contentLib.query(ESQuery));
     }
 
-    return contentLib.query({ ...ESQuery, sort: 'publish.first DESC, createdTime DESC' });
+    return contentLib.query({
+        ...ESQuery,
+        sort: 'publish.first DESC, createdTime DESC',
+    });
 };
 
 export const runInContext = (func, params) => {

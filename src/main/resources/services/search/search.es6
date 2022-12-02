@@ -1,5 +1,7 @@
 const searchUtils = require('/lib/search');
-const { validateAndTransformParams } = require('../../lib/search/helpers/validateInput');
+const {
+    validateAndTransformParams,
+} = require('../../lib/search/helpers/validateInput');
 const { withAggregationsBatchSize } = require('../../lib/search/search');
 
 const bucket = (type, params, parent) => (element, index) => {
@@ -28,16 +30,21 @@ const parseAggs = (aggregations, params) => {
     });
 
     aggs.Tidsperiode.checked = tc;
-    aggs.fasetter.buckets = aggs.fasetter.buckets.map(bucket('fasett', params, false));
+    aggs.fasetter.buckets = aggs.fasetter.buckets.map(
+        bucket('fasett', params, false)
+    );
     return aggs;
 };
 
-const handleGet = (req) => {
+export const get = (req) => {
     const params = validateAndTransformParams(req.params);
 
     const result = searchUtils.runInContext(searchUtils.search, params);
     const aggregations = parseAggs(result.aggregations, params);
-    const fasett = aggregations.fasetter.buckets.reduce((t, el) => (el.checked ? el.key : t), '');
+    const fasett = aggregations.fasetter.buckets.reduce(
+        (t, el) => (el.checked ? el.key : t),
+        ''
+    );
 
     const { c: count, s: sorting, daterange, ord } = params;
 
@@ -58,5 +65,3 @@ const handleGet = (req) => {
         contentType: 'application/json',
     };
 };
-
-exports.get = handleGet;

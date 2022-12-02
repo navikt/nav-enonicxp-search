@@ -34,7 +34,9 @@ export default function search(params, skipCache) {
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
     if (wordList.length === 0 && !skipCache) {
-        return getEmptySearchResult(JSON.stringify(params), () => search(params, true));
+        return getEmptySearchResult(JSON.stringify(params), () =>
+            search(params, true)
+        );
     }
 
     const config = getFacetConfiguration();
@@ -51,7 +53,10 @@ export default function search(params, skipCache) {
     const aggregations = getAggregations(ESQuery, config);
     ESQuery.filters = createFilters(params, config, prioritiesItems);
     aggregations.Tidsperiode = getDateRanges(ESQuery);
-    ESQuery.query += getDateRangeQueryString(daterange, aggregations.Tidsperiode.buckets);
+    ESQuery.query += getDateRangeQueryString(
+        daterange,
+        aggregations.Tidsperiode.buckets
+    );
 
     let { hits, total } = getSortedResult(ESQuery, sorting);
 
@@ -59,8 +64,15 @@ export default function search(params, skipCache) {
     // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
     if (sorting === 0) {
         const priorityHitCount = prioritiesItems.hits.length;
-        aggregations.fasetter.buckets[0].docCount += priorityHitCount;
-        aggregations.fasetter.buckets[0].underaggregeringer.buckets[0].docCount += priorityHitCount;
+
+        const firstFacet = aggregations.fasetter.buckets[0];
+        if (firstFacet?.docCount) {
+            firstFacet.docCount += priorityHitCount;
+            const firstUnderFacet = firstFacet.underaggregeringer.buckets[0];
+            if (firstUnderFacet.docCount) {
+                firstUnderFacet.docCount += priorityHitCount;
+            }
+        }
 
         if (shouldIncludePrioHits(params)) {
             aggregations.Tidsperiode.docCount += priorityHitCount;
@@ -85,7 +97,9 @@ export default function search(params, skipCache) {
 
     const tsEnd = Date.now();
     log.info(
-        `Full search (${tsEnd - tsStart}ms) <${ord}${facetsLog}> => ${queryString} -- [${total} | ${
+        `Full search (${
+            tsEnd - tsStart
+        }ms) <${ord}${facetsLog}> => ${queryString} -- [${total} | ${
             prioritiesItems.hits.length
         }]`
     );
