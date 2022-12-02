@@ -1,10 +1,11 @@
-require('./lib/polyfills');
-
-const contextLib = require('/lib/xp/context');
-const searchCache = require('/lib/search/helpers/cache');
-const clusterLib = require('/lib/xp/cluster');
-
 log.info('Search-app: Started running main');
+
+import './lib/polyfills';
+
+import contextLib from '/lib/xp/context';
+import clusterLib from '/lib/xp/cluster';
+import searchCache from './lib/search/helpers/cache';
+
 contextLib.run(
     {
         repository: 'com.enonic.cms.default',

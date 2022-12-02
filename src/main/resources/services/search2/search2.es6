@@ -1,10 +1,6 @@
-const searchUtils = require('/lib/search');
-const {
-    validateAndTransformParams,
-} = require('../../lib/search/helpers/validateInput');
-const {
-    noAggregationsBatchSize,
-} = require('../../lib/search/searchWithoutAggregations');
+import searchUtils from '../../lib/search';
+import { validateAndTransformParams } from '../../lib/search/helpers/validateInput';
+import { noAggregationsBatchSize } from '../../lib/search/searchWithoutAggregations';
 
 export const get = (req) => {
     const params = validateAndTransformParams(req.params);

@@ -1,16 +1,15 @@
-const libs = {
-    cache: require('/lib/cache'),
-    event: require('/lib/xp/event'),
-    content: require('/lib/xp/content'),
-    context: require('/lib/xp/context'),
-};
+import cacheLib from '/lib/cache';
+import eventLib from '/lib/xp/event';
+import contentLib from '/lib/xp/content';
+import contextLib from '/lib/xp/context';
+
 const standardCache = {
     size: 1000,
     expire: 3600 * 24 /* One day */,
 };
 
 let emptySearchKeys = [];
-const cache = libs.cache.newCache(standardCache);
+const cache = cacheLib.newCache(standardCache);
 
 const wipeAll = () => {
     cache.clear();
@@ -23,7 +22,7 @@ const getEmptySearchResult = (key, fallback) => {
 
 const getSynonymMap = () => {
     return cache.get('synonyms', () => {
-        const synonymLists = libs.content.query({
+        const synonymLists = contentLib.query({
             start: 0,
             count: 100,
             query: 'type = "' + app.name + ':synonyms"',
@@ -39,7 +38,10 @@ const getSynonymMap = () => {
                     } else {
                         // only add new unique words if it already exists
                         s.synonym.forEach((syn) => {
-                            if (syn !== word && synonymMap[word].indexOf(syn) === -1) {
+                            if (
+                                syn !== word &&
+                                synonymMap[word].indexOf(syn) === -1
+                            ) {
                                 synonymMap[word].push(syn);
                             }
                         });
@@ -58,7 +60,7 @@ const getPriorities = () => {
         let start = 0;
         let count = 1000;
         while (count === 1000) {
-            const q = libs.content.query({
+            const q = contentLib.query({
                 start: start,
                 count: 1000,
                 query: `(_parentpath LIKE "*prioriterte-elementer*" OR _parentpath LIKE "*prioriterte-elementer-eksternt*") AND
@@ -79,11 +81,11 @@ const getPriorities = () => {
 
 const activateEventListener = () => {
     wipeAll();
-    libs.event.listener({
+    eventLib.listener({
         type: 'node.*',
         localOnly: false,
         callback: (event) => {
-            libs.context.run(
+            contextLib.run(
                 {
                     repository: 'com.enonic.cms.default',
                     branch: 'master',
@@ -112,14 +114,19 @@ const activateEventListener = () => {
                                 node.branch === 'master' &&
                                 node.repo === 'com.enonic.cms.default'
                             ) {
-                                const content = libs.content.get({ key: node.id });
+                                const content = contentLib.get({
+                                    key: node.id,
+                                });
                                 if (content) {
                                     const typesToClear = [
                                         app.name + ':search-priority',
                                         app.name + ':search-api2',
                                         app.name + ':synonyms',
                                     ];
-                                    if (typesToClear.indexOf(content.type) !== -1) {
+                                    if (
+                                        typesToClear.indexOf(content.type) !==
+                                        -1
+                                    ) {
                                         wipeAll();
                                     }
                                 } else {
@@ -135,7 +142,7 @@ const activateEventListener = () => {
     });
 };
 
-export {
+export default {
     activateEventListener,
     getEmptySearchResult,
     getSynonymMap,

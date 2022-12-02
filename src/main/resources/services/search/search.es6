@@ -1,8 +1,6 @@
-const searchUtils = require('/lib/search');
-const {
-    validateAndTransformParams,
-} = require('../../lib/search/helpers/validateInput');
-const { withAggregationsBatchSize } = require('../../lib/search/search');
+import searchUtils from '../../lib/search';
+import { validateAndTransformParams } from '../../lib/search/helpers/validateInput';
+import { withAggregationsBatchSize } from '../../lib/search/search';
 
 const bucket = (type, params, parent) => (element, index) => {
     if (type === 'fasett') {
