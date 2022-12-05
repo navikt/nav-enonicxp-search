@@ -1,6 +1,6 @@
 import contentLib from '/lib/xp/content';
-import contextLib from '/lib/xp/context';
 import { forceArray } from '../../utils';
+import { runSearchQuery } from '../runSearchQuery';
 
 const FACETS_CONTENT_KEY = '/www.nav.no/fasetter';
 
@@ -23,11 +23,9 @@ export const getCountAndStart = ({ start, count, batchSize }) => {
 // As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
 // aggregation result as a bucket with docCount = 0
 const addZeroHitsFacetsToBuckets = (buckets, facets) =>
-    forceArray(facets).map((facet, index) => {
+    forceArray(facets).map((facet) => {
         const common = {
             key: facet.name,
-            index,
-            displayIndex: facet.displayIndex,
         };
 
         const foundBucket = buckets.find((bucket) => {
@@ -53,13 +51,14 @@ const addZeroHitsFacetsToBuckets = (buckets, facets) =>
         };
     });
 
-export const getAggregations = (ESQuery, config) => {
-    const { aggregations } = contentLib.query({ ...ESQuery, count: 0 });
+export const getAggregations = (queryParams, config) => {
+    const { aggregations } = runSearchQuery({ ...queryParams, count: 0 });
 
     aggregations.fasetter.buckets = addZeroHitsFacetsToBuckets(
         aggregations.fasetter.buckets,
         config.data.fasetter
     );
+
     return aggregations;
 };
 
