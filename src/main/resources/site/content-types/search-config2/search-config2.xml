@@ -6,21 +6,23 @@
     <form>
         <item-set name="fasetter">
             <label>Fasetter</label>
+            <occurrences minimum="1" maximum="0"/>
             <items>
                 <input type="TextLine" name="name">
                     <label>Navn</label>
                     <occurrences minimum="1" maximum="1"/>
                 </input>
+                <input type="TextLine" name="facetKey">
+                    <label>Fasettnøkkel (bør ikke endres!)</label>
+                    <help-text>Endringer på denne vil påvirke lenker til spesifikke søkefiltre!</help-text>
+                    <occurrences minimum="1" maximum="1"/>
+                    <config>
+                        <regexp>^[a-z0-9]+$</regexp>
+                    </config>
+                </input>
                 <input type="TextLine" name="ruleQuery">
                     <label>Query</label>
                     <occurrences minimum="1" maximum="1"/>
-                </input>
-                <input type="Long" name="displayIndex">
-                    <label>Visuell rekkefølge</label>
-                    <occurrences minimum="1" maximum="1"/>
-                    <config>
-                        <min>0</min>
-                    </config>
                 </input>
                 <input name="rulekey" type="TextLine">
                     <label>Regelnøkkel (deprecated)</label>
@@ -30,18 +32,23 @@
                 </input>
                 <item-set name="underfasetter">
                     <label>Underfasetter</label>
+                    <occurrences minimum="0" maximum="0"/>
                     <items>
                         <input type="TextLine" name="name">
                             <label>Navn</label>
+                            <occurrences minimum="1" maximum="1"/>
                         </input>
-                        <input type="Long" name="displayIndex">
-                            <label>Visuell rekkefølge</label>
+                        <input type="TextLine" name="facetKey">
+                            <label>Fasettnøkkel (bør ikke endres!)</label>
+                            <help-text>Endringer på denne vil påvirke lenker til spesifikke søkefiltre!</help-text>
+                            <occurrences minimum="1" maximum="1"/>
                             <config>
-                                <min>0</min>
+                                <regexp>^[a-z0-9]+$</regexp>
                             </config>
                         </input>
                         <input type="TextLine" name="ruleQuery">
                             <label>Query</label>
+                            <occurrences minimum="1" maximum="1"/>
                         </input>
                         <input name="rulekey" type="TextLine">
                             <label>Regelnøkkel (deprecated)</label>
@@ -50,10 +57,8 @@
                             <label>Regelverdi (deprecated)</label>
                         </input>
                     </items>
-                    <occurrences minimum="0" maximum="0"/>
                 </item-set>
             </items>
-            <occurrences minimum="0" maximum="0"/>
         </item-set>
     </form>
 </content-type>
