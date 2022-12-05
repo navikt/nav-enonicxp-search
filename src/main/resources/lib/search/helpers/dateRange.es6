@@ -1,4 +1,4 @@
-import { query } from '/lib/xp/content';
+import contentLib from '/lib/xp/content';
 import moment from '/assets/momentjs/2.29.1/min/moment-with-locales.min.js';
 
 const dateTimeFormat = 'YYYY-MM-DD[T]HH:mm:ss[Z]';
@@ -25,7 +25,7 @@ const getDateRangeQueryStringFromBucket = (bucket) => {
     return s;
 };
 
-const getDateRangeQueryString = (daterange, buckets) => {
+export const getDateRangeQueryString = (daterange, buckets) => {
     if (!buckets) {
         return '';
     }
@@ -40,7 +40,7 @@ const getDateRangeQueryString = (daterange, buckets) => {
 
 const getDocCount = (ESQuery, bucket) =>
     Number(
-        query({
+        contentLib.query({
             ...ESQuery,
             count: 0,
             start: undefined,
@@ -49,7 +49,7 @@ const getDocCount = (ESQuery, bucket) =>
         }).total
     ) || 0;
 
-const getDateRanges = (ESQuery) => {
+export const getDateRanges = (ESQuery) => {
     const now = moment();
     const sevenDaysAgo = now.subtract(7, 'day').format(dateTimeFormat);
     const thirtyDaysAgo = now.subtract(30, 'day').format(dateTimeFormat);
@@ -84,5 +84,3 @@ const getDateRanges = (ESQuery) => {
         docCount: totalCount,
     };
 };
-
-export { getDateRanges, getDateRangeQueryString };

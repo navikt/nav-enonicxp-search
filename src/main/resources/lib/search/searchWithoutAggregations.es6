@@ -1,17 +1,17 @@
 import {
     getCountAndStart,
     getFacetConfiguration,
-    getSortedResult,
     shouldIncludePrioHits,
 } from './helpers/utils';
-import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
-import createQuery from './queryBuilder/createQuery';
-import createFilters from './queryBuilder/createFilters';
+import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
+import { createQuery } from './queryBuilder/createQuery';
+import { createFilters } from './queryBuilder/createFilters';
 import getPaths from './resultListing/getPaths';
 import {
     calculateHighlightText,
     getHighLight,
 } from './resultListing/createPreparedHit';
+import { runSearchQuery } from './runSearchQuery';
 
 export const noAggregationsBatchSize = 10;
 
@@ -39,7 +39,7 @@ export const searchWithoutAggregations = (params) => {
         count,
     });
 
-    let { hits = [], total = 0 } = getSortedResult(ESQuery, 0);
+    let { hits = [], total = 0 } = runSearchQuery(ESQuery, 0);
 
     if (shouldIncludePrioHits(params)) {
         hits = prioritiesItems.hits.concat(hits);

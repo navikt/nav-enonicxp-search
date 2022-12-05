@@ -24,7 +24,7 @@ const contentTypes = [
     ].map((item) => `${navApp}:${item}`),
 ];
 
-export default function createQuery(queryString, esQuery = {}) {
+export const createQuery = (queryString, queryParams = {}) => {
     const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') ${pathFilter}`;
 
     return {
@@ -35,18 +35,18 @@ export default function createQuery(queryString, esQuery = {}) {
         aggregations: {
             fasetter: {
                 terms: {
-                    field: 'x.no-nav-navno.fasetter.fasett',
+                    field: 'facets.facet',
                 },
                 aggregations: {
                     underaggregeringer: {
                         terms: {
-                            field: 'x.no-nav-navno.fasetter.underfasett',
+                            field: 'facets.underfacets',
                             size: 30,
                         },
                     },
                 },
             },
         },
-        ...esQuery,
+        ...queryParams,
     };
-}
+};

@@ -3,12 +3,16 @@ import {
     noAggregationsBatchSize,
     searchWithoutAggregations,
 } from '../../lib/search/searchWithoutAggregations';
-import { runInContext } from '../../lib/search/helpers/utils';
+import { runInContext } from '../../lib/utils/context';
+import { contentRepo, searchRepo } from '../../lib/constants';
 
 export const get = (req) => {
     const params = validateAndTransformParams(req.params);
 
-    const result = runInContext(searchWithoutAggregations, params);
+    const result = runInContext(
+        { branch: 'master', repository: contentRepo, asAdmin: true },
+        () => searchWithoutAggregations(params)
+    );
 
     const { c: count, s: sorting, ord } = params;
 

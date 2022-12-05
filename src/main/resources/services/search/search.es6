@@ -3,15 +3,17 @@ import {
     searchWithAggregations,
     withAggregationsBatchSize,
 } from '../../lib/search/searchWithAggregations';
-import { runInContext } from '../../lib/search/helpers/utils';
+import { runInContext } from '../../lib/utils/context';
+import { contentRepo, searchRepo } from '../../lib/constants';
 
 const bucket = (type, params, parent) => (element, index) => {
     if (type === 'fasett') {
         element.checked = params.f === index;
         element.default = element.checked && params.uf.length === 0;
-        element.underaggregeringer.buckets = element.underaggregeringer.buckets.map(
-            bucket('under', params, element)
-        );
+        element.underaggregeringer.buckets =
+            element.underaggregeringer.buckets.map(
+                bucket('under', params, element)
+            );
     } else {
         element.checked = parent.checked && params.uf.indexOf(index) !== -1;
     }
@@ -40,7 +42,10 @@ const parseAggs = (aggregations, params) => {
 export const get = (req) => {
     const params = validateAndTransformParams(req.params);
 
-    const result = runInContext(searchWithAggregations, params);
+    const result = runInContext(
+        { branch: 'master', repository: contentRepo, asAdmin: true },
+        () => searchWithAggregations(params)
+    );
     const aggregations = parseAggs(result.aggregations, params);
     const fasett = aggregations.fasetter.buckets.reduce(
         (t, el) => (el.checked ? el.key : t),

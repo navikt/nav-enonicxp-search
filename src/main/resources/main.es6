@@ -5,6 +5,11 @@ import './lib/polyfills';
 import contextLib from '/lib/xp/context';
 import clusterLib from '/lib/xp/cluster';
 import { activateEventListener } from './lib/search/helpers/cache';
+import { initSearchRepo } from './lib/repo/search-repo';
+
+if (clusterLib.isMaster()) {
+    initSearchRepo();
+}
 
 contextLib.run(
     {

@@ -1,6 +1,6 @@
-import { forceArray } from '../../nav-utils';
+import { forceArray } from '../../utils';
 
-export default function createFilters(params, config, prioritiesItems) {
+export const createFilters = (params, config, prioritiesItems) => {
     const { f: facetIndex, uf: underfacetIndices } = params;
 
     const filters = {
@@ -32,7 +32,7 @@ export default function createFilters(params, config, prioritiesItems) {
     if (facetData) {
         filters.boolean.must.push({
             hasValue: {
-                field: 'x.no-nav-navno.fasetter.fasett',
+                field: 'facets.facet',
                 values: [facetData.name],
             },
         });
@@ -55,7 +55,7 @@ export default function createFilters(params, config, prioritiesItems) {
 
             filters.boolean.must.push({
                 hasValue: {
-                    field: 'x.no-nav-navno.fasetter.underfasett',
+                    field: 'facets.underfacets',
                     values: values,
                 },
             });
@@ -74,7 +74,7 @@ export default function createFilters(params, config, prioritiesItems) {
 
     filters.boolean.must.push({
         hasValue: {
-            field: 'x.no-nav-navno.fasetter.fasett',
+            field: 'facets.facet',
             values: [config.data.fasetter[0].name],
         },
     });
@@ -87,4 +87,4 @@ export default function createFilters(params, config, prioritiesItems) {
         });
     }
     return filters;
-}
+};

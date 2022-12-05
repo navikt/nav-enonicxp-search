@@ -7,13 +7,7 @@ module.exports = {
         'prettier/prettier': ['off'],
         'comma-dangle': ['error', 'only-multiline'],
         'no-cond-assign': ['error', 'except-parens'],
-        'no-unused-vars': [
-            'error',
-            {
-                vars: 'all',
-                args: 'none',
-            },
-        ],
+        'no-unused-vars': 'off',
         'no-console': 'error',
         'import/no-unresolved': [
             'error',
