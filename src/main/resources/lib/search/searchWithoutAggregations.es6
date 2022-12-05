@@ -1,8 +1,4 @@
-import {
-    getCountAndStart,
-    getFacetConfiguration,
-    shouldIncludePrioHits,
-} from './helpers/utils';
+import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
 import { createQuery } from './queryBuilder/createQuery';
 import { createFilters } from './queryBuilder/createFilters';
@@ -12,6 +8,7 @@ import {
     getHighLight,
 } from './resultListing/createPreparedHit';
 import { runSearchQuery } from './runSearchQuery';
+import { getFacetsConfig } from './helpers/facetsConfig';
 
 export const noAggregationsBatchSize = 10;
 
@@ -27,7 +24,7 @@ export const searchWithoutAggregations = (params) => {
     } = params;
 
     const prioritiesItems = getPrioritizedElements(queryString);
-    const config = getFacetConfiguration();
+    const config = getFacetsConfig();
     const { start, count } = getCountAndStart({
         start: startParam,
         count: countParam,

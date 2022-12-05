@@ -2,24 +2,15 @@ log.info('Search-app: Started running main');
 
 import './lib/polyfills';
 
-import contextLib from '/lib/xp/context';
 import clusterLib from '/lib/xp/cluster';
+import { runInContext } from './lib/utils/context';
 import { activateEventListener } from './lib/search/helpers/cache';
-import { initSearchRepo } from './lib/repo/search-repo';
 
-if (clusterLib.isMaster()) {
-    initSearchRepo();
-}
-
-contextLib.run(
+runInContext(
     {
         repository: 'com.enonic.cms.default',
         branch: 'draft',
-        user: {
-            login: 'su',
-            userStore: 'system',
-        },
-        principals: ['role:system.admin'],
+        asAdmin: true,
     },
     () => {
         // create analyzer indices on startup, but only on master

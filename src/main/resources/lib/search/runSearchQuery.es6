@@ -1,5 +1,5 @@
 import nodeLib from '/lib/xp/node';
-import { getUnixTimeFromDateTimeString } from '../utils';
+import { forceArray, getUnixTimeFromDateTimeString } from '../utils';
 import { searchRepo } from '../constants';
 
 const oneYear = 1000 * 3600 * 24 * 365;
@@ -66,14 +66,11 @@ export const runSearchQuery = (queryParams, sort) => {
                   sort: 'publish.first DESC, createdTime DESC',
               }
     );
-    log.info(`Query result: ${JSON.stringify(queryResult)}`);
 
     const hitsIds = queryResult.hits.map((hit) => hit.id);
-    const hits = repo.get(hitsIds);
+    const hits = forceArray(repo.get(hitsIds));
 
     const result = { ...queryResult, hits: hits };
-
-    log.info(`Result: ${JSON.stringify(result)}`);
 
     if (sort !== 0) {
         return result;

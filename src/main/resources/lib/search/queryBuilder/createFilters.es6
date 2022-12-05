@@ -1,7 +1,7 @@
 import { forceArray } from '../../utils';
 
 export const createFilters = (params, config, prioritiesItems) => {
-    const { f: facetIndex, uf: underfacetIndices } = params;
+    const { f: facetKey, uf: underfacetKeys } = params;
 
     const filters = {
         boolean: {
@@ -27,64 +27,42 @@ export const createFilters = (params, config, prioritiesItems) => {
             },
         ],
     };
-    const facetData = config.data.fasetter[facetIndex];
 
-    if (facetData) {
+    if (facetKey) {
         filters.boolean.must.push({
             hasValue: {
                 field: 'facets.facet',
-                values: [facetData.name],
+                values: [facetKey],
             },
         });
 
-        if (underfacetIndices.length > 0) {
-            const ufDataArray = forceArray(facetData.underfasetter);
-
-            const values = underfacetIndices.reduce((acc, ufIndex) => {
-                const ufData = ufDataArray[ufIndex];
-
-                if (!ufData) {
-                    log.info(
-                        `Invalid underfacet parameter specified - facet: ${facetIndex} - underfacet: ${ufIndex}`
-                    );
-                    return acc;
-                }
-
-                return [...acc, ufData.name];
-            }, []);
-
+        if (underfacetKeys.length > 0) {
             filters.boolean.must.push({
                 hasValue: {
                     field: 'facets.underfacets',
-                    values: values,
+                    values: [underfacetKeys],
                 },
             });
         }
+    } else {
+        const firstFacet = forceArray(config.data.fasetter)[0].facetKey;
 
-        if (prioritiesItems.ids.length > 0) {
-            filters.boolean.mustNot.push({
-                hasValue: {
-                    field: '_id',
-                    values: prioritiesItems.ids,
-                },
-            });
-        }
-        return filters;
+        filters.boolean.must.push({
+            hasValue: {
+                field: 'facets.facet',
+                values: [firstFacet],
+            },
+        });
     }
 
-    filters.boolean.must.push({
-        hasValue: {
-            field: 'facets.facet',
-            values: [config.data.fasetter[0].name],
-        },
-    });
     if (prioritiesItems.ids.length > 0) {
         filters.boolean.mustNot.push({
             hasValue: {
-                field: '_id',
+                field: 'contentId',
                 values: prioritiesItems.ids,
             },
         });
     }
+
     return filters;
 };

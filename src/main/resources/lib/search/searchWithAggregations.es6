@@ -1,16 +1,12 @@
-import { getEmptySearchResult } from './helpers/cache';
-import {
-    getAggregations,
-    getCountAndStart,
-    getFacetConfiguration,
-    shouldIncludePrioHits,
-} from './helpers/utils';
+import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
 import { createQuery } from './queryBuilder/createQuery';
 import { createFilters } from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 import { runSearchQuery } from './runSearchQuery';
+import { getFacetsConfig } from './helpers/facetsConfig';
+import { getAggregations } from './helpers/aggregations';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
@@ -39,7 +35,7 @@ export const searchWithAggregations = (params, skipCache) => {
     //     );
     // }
 
-    const config = getFacetConfiguration();
+    const config = getFacetsConfig();
 
     const prioritiesItems = excludePrioritized
         ? EMPTY_RESULT_SET
@@ -52,6 +48,7 @@ export const searchWithAggregations = (params, skipCache) => {
     });
     const queryParams = createQuery(queryString, { start, count });
     const aggregations = getAggregations(queryParams, config);
+
     queryParams.filters = createFilters(params, config, prioritiesItems);
     aggregations.Tidsperiode = getDateRanges(queryParams);
     queryParams.query += getDateRangeQueryString(
