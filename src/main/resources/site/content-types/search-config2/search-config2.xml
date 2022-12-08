@@ -30,7 +30,7 @@
                 </input>
                 <input type="TextLine" name="facetKey">
                     <label>Fasettnøkkel (bør ikke endres!)</label>
-                    <help-text>Endringer på denne vil påvirke lenker til spesifikke søkefiltre!</help-text>
+                    <help-text>Obs: Endringer på denne vil påvirke lenker til spesifikke søkefiltre!</help-text>
                     <occurrences minimum="1" maximum="1"/>
                     <config>
                         <regexp>^[a-z0-9]+$</regexp>
@@ -39,12 +39,6 @@
                 <input type="TextLine" name="ruleQuery">
                     <label>Query</label>
                     <occurrences minimum="1" maximum="1"/>
-                </input>
-                <input name="rulekey" type="TextLine">
-                    <label>Regelnøkkel (deprecated)</label>
-                </input>
-                <input name="rulevalue" type="TextLine">
-                    <label>Regelverdi (deprecated)</label>
                 </input>
                 <item-set name="underfasetter">
                     <label>Underfasetter</label>
@@ -56,7 +50,7 @@
                         </input>
                         <input type="TextLine" name="facetKey">
                             <label>Fasettnøkkel (bør ikke endres!)</label>
-                            <help-text>Endringer på denne vil påvirke lenker til spesifikke søkefiltre!</help-text>
+                            <help-text>Obs: Endringer på denne vil påvirke lenker til spesifikke søkefiltre!</help-text>
                             <occurrences minimum="1" maximum="1"/>
                             <config>
                                 <regexp>^[a-z0-9]+$</regexp>
@@ -65,12 +59,6 @@
                         <input type="TextLine" name="ruleQuery">
                             <label>Query</label>
                             <occurrences minimum="1" maximum="1"/>
-                        </input>
-                        <input name="rulekey" type="TextLine">
-                            <label>Regelnøkkel (deprecated)</label>
-                        </input>
-                        <input name="rulevalue" type="TextLine">
-                            <label>Regelverdi (deprecated)</label>
                         </input>
                     </items>
                 </item-set>
