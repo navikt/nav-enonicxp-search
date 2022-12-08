@@ -48,10 +48,9 @@ export const get = (req) => {
     );
 
     const aggregations = parseAggs(result.aggregations, params);
-    const fasett = aggregations.fasetter.buckets.reduce(
-        (t, el) => (el.checked ? el.key : t),
-        ''
-    );
+    const fasett = aggregations.fasetter.buckets.find(
+        (bucket) => bucket.checked
+    )?.name;
 
     const { c: count, s: sorting, daterange, ord } = params;
 
