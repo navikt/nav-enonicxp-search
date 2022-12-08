@@ -16,16 +16,16 @@ const validNumber = (
 };
 
 const validUnderfacets = (facetData, ufInput) => {
+    const ufInputArray = ufInput ? forceArray(ufInput) : null;
+    if (!ufInputArray || ufInputArray.length === 0) {
+        return [];
+    }
+
     const validUfArray = forceArray(facetData.underfasetter).map(
         (uf) => uf.facetKey
     );
     if (validUfArray.length === 0) {
         return [];
-    }
-
-    const ufInputArray = ufInput ? forceArray(ufInput) : null;
-    if (!ufInputArray || ufInputArray.length === 0) {
-        return validUfArray;
     }
 
     return ufInputArray.filter((uf) =>
@@ -60,9 +60,7 @@ export const validateAndTransformParams = (params) => {
 
     return {
         f: facetData ? f : config.defaultFacetParam,
-        uf: facetData
-            ? validUnderfacets(facetData, uf, config)
-            : config.defaultUfParam,
+        uf: facetData ? validUnderfacets(facetData, uf, config) : [],
         start: startValid, // Start batch
         c: validNumber(c, countMin, countMin), // End batch/count
         s: validNumber(s, 0, 0, 1), // Sorting (0: by best match, 1: by date)

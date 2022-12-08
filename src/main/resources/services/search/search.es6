@@ -48,9 +48,9 @@ export const get = (req) => {
     );
 
     const aggregations = parseAggs(result.aggregations, params);
-    const fasett = aggregations.fasetter.buckets.find(
+    const facetChecked = aggregations.fasetter.buckets.find(
         (bucket) => bucket.checked
-    )?.name;
+    );
 
     const { c: count, s: sorting, daterange, ord } = params;
 
@@ -63,7 +63,8 @@ export const get = (req) => {
             isMore: count * withAggregationsBatchSize < result.total,
             word: ord,
             total: result.total,
-            fasett,
+            fasett: facetChecked?.name,
+            fasettKey: facetChecked?.key,
             aggregations,
             hits: result.hits,
             prioritized: result.prioritized,
