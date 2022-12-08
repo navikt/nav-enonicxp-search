@@ -1,3 +1,4 @@
+import { getEmptySearchResult } from './helpers/cache';
 import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
 import { createQuery } from './queryBuilder/createQuery';
@@ -7,6 +8,7 @@ import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 import { runSearchQuery } from './runSearchQuery';
 import { getConfig } from './helpers/config';
 import { getAggregations } from './helpers/aggregations';
+import { logger } from '../utils/logger';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
@@ -29,11 +31,11 @@ export const searchWithAggregations = (params, skipCache) => {
     } = params;
 
     // get empty search from cache, or fallback to trying again but with forced skip cache bit
-    // if (wordList.length === 0 && !skipCache) {
-    //     return getEmptySearchResult(JSON.stringify(params), () =>
-    //         searchWithAggregations(params, true)
-    //     );
-    // }
+    if (wordList.length === 0 && !skipCache) {
+        return getEmptySearchResult(JSON.stringify(params), () =>
+            searchWithAggregations(params, true)
+        );
+    }
 
     const config = getConfig();
 
@@ -94,7 +96,7 @@ export const searchWithAggregations = (params, skipCache) => {
     }
 
     const tsEnd = Date.now();
-    log.info(
+    logger.info(
         `Full search (${
             tsEnd - tsStart
         }ms) <${ord}${facetsLog}> => ${queryString} -- [${total} | ${

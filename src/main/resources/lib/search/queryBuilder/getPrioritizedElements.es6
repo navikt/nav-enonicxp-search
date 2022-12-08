@@ -1,5 +1,6 @@
 import contentLib from '/lib/xp/content';
 import { getPriorities } from '../helpers/cache';
+import { logger } from '../../utils/logger';
 
 const fieldsToSearch =
     'data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*';
@@ -49,7 +50,7 @@ export const getPrioritizedElements = (queryString) => {
                     list.push(content);
                 }
             } else {
-                log.error(
+                logger.critical(
                     `Missing content for prioritized search element ${el._path}`
                 );
             }

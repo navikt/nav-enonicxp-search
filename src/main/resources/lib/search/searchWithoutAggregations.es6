@@ -9,6 +9,7 @@ import {
 } from './resultListing/createPreparedHit';
 import { runSearchQuery } from './runSearchQuery';
 import { getConfig } from './helpers/config';
+import { logger } from '../utils/logger';
 
 export const noAggregationsBatchSize = 10;
 
@@ -65,7 +66,7 @@ export const searchWithoutAggregations = (params) => {
     });
 
     const tsEnd = Date.now();
-    log.info(
+    logger.info(
         `Decorator search (${
             tsEnd - tsStart
         }ms) <${ord}> => ${queryString} -- [${total} | ${
