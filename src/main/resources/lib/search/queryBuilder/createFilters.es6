@@ -40,7 +40,7 @@ export const createFilters = (params, config, prioritiesItems) => {
             filters.boolean.must.push({
                 hasValue: {
                     field: 'facets.underfacets',
-                    values: [underfacetKeys],
+                    values: underfacetKeys,
                 },
             });
         }

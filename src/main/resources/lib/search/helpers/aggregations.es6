@@ -6,7 +6,8 @@ import { runSearchQuery } from '../runSearchQuery';
 const addZeroHitsFacetsToBuckets = (buckets, facets) =>
     forceArray(facets).map((facet) => {
         const common = {
-            key: facet.name,
+            key: facet.facetKey,
+            name: facet.name,
         };
 
         const foundBucket = buckets.find((bucket) => {

@@ -1,29 +1,50 @@
 import { isFormSearch } from './utils';
 import { generateSearchInput } from '../queryBuilder/generateSearchInput';
+import { getConfig } from './config';
+import { forceArray } from '../../utils';
 
-const validNumber = (rawValue, defaultValue = undefined, min = 0, max = 255) => {
+const validNumber = (
+    rawValue,
+    defaultValue = undefined,
+    min = 0,
+    max = 255
+) => {
     const numberValue = Number(rawValue);
-    return numberValue.isNaN() ? defaultValue : Math.max(Math.min(numberValue, max), min);
+    return numberValue.isNaN()
+        ? defaultValue
+        : Math.max(Math.min(numberValue, max), min);
 };
 
-const validUnderfacets = (ufInput) => {
-    if (Array.isArray(ufInput)) {
-        return ufInput
-            .map((value) => validNumber(value))
-            .filter((value, index, array) => value !== undefined && array.indexOf(value) === index); // remove undefined and duplicates
+const validUnderfacets = (facetData, ufInput) => {
+    const validUfArray = forceArray(facetData.underfasetter).map(
+        (uf) => uf.facetKey
+    );
+    if (validUfArray.length === 0) {
+        return [];
     }
 
-    const numberValue = validNumber(ufInput);
-
-    if (typeof numberValue === 'number') {
-        return [numberValue];
+    const ufInputArray = ufInput ? forceArray(ufInput) : null;
+    if (!ufInputArray || ufInputArray.length === 0) {
+        return validUfArray;
     }
 
-    return [];
+    return ufInputArray.filter((uf) =>
+        validUfArray.some((validUf) => validUf === uf)
+    );
 };
 
 export const validateAndTransformParams = (params) => {
-    const { f, uf, ord = '', start, excludePrioritized, c, daterange, s } = params;
+    const {
+        f,
+        uf,
+        ord = '',
+        start,
+        excludePrioritized,
+        c,
+        daterange,
+        s,
+    } = params;
+    const config = getConfig();
 
     // Support max 200 characters for the search term
     const ordTrimmed = ord.substring(0, 200).trim();
@@ -33,9 +54,15 @@ export const validateAndTransformParams = (params) => {
 
     const { wordList, queryString } = generateSearchInput(ordTrimmed);
 
+    const facetData = forceArray(config.data.fasetter).find(
+        (facet) => facet.facetKey === f
+    );
+
     return {
-        f: validNumber(f, 0), // Facet (valid range can vary depending on nav.no app settings)
-        uf: validUnderfacets(uf), // Underfacet(s) - input can be a number or array of numbers (valid range, see above)
+        f: facetData ? f : config.data.fasetter[0]?.facetKey,
+        uf: facetData
+            ? validUnderfacets(facetData, uf, config)
+            : [config.data.fasetter[0]?.underfasetter],
         start: startValid, // Start batch
         c: validNumber(c, countMin, countMin), // End batch/count
         s: validNumber(s, 0, 0, 1), // Sorting (0: by best match, 1: by date)

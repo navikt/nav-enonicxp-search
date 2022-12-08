@@ -82,8 +82,6 @@ export const getDateRanges = (queryParams) => {
         docCount: getDocCount(queryParams, bucket),
     }));
 
-    log.info(`Dateranges: ${JSON.stringify(buckets)}`);
-
     const totalCount = buckets[0].docCount + buckets[1].docCount;
 
     return {

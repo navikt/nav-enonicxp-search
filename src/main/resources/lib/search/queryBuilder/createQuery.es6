@@ -7,10 +7,6 @@ export const createQuery = (queryString, queryParams = {}, config) => {
 
     const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') ${pathFilter}`;
 
-    log.info(
-        `Searching content types ${contentTypes} - fields ${fieldsToSearch}`
-    );
-
     return {
         start: 0,
         count: 0,

@@ -149,12 +149,7 @@ export const activateEventListener = () => {
                         });
 
                         // wipe all if the content doesn't exist, just in case
-                        if (!content) {
-                            wipeAll();
-                            return;
-                        }
-
-                        if (typesToClear[content.type]) {
+                        if (!content || typesToClear[content.type]) {
                             wipeAll();
                         }
                     });
