@@ -1,5 +1,3 @@
-import { forceArray } from '../../utils';
-
 export const createFilters = (params, config, prioritiesItems) => {
     const { f: facetKey, uf: underfacetKeys } = params;
 
@@ -45,12 +43,10 @@ export const createFilters = (params, config, prioritiesItems) => {
             });
         }
     } else {
-        const firstFacet = forceArray(config.data.fasetter)[0].facetKey;
-
         filters.boolean.must.push({
             hasValue: {
                 field: 'facets.facet',
-                values: [firstFacet],
+                values: [config.defaultFacetParam],
             },
         });
     }

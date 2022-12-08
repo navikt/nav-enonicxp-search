@@ -1,5 +1,5 @@
 import nodeLib from '/lib/xp/node';
-import { forceArray, getUnixTimeFromDateTimeString } from '../utils';
+import { getUnixTimeFromDateTimeString } from '../utils';
 import { searchRepo } from '../constants';
 
 const oneYear = 1000 * 3600 * 24 * 365;
@@ -9,6 +9,7 @@ const resultWithCustomScoreWeights = (result) => ({
     hits: result.hits
         .map((hit) => {
             const { _score: _rawScore, data, language, modifiedTime } = hit;
+            log.info(`Score: ${hit._path} - ${_rawScore}`);
             if (!_rawScore) {
                 return hit;
             }
@@ -67,12 +68,15 @@ export const runSearchQuery = (queryParams, sort) => {
               }
     );
 
-    const hitsIds = queryResult.hits.map((hit) => hit.id);
-    const hits = forceArray(repo.get(hitsIds) || []).map((hit) => ({
-        ...hit,
-        _id: hit.contentId || hit._id,
-        _path: hit.contentPath || hit._path,
-    }));
+    const hits = queryResult.hits.map((hit) => {
+        const searchNode = repo.get(hit.id);
+        return {
+            ...searchNode,
+            _score: hit.score,
+            _id: searchNode.contentId || searchNode._id,
+            _path: searchNode.contentPath || searchNode._path,
+        };
+    });
 
     const result = { ...queryResult, hits: hits };
 
