@@ -62,7 +62,7 @@ export const validateAndTransformParams = (params) => {
         f: facetData ? f : config.data.fasetter[0]?.facetKey,
         uf: facetData
             ? validUnderfacets(facetData, uf, config)
-            : [config.data.fasetter[0]?.underfasetter],
+            : config.data.fasetter[0]?.underfasetter.map((uf) => uf.facetKey),
         start: startValid, // Start batch
         c: validNumber(c, countMin, countMin), // End batch/count
         s: validNumber(s, 0, 0, 1), // Sorting (0: by best match, 1: by date)
