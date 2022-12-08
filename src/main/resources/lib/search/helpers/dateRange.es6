@@ -1,6 +1,5 @@
-import { query } from '/lib/xp/content';
-
-const moment = require('/assets/momentjs/2.29.1/min/moment-with-locales.min.js');
+import moment from '/assets/momentjs/2.29.1/min/moment-with-locales.min.js';
+import { runSearchQuery } from '../runSearchQuery';
 
 const dateTimeFormat = 'YYYY-MM-DD[T]HH:mm:ss[Z]';
 
@@ -26,7 +25,7 @@ const getDateRangeQueryStringFromBucket = (bucket) => {
     return s;
 };
 
-const getDateRangeQueryString = (daterange, buckets) => {
+export const getDateRangeQueryString = (daterange, buckets) => {
     if (!buckets) {
         return '';
     }
@@ -39,18 +38,23 @@ const getDateRangeQueryString = (daterange, buckets) => {
     return getDateRangeQueryStringFromBucket(selectedBucket);
 };
 
-const getDocCount = (ESQuery, bucket) =>
-    Number(
-        query({
-            ...ESQuery,
-            count: 0,
-            start: undefined,
-            aggregations: undefined,
-            query: ESQuery.query + getDateRangeQueryStringFromBucket(bucket),
-        }).total
-    ) || 0;
+const getDocCount = (queryParams, bucket) => {
+    const query = `${queryParams.query}${getDateRangeQueryStringFromBucket(
+        bucket
+    )}`;
 
-const getDateRanges = (ESQuery) => {
+    const result = runSearchQuery({
+        ...queryParams,
+        count: 0,
+        start: undefined,
+        aggregations: undefined,
+        query,
+    });
+
+    return Number(result.total) || 0;
+};
+
+export const getDateRanges = (queryParams) => {
     const now = moment();
     const sevenDaysAgo = now.subtract(7, 'day').format(dateTimeFormat);
     const thirtyDaysAgo = now.subtract(30, 'day').format(dateTimeFormat);
@@ -75,7 +79,7 @@ const getDateRanges = (ESQuery) => {
         },
     ].map((bucket) => ({
         ...bucket,
-        docCount: getDocCount(ESQuery, bucket),
+        docCount: getDocCount(queryParams, bucket),
     }));
 
     const totalCount = buckets[0].docCount + buckets[1].docCount;
@@ -85,5 +89,3 @@ const getDateRanges = (ESQuery) => {
         docCount: totalCount,
     };
 };
-
-export { getDateRanges, getDateRangeQueryString };

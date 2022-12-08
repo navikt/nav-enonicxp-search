@@ -1,25 +1,26 @@
-const contextLib = require('/lib/xp/context');
-const searchCache = require('/lib/search/helpers/cache');
-const clusterLib = require('/lib/xp/cluster');
-
 log.info('Search-app: Started running main');
-contextLib.run(
+
+import './lib/polyfills';
+
+import clusterLib from '/lib/xp/cluster';
+import { runInContext } from './lib/utils/context';
+import { activateEventListener } from './lib/search/helpers/cache';
+
+runInContext(
     {
         repository: 'com.enonic.cms.default',
         branch: 'draft',
-        user: {
-            login: 'su',
-            userStore: 'system',
-        },
-        principals: ['role:system.admin'],
+        asAdmin: true,
     },
     () => {
         // create analyzer indices on startup, but only on master
         if (clusterLib.isMaster()) {
-            __.newBean('no.nav.search.elastic.Analyze').createAnalyzerOnStartup();
+            __.newBean(
+                'no.nav.search.elastic.Analyze'
+            ).createAnalyzerOnStartup();
         }
 
-        searchCache.activateEventListener();
+        activateEventListener();
     }
 );
 

@@ -1,21 +1,23 @@
-const searchUtils = require('/lib/search');
-const { validateAndTransformParams } = require('../../lib/search/helpers/validateInput');
-const { withAggregationsBatchSize } = require('../../lib/search/search');
+import { validateAndTransformParams } from '../../lib/search/helpers/validateInput';
+import {
+    searchWithAggregations,
+    withAggregationsBatchSize,
+} from '../../lib/search/searchWithAggregations';
+import { runInContext } from '../../lib/utils/context';
+import { contentRepo } from '../../lib/constants';
 
-const bucket = (type, params, parent) => {
-    return (element, index) => {
-        const el = element;
-        if (type === 'fasett') {
-            el.checked = params.f === index;
-            el.default = el.checked && params.uf.length === 0;
-            el.underaggregeringer.buckets = el.underaggregeringer.buckets.map(
-                bucket('under', params, el)
+const bucket = (type, params, parent) => (element) => {
+    if (type === 'fasett') {
+        element.checked = params.f === element.key;
+        element.default = element.checked && params.uf.length === 0;
+        element.underaggregeringer.buckets =
+            element.underaggregeringer.buckets.map(
+                bucket('under', params, element)
             );
-        } else {
-            el.checked = parent.checked && params.uf.indexOf(index) !== -1;
-        }
-        return el;
-    };
+    } else {
+        element.checked = parent.checked && params.uf.includes(element.key);
+    }
+    return element;
 };
 
 const parseAggs = (aggregations, params) => {
@@ -31,16 +33,24 @@ const parseAggs = (aggregations, params) => {
     });
 
     aggs.Tidsperiode.checked = tc;
-    aggs.fasetter.buckets = aggs.fasetter.buckets.map(bucket('fasett', params, false));
+    aggs.fasetter.buckets = aggs.fasetter.buckets.map(
+        bucket('fasett', params, false)
+    );
     return aggs;
 };
 
-const handleGet = (req) => {
+export const get = (req) => {
     const params = validateAndTransformParams(req.params);
 
-    const result = searchUtils.runInContext(searchUtils.search, params);
+    const result = runInContext(
+        { branch: 'master', repository: contentRepo, asAdmin: true },
+        () => searchWithAggregations(params)
+    );
+
     const aggregations = parseAggs(result.aggregations, params);
-    const fasett = aggregations.fasetter.buckets.reduce((t, el) => (el.checked ? el.key : t), '');
+    const facetChecked = aggregations.fasetter.buckets.find(
+        (bucket) => bucket.checked
+    );
 
     const { c: count, s: sorting, daterange, ord } = params;
 
@@ -53,7 +63,8 @@ const handleGet = (req) => {
             isMore: count * withAggregationsBatchSize < result.total,
             word: ord,
             total: result.total,
-            fasett,
+            fasett: facetChecked?.name,
+            fasettKey: facetChecked?.key,
             aggregations,
             hits: result.hits,
             prioritized: result.prioritized,
@@ -61,5 +72,3 @@ const handleGet = (req) => {
         contentType: 'application/json',
     };
 };
-
-exports.get = handleGet;

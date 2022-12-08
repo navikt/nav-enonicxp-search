@@ -1,7 +1,5 @@
-import { forceArray } from '../../nav-utils';
-
-export default function createFilters(params, config, prioritiesItems) {
-    const { f: facetIndex, uf: underfacetIndices } = params;
+export const createFilters = (params, config, prioritiesItems) => {
+    const { f: facetKey, uf: underfacetKeys } = params;
 
     const filters = {
         boolean: {
@@ -27,64 +25,40 @@ export default function createFilters(params, config, prioritiesItems) {
             },
         ],
     };
-    const facetData = config.data.fasetter[facetIndex];
 
-    if (facetData) {
+    if (facetKey) {
         filters.boolean.must.push({
             hasValue: {
-                field: 'x.no-nav-navno.fasetter.fasett',
-                values: [facetData.name],
+                field: 'facets.facet',
+                values: [facetKey],
             },
         });
 
-        if (underfacetIndices.length > 0) {
-            const ufDataArray = forceArray(facetData.underfasetter);
-
-            const values = underfacetIndices.reduce((acc, ufIndex) => {
-                const ufData = ufDataArray[ufIndex];
-
-                if (!ufData) {
-                    log.info(
-                        `Invalid underfacet parameter specified - facet: ${facetIndex} - underfacet: ${ufIndex}`
-                    );
-                    return acc;
-                }
-
-                return [...acc, ufData.name];
-            }, []);
-
+        if (underfacetKeys.length > 0) {
             filters.boolean.must.push({
                 hasValue: {
-                    field: 'x.no-nav-navno.fasetter.underfasett',
-                    values: values,
+                    field: 'facets.underfacets',
+                    values: underfacetKeys,
                 },
             });
         }
-
-        if (prioritiesItems.ids.length > 0) {
-            filters.boolean.mustNot.push({
-                hasValue: {
-                    field: '_id',
-                    values: prioritiesItems.ids,
-                },
-            });
-        }
-        return filters;
+    } else {
+        filters.boolean.must.push({
+            hasValue: {
+                field: 'facets.facet',
+                values: [config.defaultFacetParam],
+            },
+        });
     }
 
-    filters.boolean.must.push({
-        hasValue: {
-            field: 'x.no-nav-navno.fasetter.fasett',
-            values: [config.data.fasetter[0].name],
-        },
-    });
     if (prioritiesItems.ids.length > 0) {
         filters.boolean.mustNot.push({
             hasValue: {
-                field: '_id',
+                field: 'contentId',
                 values: prioritiesItems.ids,
             },
         });
     }
+
     return filters;
-}
+};

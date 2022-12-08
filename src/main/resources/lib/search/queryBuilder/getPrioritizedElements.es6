@@ -1,11 +1,12 @@
-import { query, get } from '/lib/xp/content';
+import contentLib from '/lib/xp/content';
 import { getPriorities } from '../helpers/cache';
+import { logger } from '../../utils/logger';
 
 const fieldsToSearch =
     'data.text, data.ingress, displayName, data.abstract, data.keywords, data.enhet.*, data.interface.*';
 
-function getSearchPriorityContent(id) {
-    const content = get({
+const getSearchPriorityContent = (id) => {
+    const content = contentLib.get({
         key: id,
     });
 
@@ -13,16 +14,16 @@ function getSearchPriorityContent(id) {
         return getSearchPriorityContent(content.data.target);
     }
     return content;
-}
+};
 
 /*
     ----------- Retrieve the list of prioritised elements and check if the search would hit any of the elements -----
  */
-export default function getPrioritizedElements(queryString) {
+export const getPrioritizedElements = (queryString) => {
     const priorityIds = getPriorities();
 
     // add hits on pri content and not keyword
-    let { hits } = query({
+    let { hits } = contentLib.query({
         query: `fulltext('${fieldsToSearch}', '${queryString}', 'AND')`,
         filters: {
             ids: {
@@ -36,13 +37,22 @@ export default function getPrioritizedElements(queryString) {
         if (el.type === 'navno.nav.no.search:search-priority') {
             const content = getSearchPriorityContent(el.data.content);
             if (content) {
-                const missingContent = hits.filter((a) => a._id === content._id);
-                const missingListContent = list.filter(({ _id }) => _id === content._id);
-                if (missingContent.length === 0 && missingListContent.length === 0) {
+                const missingContent = hits.filter(
+                    (a) => a._id === content._id
+                );
+                const missingListContent = list.filter(
+                    ({ _id }) => _id === content._id
+                );
+                if (
+                    missingContent.length === 0 &&
+                    missingListContent.length === 0
+                ) {
                     list.push(content);
                 }
             } else {
-                log.error(`Missing content for prioritized search element ${el._path}`);
+                logger.critical(
+                    `Missing content for prioritized search element ${el._path}`
+                );
             }
         } else {
             list.push(el);
@@ -61,4 +71,4 @@ export default function getPrioritizedElements(queryString) {
             priority: true,
         })),
     };
-}
+};

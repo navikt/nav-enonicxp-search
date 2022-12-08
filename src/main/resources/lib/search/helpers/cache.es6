@@ -1,29 +1,37 @@
-const libs = {
-    cache: require('/lib/cache'),
-    event: require('/lib/xp/event'),
-    content: require('/lib/xp/content'),
-    context: require('/lib/xp/context'),
-};
+import cacheLib from '/lib/cache';
+import eventLib from '/lib/xp/event';
+import contentLib from '/lib/xp/content';
+import { runInContext } from '../../utils/context';
+import { contentRepo } from '../../constants';
+import { getConfig, revalidateSearchConfigCache } from './config';
+import { logger } from '../../utils/logger';
+
 const standardCache = {
     size: 1000,
     expire: 3600 * 24 /* One day */,
 };
 
 let emptySearchKeys = [];
-const cache = libs.cache.newCache(standardCache);
+const cache = cacheLib.newCache(standardCache);
+
+const typesToClear = {
+    [app.name + ':search-priority']: true,
+    [app.name + ':search-api2']: true,
+    [app.name + ':synonyms']: true,
+};
 
 const wipeAll = () => {
     cache.clear();
 };
 
-const getEmptySearchResult = (key, fallback) => {
+export const getEmptySearchResult = (key, fallback) => {
     emptySearchKeys.push(key);
     return cache.get(key, fallback);
 };
 
-const getSynonymMap = () => {
+export const getSynonymMap = () => {
     return cache.get('synonyms', () => {
-        const synonymLists = libs.content.query({
+        const synonymLists = contentLib.query({
             start: 0,
             count: 100,
             query: 'type = "' + app.name + ':synonyms"',
@@ -39,7 +47,10 @@ const getSynonymMap = () => {
                     } else {
                         // only add new unique words if it already exists
                         s.synonym.forEach((syn) => {
-                            if (syn !== word && synonymMap[word].indexOf(syn) === -1) {
+                            if (
+                                syn !== word &&
+                                synonymMap[word].indexOf(syn) === -1
+                            ) {
                                 synonymMap[word].push(syn);
                             }
                         });
@@ -52,13 +63,13 @@ const getSynonymMap = () => {
     });
 };
 
-const getPriorities = () => {
+export const getPriorities = () => {
     return cache.get('priorites', () => {
         let priority = [];
         let start = 0;
         let count = 1000;
         while (count === 1000) {
-            const q = libs.content.query({
+            const q = contentLib.query({
                 start: start,
                 count: 1000,
                 query: `(_parentpath LIKE "*prioriterte-elementer*" OR _parentpath LIKE "*prioriterte-elementer-eksternt*") AND
@@ -77,21 +88,32 @@ const getPriorities = () => {
     });
 };
 
-const activateEventListener = () => {
+let isActive = false;
+
+export const activateEventListener = () => {
     wipeAll();
-    libs.event.listener({
-        type: 'node.*',
+
+    const searchConfig = getConfig();
+    if (!searchConfig) {
+        logger.critical(
+            `No search config found - could not activate event handlers!`
+        );
+        return;
+    }
+
+    isActive = true;
+
+    const searchConfigId = searchConfig._id;
+
+    eventLib.listener({
+        type: '(node.pushed|node.deleted)',
         localOnly: false,
         callback: (event) => {
-            libs.context.run(
+            runInContext(
                 {
                     repository: 'com.enonic.cms.default',
                     branch: 'master',
-                    user: {
-                        login: 'su',
-                        userStore: 'system',
-                    },
-                    principals: ['role:system.admin'],
+                    asAdmin: true,
                 },
                 () => {
                     // clear aggregation cache
@@ -105,39 +127,34 @@ const activateEventListener = () => {
                     // wipe all on delete because we can't check the type of the deleted content
                     if (event.type === 'node.deleted') {
                         wipeAll();
-                    } else {
-                        // clear full cache if prioritized items or synonyms have changed
-                        event.data.nodes.forEach((node) => {
-                            if (
-                                node.branch === 'master' &&
-                                node.repo === 'com.enonic.cms.default'
-                            ) {
-                                const content = libs.content.get({ key: node.id });
-                                if (content) {
-                                    const typesToClear = [
-                                        app.name + ':search-priority',
-                                        app.name + ':search-api2',
-                                        app.name + ':synonyms',
-                                    ];
-                                    if (typesToClear.indexOf(content.type) !== -1) {
-                                        wipeAll();
-                                    }
-                                } else {
-                                    // wipe all if the content doesn't exist, just in case
-                                    wipeAll();
-                                }
-                            }
-                        });
+                        return;
                     }
+
+                    // clear full cache if prioritized items or synonyms have changed
+                    event.data.nodes.forEach((node) => {
+                        if (
+                            node.repo !== contentRepo ||
+                            node.branch !== 'master'
+                        ) {
+                            return;
+                        }
+
+                        if (node.id === searchConfigId) {
+                            revalidateSearchConfigCache();
+                            return;
+                        }
+
+                        const content = contentLib.get({
+                            key: node.id,
+                        });
+
+                        // wipe all if the content doesn't exist, just in case
+                        if (!content || typesToClear[content.type]) {
+                            wipeAll();
+                        }
+                    });
                 }
             );
         },
     });
-};
-
-export {
-    activateEventListener,
-    getEmptySearchResult,
-    getSynonymMap,
-    getPriorities,
 };

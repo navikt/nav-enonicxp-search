@@ -1,7 +1,7 @@
-import getRepository from '../helpers/repo';
-import getPaths from './getPaths';
+import { getRepository } from '../helpers/repo';
+import { getPaths } from './getPaths';
 
-export function calculateHighlightText(highLight) {
+export const calculateHighlightText = (highLight) => {
     if (highLight.ingress.highlighted) {
         return highLight.ingress.text;
     }
@@ -15,7 +15,7 @@ export function calculateHighlightText(highLight) {
         return highLight.text.text;
     }
     return '';
-}
+};
 
 /*
   -------- 'substring' substitute -----------
@@ -35,7 +35,9 @@ const substreng = (text, start, stopp) => {
         trueStop++;
         tstopc = text.charAt(trueStop);
     }
-    return start >= 0 ? text.substring(trueStart, trueStop) : text.substring(trueStart);
+    return start >= 0
+        ? text.substring(trueStart, trueStop)
+        : text.substring(trueStart);
 };
 
 const removeHTMLTags = (text) => {
@@ -69,10 +71,14 @@ const findSubstring = (word, text) => {
     if (index === -1) return false; // 11.2.4.
     if (index < 100) {
         // 11.2.5.
-        return text.length > 200 ? substreng(replaceText, 0, 200) + ' (...)' : replaceText;
+        return text.length > 200
+            ? substreng(replaceText, 0, 200) + ' (...)'
+            : replaceText;
     }
     if (index > text.length - 100) {
-        return text.length > 200 ? substreng(replaceText, -200) + ' (...)' : replaceText;
+        return text.length > 200
+            ? substreng(replaceText, -200) + ' (...)'
+            : replaceText;
     }
     return text.length > 200
         ? substreng(replaceText, index - 100, index + 100) + ' (...)'
@@ -120,9 +126,9 @@ const highLightFragment = (searchText, wordList) => {
     };
 };
 
-export function getHighLight(el, wordList) {
-    if (el.type === 'media:document') {
-        const media = getRepository().get(el._id);
+export const getHighLight = (searchNode, wordList) => {
+    if (searchNode.type === 'media:document') {
+        const media = getRepository().get(searchNode._id);
         if (media && media.attachment) {
             return {
                 text: highLightFragment(media.attachment.text || '', wordList),
@@ -131,12 +137,15 @@ export function getHighLight(el, wordList) {
         }
     }
     return {
-        text: highLightFragment(el.data.text || '', wordList),
-        ingress: highLightFragment(el.data.ingress || el.data.description || '', wordList),
+        text: highLightFragment(searchNode.data.text || '', wordList),
+        ingress: highLightFragment(
+            searchNode.data.ingress || searchNode.data.description || '',
+            wordList
+        ),
     };
-}
+};
 
-export default function createPreparedHit(hit, wordList) {
+export const createPreparedHit = (hit, wordList) => {
     // Join the prioritised search with the result and map the contents with: highlighting,
     // href, displayName and so on
 
@@ -155,14 +164,11 @@ export default function createPreparedHit(hit, wordList) {
             hit.data.kontaktinformasjon &&
             hit.data.kontaktinformasjon.publikumsmottak &&
             hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse &&
-            hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse.type === 'stedsadresse'
+            hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse.type ===
+                'stedsadresse'
         ) {
-            const {
-                postnummer,
-                poststed,
-                gatenavn,
-                husnummer,
-            } = hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse;
+            const { postnummer, poststed, gatenavn, husnummer } =
+                hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse;
             const base = [gatenavn, husnummer, postnummer, poststed].filter(
                 (item) => item !== undefined
             );
@@ -173,7 +179,8 @@ export default function createPreparedHit(hit, wordList) {
         }
         officeInformation = {
             phone:
-                hit.data.kontaktinformasjon && hit.data.kontaktinformasjon.telefonnummer
+                hit.data.kontaktinformasjon &&
+                hit.data.kontaktinformasjon.telefonnummer
                     ? hit.data.kontaktinformasjon.telefonnummer
                     : '',
             audienceReception,
@@ -193,4 +200,4 @@ export default function createPreparedHit(hit, wordList) {
         rawScore: hit._rawScore,
         officeInformation: officeInformation,
     };
-}
+};

@@ -2,7 +2,7 @@ import { connect } from '/lib/xp/node';
 
 let repository = null;
 
-export default function getRepository() {
+export const getRepository = () => {
     if (!repository) {
         repository = connect({
             repoId: 'com.enonic.cms.default',
@@ -11,4 +11,4 @@ export default function getRepository() {
         });
     }
     return repository;
-}
+};

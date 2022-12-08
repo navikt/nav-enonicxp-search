@@ -1,30 +1,10 @@
-import pathFilter from '../helpers/pathFilter';
-import { fieldsToSearch } from '../helpers/searchFields';
+import { pathFilter } from '../helpers/pathFilter';
+import { forceArray } from '../../utils';
 
-const navApp = 'no.nav.navno';
+export const createQuery = (queryString, queryParams = {}, config) => {
+    const contentTypes = forceArray(config.data.contentTypes);
+    const fieldsToSearch = forceArray(config.data.fields);
 
-const contentTypes = [
-    'media:document',
-    'media:spreadsheet',
-    ...[
-        'content-page-with-sidemenus',
-        'current-topic-page',
-        'dynamic-page',
-        'external-link',
-        'guide-page',
-        'large-table',
-        'main-article',
-        'main-article-chapter',
-        'office-information',
-        'overview',
-        'page-list',
-        'section-page',
-        'situation-page',
-        'themed-article-page',
-    ].map((item) => `${navApp}:${item}`),
-];
-
-export default function createQuery(queryString, esQuery = {}) {
     const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') ${pathFilter}`;
 
     return {
@@ -35,18 +15,18 @@ export default function createQuery(queryString, esQuery = {}) {
         aggregations: {
             fasetter: {
                 terms: {
-                    field: 'x.no-nav-navno.fasetter.fasett',
+                    field: 'facets.facet',
                 },
                 aggregations: {
                     underaggregeringer: {
                         terms: {
-                            field: 'x.no-nav-navno.fasetter.underfasett',
+                            field: 'facets.underfacets',
                             size: 30,
                         },
                     },
                 },
             },
         },
-        ...esQuery,
+        ...queryParams,
     };
-}
+};

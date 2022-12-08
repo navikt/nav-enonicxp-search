@@ -9,8 +9,6 @@ const excludePaths = [
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/for-kommunen/satsingsomrader2*',
 ];
 
-const pathFilter = excludePaths.reduce((acc, path) => {
+export const pathFilter = excludePaths.reduce((acc, path) => {
     return `${acc} AND _path NOT LIKE "${path}"`;
 }, '');
-
-export default pathFilter;

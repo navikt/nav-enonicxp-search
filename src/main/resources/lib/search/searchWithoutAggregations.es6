@@ -1,38 +1,49 @@
+import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
+import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
+import { createQuery } from './queryBuilder/createQuery';
+import { createFilters } from './queryBuilder/createFilters';
+import { getPaths } from './resultListing/getPaths';
 import {
-    getCountAndStart,
-    getFacetConfiguration,
-    getSortedResult,
-    shouldIncludePrioHits,
-} from './helpers/utils';
-import getPrioritizedElements from './queryBuilder/getPrioritizedElements';
-import createQuery from './queryBuilder/createQuery';
-import createFilters from './queryBuilder/createFilters';
-import getPaths from './resultListing/getPaths';
-import { calculateHighlightText, getHighLight } from './resultListing/createPreparedHit';
+    calculateHighlightText,
+    getHighLight,
+} from './resultListing/createPreparedHit';
+import { runSearchQuery } from './runSearchQuery';
+import { getConfig } from './helpers/config';
+import { logger } from '../utils/logger';
 
 export const noAggregationsBatchSize = 10;
 
-export default function searchWithoutAggregations(params) {
+export const searchWithoutAggregations = (params) => {
     const tsStart = Date.now();
 
-    const { ord, start: startParam, c: countParam, wordList, queryString } = params;
+    const {
+        ord,
+        start: startParam,
+        c: countParam,
+        wordList,
+        queryString,
+    } = params;
 
     const prioritiesItems = getPrioritizedElements(queryString);
-    const config = getFacetConfiguration();
+    const config = getConfig();
     const { start, count } = getCountAndStart({
         start: startParam,
         count: countParam,
         batchSize: noAggregationsBatchSize,
     });
-    const ESQuery = createQuery(queryString, {
-        filters: createFilters(params, config, prioritiesItems),
-        start,
-        count,
-    });
+    const ESQuery = createQuery(
+        queryString,
+        {
+            filters: createFilters(params, config, prioritiesItems),
+            start,
+            count,
+        },
+        config
+    );
 
-    let { hits = [], total = 0 } = getSortedResult(ESQuery, 0);
+    let { hits = [], total = 0 } = runSearchQuery(ESQuery, 0);
 
-    if (shouldIncludePrioHits(params)) {
+    if (shouldIncludePrioHits(params, config)) {
         hits = prioritiesItems.hits.concat(hits);
         total += prioritiesItems.hits.length;
     }
@@ -55,8 +66,10 @@ export default function searchWithoutAggregations(params) {
     });
 
     const tsEnd = Date.now();
-    log.info(
-        `Decorator search (${tsEnd - tsStart}ms) <${ord}> => ${queryString} -- [${total} | ${
+    logger.info(
+        `Decorator search (${
+            tsEnd - tsStart
+        }ms) <${ord}> => ${queryString} -- [${total} | ${
             prioritiesItems.hits.length
         }]`
     );
@@ -65,4 +78,4 @@ export default function searchWithoutAggregations(params) {
         total: total,
         hits: hits,
     };
-}
+};

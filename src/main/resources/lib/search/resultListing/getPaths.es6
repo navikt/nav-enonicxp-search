@@ -5,7 +5,7 @@ import { attachmentUrl, pageUrl } from '/lib/xp/portal';
      If it is a service or application, return the given url or host
      else do a portal lookup and return the url
  */
-export default function getPaths(el) {
+export const getPaths = (el) => {
     const paths = {
         href: '',
         displayPath: '',
@@ -57,4 +57,4 @@ export default function getPaths(el) {
     }
 
     return paths;
-}
+};

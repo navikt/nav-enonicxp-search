@@ -1,6 +1,6 @@
 import { sanitize } from '/lib/xp/common';
 import { getSynonymMap } from '../helpers/cache';
-import { formatExactSearch, isExactSearch, isSchemaSearch } from '../helpers/utils';
+import { formatExactSearch, isExactSearch, isFormSearch } from '../helpers/utils';
 
 const getSuggestions = (words) => {
     const suggest = __.newBean('no.nav.search.elastic.Suggest');
@@ -80,7 +80,7 @@ export const generateSearchInput = (userInput) => {
         return { wordList: [], queryString: '' };
     }
 
-    if (isSchemaSearch(userInput)) {
+    if (isFormSearch(userInput)) {
         return { wordList: [userInput], queryString: userInput };
     }
 
