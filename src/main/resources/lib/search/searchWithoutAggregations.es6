@@ -43,7 +43,7 @@ export const searchWithoutAggregations = (params) => {
 
     let { hits = [], total = 0 } = runSearchQuery(ESQuery, 0);
 
-    if (shouldIncludePrioHits(params)) {
+    if (shouldIncludePrioHits(params, config)) {
         hits = prioritiesItems.hits.concat(hits);
         total += prioritiesItems.hits.length;
     }

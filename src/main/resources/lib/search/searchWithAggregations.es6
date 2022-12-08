@@ -74,7 +74,7 @@ export const searchWithAggregations = (params, skipCache) => {
             }
         }
 
-        if (shouldIncludePrioHits(params)) {
+        if (shouldIncludePrioHits(params, config)) {
             aggregations.Tidsperiode.docCount += priorityHitCount;
             if (daterange === -1) {
                 hits = prioritiesItems.hits.concat(hits);

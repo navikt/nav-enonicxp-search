@@ -37,6 +37,8 @@ export const revalidateSearchConfigCache = () => {
     searchConfig = {
         ...searchConfigNew,
         defaultFacetParam: defaultFacet?.facetKey,
+        facetWithPrioHits: defaultFacet?.facetKey,
+        ufWithPrioHits: defaultFacet?.underfasetter?.[0]?.facetKey,
     };
 
     logger.info('Updated search config cache!');
