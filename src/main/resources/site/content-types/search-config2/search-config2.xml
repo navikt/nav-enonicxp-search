@@ -4,6 +4,22 @@
     <super-type>base:structured</super-type>
     <is-abstract>true</is-abstract>
     <form>
+        <field-set>
+            <label>Inkludert innhold</label>
+            <items>
+                <input type="ContentTypeFilter" name="contentTypes">
+                    <label>Innholdstyper som skal inkluderes i søket</label>
+                    <occurrences minimum="1" maximum="0"/>
+                    <config>
+                        <context>false</context>
+                    </config>
+                </input>
+                <input type="TextLine" name="fields">
+                    <label>Felter som skal inkluderes i søket</label>
+                    <occurrences minimum="1" maximum="0"/>
+                </input>
+            </items>
+        </field-set>
         <item-set name="fasetter">
             <label>Fasetter</label>
             <occurrences minimum="1" maximum="0"/>

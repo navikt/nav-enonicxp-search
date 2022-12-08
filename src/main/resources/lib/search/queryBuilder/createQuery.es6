@@ -1,31 +1,15 @@
 import pathFilter from '../helpers/pathFilter';
-import { fieldsToSearch } from '../helpers/searchFields';
+import { forceArray } from '../../utils';
 
-const navApp = 'no.nav.navno';
+export const createQuery = (queryString, queryParams = {}, config) => {
+    const contentTypes = forceArray(config.data.contentTypes);
+    const fieldsToSearch = forceArray(config.data.fields);
 
-const contentTypes = [
-    'media:document',
-    'media:spreadsheet',
-    ...[
-        'content-page-with-sidemenus',
-        'current-topic-page',
-        'dynamic-page',
-        'external-link',
-        'guide-page',
-        'large-table',
-        'main-article',
-        'main-article-chapter',
-        'office-information',
-        'overview',
-        'page-list',
-        'section-page',
-        'situation-page',
-        'themed-article-page',
-    ].map((item) => `${navApp}:${item}`),
-];
-
-export const createQuery = (queryString, queryParams = {}) => {
     const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') ${pathFilter}`;
+
+    log.info(
+        `Searching content types ${contentTypes} - fields ${fieldsToSearch}`
+    );
 
     return {
         start: 0,

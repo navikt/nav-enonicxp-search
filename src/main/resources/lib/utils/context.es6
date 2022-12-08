@@ -11,7 +11,6 @@ const adminContextOptions = {
 
 export const runInContext = ({ branch, repository, asAdmin }, func) => {
     const currentContext = contextLib.get();
-    log.info(`${branch} ${repository} ${asAdmin}`);
 
     return contextLib.run(
         {

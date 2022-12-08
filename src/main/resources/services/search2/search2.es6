@@ -4,7 +4,7 @@ import {
     searchWithoutAggregations,
 } from '../../lib/search/searchWithoutAggregations';
 import { runInContext } from '../../lib/utils/context';
-import { contentRepo, searchRepo } from '../../lib/constants';
+import { contentRepo } from '../../lib/constants';
 
 export const get = (req) => {
     const params = validateAndTransformParams(req.params);

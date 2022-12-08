@@ -1,7 +1,10 @@
 import cacheLib from '/lib/cache';
 import eventLib from '/lib/xp/event';
 import contentLib from '/lib/xp/content';
-import contextLib from '/lib/xp/context';
+import { runInContext } from '../../utils/context';
+import { contentRepo } from '../../constants';
+import { getConfig, revalidateSearchConfigCache } from './config';
+import { logger } from '../../utils/logger';
 
 const standardCache = {
     size: 1000,
@@ -10,6 +13,12 @@ const standardCache = {
 
 let emptySearchKeys = [];
 const cache = cacheLib.newCache(standardCache);
+
+const typesToClear = {
+    [app.name + ':search-priority']: true,
+    [app.name + ':search-api2']: true,
+    [app.name + ':synonyms']: true,
+};
 
 const wipeAll = () => {
     cache.clear();
@@ -79,21 +88,32 @@ export const getPriorities = () => {
     });
 };
 
+let isActive = false;
+
 export const activateEventListener = () => {
     wipeAll();
+
+    const searchConfig = getConfig();
+    if (!searchConfig) {
+        logger.critical(
+            `No search config found - could not activate event handlers!`
+        );
+        return;
+    }
+
+    isActive = true;
+
+    const searchConfigId = searchConfig._id;
+
     eventLib.listener({
-        type: 'node.*',
+        type: '(node.pushed|node.deleted)',
         localOnly: false,
         callback: (event) => {
-            contextLib.run(
+            runInContext(
                 {
                     repository: 'com.enonic.cms.default',
                     branch: 'master',
-                    user: {
-                        login: 'su',
-                        userStore: 'system',
-                    },
-                    principals: ['role:system.admin'],
+                    asAdmin: true,
                 },
                 () => {
                     // clear aggregation cache
@@ -107,35 +127,37 @@ export const activateEventListener = () => {
                     // wipe all on delete because we can't check the type of the deleted content
                     if (event.type === 'node.deleted') {
                         wipeAll();
-                    } else {
-                        // clear full cache if prioritized items or synonyms have changed
-                        event.data.nodes.forEach((node) => {
-                            if (
-                                node.branch === 'master' &&
-                                node.repo === 'com.enonic.cms.default'
-                            ) {
-                                const content = contentLib.get({
-                                    key: node.id,
-                                });
-                                if (content) {
-                                    const typesToClear = [
-                                        app.name + ':search-priority',
-                                        app.name + ':search-api2',
-                                        app.name + ':synonyms',
-                                    ];
-                                    if (
-                                        typesToClear.indexOf(content.type) !==
-                                        -1
-                                    ) {
-                                        wipeAll();
-                                    }
-                                } else {
-                                    // wipe all if the content doesn't exist, just in case
-                                    wipeAll();
-                                }
-                            }
-                        });
+                        return;
                     }
+
+                    // clear full cache if prioritized items or synonyms have changed
+                    event.data.nodes.forEach((node) => {
+                        if (
+                            node.repo !== contentRepo ||
+                            node.branch !== 'master'
+                        ) {
+                            return;
+                        }
+
+                        if (node.id === searchConfigId) {
+                            revalidateSearchConfigCache();
+                            return;
+                        }
+
+                        const content = contentLib.get({
+                            key: node.id,
+                        });
+
+                        // wipe all if the content doesn't exist, just in case
+                        if (!content) {
+                            wipeAll();
+                            return;
+                        }
+
+                        if (typesToClear[content.type]) {
+                            wipeAll();
+                        }
+                    });
                 }
             );
         },

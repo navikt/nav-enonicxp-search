@@ -8,7 +8,7 @@ import {
     getHighLight,
 } from './resultListing/createPreparedHit';
 import { runSearchQuery } from './runSearchQuery';
-import { getFacetsConfig } from './helpers/facetsConfig';
+import { getConfig } from './helpers/config';
 
 export const noAggregationsBatchSize = 10;
 
@@ -24,17 +24,21 @@ export const searchWithoutAggregations = (params) => {
     } = params;
 
     const prioritiesItems = getPrioritizedElements(queryString);
-    const config = getFacetsConfig();
+    const config = getConfig();
     const { start, count } = getCountAndStart({
         start: startParam,
         count: countParam,
         batchSize: noAggregationsBatchSize,
     });
-    const ESQuery = createQuery(queryString, {
-        filters: createFilters(params, config, prioritiesItems),
-        start,
-        count,
-    });
+    const ESQuery = createQuery(
+        queryString,
+        {
+            filters: createFilters(params, config, prioritiesItems),
+            start,
+            count,
+        },
+        config
+    );
 
     let { hits = [], total = 0 } = runSearchQuery(ESQuery, 0);
 

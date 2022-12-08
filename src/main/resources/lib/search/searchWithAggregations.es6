@@ -5,7 +5,7 @@ import { createFilters } from './queryBuilder/createFilters';
 import createPreparedHit from './resultListing/createPreparedHit';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 import { runSearchQuery } from './runSearchQuery';
-import { getFacetsConfig } from './helpers/facetsConfig';
+import { getConfig } from './helpers/config';
 import { getAggregations } from './helpers/aggregations';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
@@ -35,7 +35,7 @@ export const searchWithAggregations = (params, skipCache) => {
     //     );
     // }
 
-    const config = getFacetsConfig();
+    const config = getConfig();
 
     const prioritiesItems = excludePrioritized
         ? EMPTY_RESULT_SET
@@ -46,7 +46,7 @@ export const searchWithAggregations = (params, skipCache) => {
         count: countParam,
         batchSize: withAggregationsBatchSize,
     });
-    const queryParams = createQuery(queryString, { start, count });
+    const queryParams = createQuery(queryString, { start, count }, config);
     const aggregations = getAggregations(queryParams, config);
 
     queryParams.filters = createFilters(params, config, prioritiesItems);
