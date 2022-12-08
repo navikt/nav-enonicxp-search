@@ -9,7 +9,6 @@ const resultWithCustomScoreWeights = (result) => ({
     hits: result.hits
         .map((hit) => {
             const { _score: _rawScore, data, language, modifiedTime } = hit;
-            log.info(`Score: ${hit._path} - ${_rawScore}`);
             if (!_rawScore) {
                 return hit;
             }
