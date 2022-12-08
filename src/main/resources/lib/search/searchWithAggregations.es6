@@ -3,7 +3,7 @@ import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
 import { createQuery } from './queryBuilder/createQuery';
 import { createFilters } from './queryBuilder/createFilters';
-import createPreparedHit from './resultListing/createPreparedHit';
+import { createPreparedHit } from './resultListing/createPreparedHit';
 import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 import { runSearchQuery } from './runSearchQuery';
 import { getConfig } from './helpers/config';

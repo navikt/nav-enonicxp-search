@@ -2,7 +2,7 @@ import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
 import { createQuery } from './queryBuilder/createQuery';
 import { createFilters } from './queryBuilder/createFilters';
-import getPaths from './resultListing/getPaths';
+import { getPaths } from './resultListing/getPaths';
 import {
     calculateHighlightText,
     getHighLight,

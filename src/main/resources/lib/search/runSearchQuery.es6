@@ -68,7 +68,11 @@ export const runSearchQuery = (queryParams, sort) => {
     );
 
     const hitsIds = queryResult.hits.map((hit) => hit.id);
-    const hits = forceArray(repo.get(hitsIds) || []);
+    const hits = forceArray(repo.get(hitsIds) || []).map((hit) => ({
+        ...hit,
+        _id: hit.contentId || hit._id,
+        _path: hit.contentPath || hit._path,
+    }));
 
     const result = { ...queryResult, hits: hits };
 

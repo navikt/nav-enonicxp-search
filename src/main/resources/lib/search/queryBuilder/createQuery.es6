@@ -1,4 +1,4 @@
-import pathFilter from '../helpers/pathFilter';
+import { pathFilter } from '../helpers/pathFilter';
 import { forceArray } from '../../utils';
 
 export const createQuery = (queryString, queryParams = {}, config) => {
