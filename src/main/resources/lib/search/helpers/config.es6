@@ -1,6 +1,7 @@
 import contentLib from '/lib/xp/content';
 import { runInContext } from '../../utils/context';
 import { logger } from '../../utils/logger';
+import { forceArray } from '../../utils';
 
 let searchConfig = null;
 
@@ -18,6 +19,7 @@ export const revalidateSearchConfigCache = () => {
 
     if (searchConfigHits.length === 0) {
         logger.critical(`No search config found!`);
+        searchConfig = null;
         return;
     }
 
@@ -25,7 +27,20 @@ export const revalidateSearchConfigCache = () => {
         logger.critical(`Multiple search configs found! Using oldest.`);
     }
 
-    searchConfig = searchConfigHits[0];
+    const searchConfigNew = searchConfigHits[0];
+    const defaultFacet = forceArray(searchConfigNew.data.fasetter)[0];
+
+    if (!defaultFacet) {
+        logger.critical('Search config does not contain any facets!');
+    }
+
+    searchConfig = {
+        ...searchConfigNew,
+        defaultFacetParam: defaultFacet?.facetKey,
+        defaultUfParam: forceArray(defaultFacet?.underfasetter || []).map(
+            (uf) => uf.facetKey
+        ),
+    };
 
     logger.info('Updated search config cache!');
 };

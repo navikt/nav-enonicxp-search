@@ -59,10 +59,10 @@ export const validateAndTransformParams = (params) => {
     );
 
     return {
-        f: facetData ? f : config.data.fasetter[0]?.facetKey,
+        f: facetData ? f : config.defaultFacetParam,
         uf: facetData
             ? validUnderfacets(facetData, uf, config)
-            : config.data.fasetter[0]?.underfasetter.map((uf) => uf.facetKey),
+            : config.defaultUfParam,
         start: startValid, // Start batch
         c: validNumber(c, countMin, countMin), // End batch/count
         s: validNumber(s, 0, 0, 1), // Sorting (0: by best match, 1: by date)
