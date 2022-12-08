@@ -1,39 +1,80 @@
-<content-type>
-    <display-name>Søkekonfigurasjon (fasetter)</display-name>
+<content-type xmlns="urn:enonic:xp:model:1.0">
+    <display-name>Søkekonfigurasjon</display-name>
     <description>Skal bare finnes 1 av denne</description>
-    <is-abstract>true</is-abstract>
     <super-type>base:structured</super-type>
+    <is-abstract>true</is-abstract>
     <form>
+        <field-set>
+            <label>Inkludert innhold</label>
+            <items>
+                <input type="ContentTypeFilter" name="contentTypes">
+                    <label>Innholdstyper som skal inkluderes i søket</label>
+                    <occurrences minimum="1" maximum="0"/>
+                    <config>
+                        <context>false</context>
+                    </config>
+                </input>
+                <input type="TextLine" name="fields">
+                    <label>Felter som skal inkluderes i søket</label>
+                    <occurrences minimum="1" maximum="0"/>
+                </input>
+            </items>
+        </field-set>
         <item-set name="fasetter">
-            <display-name>Fasetter</display-name>
+            <label>Fasetter</label>
+            <occurrences minimum="1" maximum="0"/>
             <items>
                 <input type="TextLine" name="name">
                     <label>Navn</label>
+                    <occurrences minimum="1" maximum="1"/>
+                </input>
+                <input type="TextLine" name="facetKey">
+                    <label>Fasettnøkkel (bør ikke endres!)</label>
+                    <help-text>Obs: Endringer på denne vil påvirke lenker til spesifikke søkefiltre!</help-text>
+                    <occurrences minimum="1" maximum="1"/>
+                    <config>
+                        <regexp>^[a-z0-9]+$</regexp>
+                    </config>
+                </input>
+                <input type="TextLine" name="ruleQuery">
+                    <label>Query</label>
+                    <occurrences minimum="1" maximum="1"/>
                 </input>
                 <input name="rulekey" type="TextLine">
-                    <label>Regelnøkkel</label>
+                    <label>Regelnøkkel (deprecated!)</label>
                 </input>
                 <input name="rulevalue" type="TextLine">
-                    <label>Regelverdi</label>
+                    <label>Regelverdi (deprecated!)</label>
                 </input>
                 <item-set name="underfasetter">
-                    <display-name>Underfasetter</display-name>
+                    <label>Underfasetter</label>
+                    <occurrences minimum="0" maximum="0"/>
                     <items>
                         <input type="TextLine" name="name">
                             <label>Navn</label>
+                            <occurrences minimum="1" maximum="1"/>
+                        </input>
+                        <input type="TextLine" name="facetKey">
+                            <label>Fasettnøkkel (bør ikke endres!)</label>
+                            <help-text>Obs: Endringer på denne vil påvirke lenker til spesifikke søkefiltre!</help-text>
+                            <occurrences minimum="1" maximum="1"/>
+                            <config>
+                                <regexp>^[a-z0-9]+$</regexp>
+                            </config>
+                        </input>
+                        <input type="TextLine" name="ruleQuery">
+                            <label>Query</label>
+                            <occurrences minimum="1" maximum="1"/>
                         </input>
                         <input name="rulekey" type="TextLine">
-                            <label>Regelnøkkel</label>
+                            <label>Regelnøkkel (deprecated!)</label>
                         </input>
                         <input name="rulevalue" type="TextLine">
-                            <label>Regelverdi</label>
+                            <label>Regelverdi (deprecated!)</label>
                         </input>
                     </items>
-                    <occurrences minimum="0" maximum="0"/>
                 </item-set>
-
             </items>
-            <occurrences minimum="0" maximum="0"/>
         </item-set>
     </form>
 </content-type>
