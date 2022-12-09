@@ -5,7 +5,7 @@ export const createQuery = (queryString, queryParams = {}, config) => {
     const contentTypes = forceArray(config.data.contentTypes);
     const fieldsToSearch = forceArray(config.data.fields);
 
-    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') ${pathFilter}`;
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND publish.from < instant("${new Date().toISOString()}") ${pathFilter}`;
 
     return {
         start: 0,
