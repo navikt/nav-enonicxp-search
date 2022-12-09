@@ -2,8 +2,45 @@ import contentLib from '/lib/xp/content';
 import { runInContext } from '../../utils/context';
 import { logger } from '../../utils/logger';
 import { forceArray } from '../../utils';
+import { runSearchQuery } from '../runSearchQuery';
 
 let searchConfig = null;
+
+const validateQueries = (config) => {
+    let isValid = true;
+
+    forceArray(config.data.fasetter).forEach((facet) => {
+        try {
+            runSearchQuery({
+                start: 0,
+                count: 0,
+                query: facet.ruleQuery,
+            });
+        } catch (e) {
+            logger.critical(
+                `Invalid query specified for facet [${facet.facetKey}] ${facet.name} - ${facet.ruleQuery}`
+            );
+            isValid = false;
+        }
+
+        forceArray(facet.underfasetter).forEach((uf) => {
+            try {
+                runSearchQuery({
+                    start: 0,
+                    count: 0,
+                    query: uf.ruleQuery,
+                });
+            } catch (e) {
+                logger.critical(
+                    `Invalid query specified for underfacet [${facet.facetKey}/${uf.facetKey}] ${uf.name} - ${uf.ruleQuery}`
+                );
+                isValid = false;
+            }
+        });
+    });
+
+    return isValid;
+};
 
 export const revalidateSearchConfigCache = () => {
     const searchConfigHits = runInContext(
@@ -19,7 +56,6 @@ export const revalidateSearchConfigCache = () => {
 
     if (searchConfigHits.length === 0) {
         logger.critical(`No search config found!`);
-        searchConfig = null;
         return;
     }
 
@@ -28,6 +64,11 @@ export const revalidateSearchConfigCache = () => {
     }
 
     const searchConfigNew = searchConfigHits[0];
+    if (!validateQueries(searchConfigNew)) {
+        logger.critical(`Failed to validate search facet queries!`);
+        return;
+    }
+
     const defaultFacet = forceArray(searchConfigNew.data.fasetter)[0];
 
     if (!defaultFacet) {

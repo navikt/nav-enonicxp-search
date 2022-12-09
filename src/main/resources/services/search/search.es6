@@ -6,14 +6,23 @@ import {
 import { runInContext } from '../../lib/utils/context';
 import { contentRepo } from '../../lib/constants';
 
-const bucket = (type, params, parent) => (element) => {
+const processBucket = (type, params, parent, element) => {
+    if (!params.ord && !element.docCount) {
+        return null;
+    }
     if (type === 'fasett') {
         element.checked = params.f === element.key;
         element.default = element.checked && params.uf.length === 0;
         element.underaggregeringer.buckets =
-            element.underaggregeringer.buckets.map(
-                bucket('under', params, element)
-            );
+            element.underaggregeringer.buckets.reduce((acc, ufBucket) => {
+                const processedBucket = processBucket(
+                    'under',
+                    params,
+                    element,
+                    ufBucket
+                );
+                return processedBucket ? [...acc, processedBucket] : acc;
+            }, []);
     } else {
         element.checked = parent.checked && params.uf.includes(element.key);
     }
@@ -33,9 +42,10 @@ const parseAggs = (aggregations, params) => {
     });
 
     aggs.Tidsperiode.checked = tc;
-    aggs.fasetter.buckets = aggs.fasetter.buckets.map(
-        bucket('fasett', params, false)
-    );
+    aggs.fasetter.buckets = aggs.fasetter.buckets.reduce((acc, bucket) => {
+        const processedBucket = processBucket('fasett', params, false, bucket);
+        return processedBucket ? [...acc, processedBucket] : acc;
+    }, []);
     return aggs;
 };
 
