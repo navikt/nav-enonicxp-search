@@ -16,7 +16,7 @@ const logError = (msg) => {
 };
 
 const logCriticalError = (msg) => {
-    logWithPrefix('critical');
+    logWithPrefix('critical', msg);
 };
 
 export const logger = {
