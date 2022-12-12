@@ -1,6 +1,5 @@
-import nodeLib from '/lib/xp/node';
 import { getUnixTimeFromDateTimeString } from '../utils';
-import { searchRepo } from '../constants';
+import { getSearchRepoConnection } from './helpers/repo';
 
 const oneYear = 1000 * 3600 * 24 * 365;
 
@@ -53,10 +52,7 @@ const resultWithCustomScoreWeights = (result) => ({
 });
 
 export const runSearchQuery = (queryParams, sort) => {
-    const repo = nodeLib.connect({
-        repoId: searchRepo,
-        branch: 'master',
-    });
+    const repo = getSearchRepoConnection();
 
     const queryResult = repo.query(
         sort === 0

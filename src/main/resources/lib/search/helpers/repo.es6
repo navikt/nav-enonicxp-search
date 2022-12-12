@@ -1,14 +1,15 @@
-import { connect } from '/lib/xp/node';
+import nodeLib from '/lib/xp/node';
+import { contentRepo, searchRepo } from '../../constants';
 
-let repository = null;
+export const getContentRepoConnection = () =>
+    nodeLib.connect({
+        repoId: contentRepo,
+        branch: 'master',
+        principals: ['role:system.admin'],
+    });
 
-export const getRepository = () => {
-    if (!repository) {
-        repository = connect({
-            repoId: 'com.enonic.cms.default',
-            branch: 'master',
-            principals: ['role:system.admin'],
-        });
-    }
-    return repository;
-};
+export const getSearchRepoConnection = () =>
+    nodeLib.connect({
+        repoId: searchRepo,
+        branch: 'master',
+    });

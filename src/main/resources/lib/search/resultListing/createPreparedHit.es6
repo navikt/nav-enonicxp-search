@@ -1,4 +1,4 @@
-import { getRepository } from '../helpers/repo';
+import { getContentRepoConnection } from '../helpers/repo';
 import { getPaths } from './getPaths';
 
 export const calculateHighlightText = (highLight) => {
@@ -128,7 +128,7 @@ const highLightFragment = (searchText, wordList) => {
 
 export const getHighLight = (searchNode, wordList) => {
     if (searchNode.type === 'media:document') {
-        const media = getRepository().get(searchNode._id);
+        const media = getContentRepoConnection().get(searchNode._id);
         if (media && media.attachment) {
             return {
                 text: highLightFragment(media.attachment.text || '', wordList),
