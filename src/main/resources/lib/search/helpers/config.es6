@@ -113,11 +113,26 @@ const validateConfig = (config, repo) => {
 const getLastValidConfig = (repo) => {
     const configNode = repo.get(searchConfigKey);
     if (!configNode?.config?.data?.fasetter) {
-        logger.critical(`No valid search config found in repo!`);
+        logger.critical('No valid search config found in repo!');
         return null;
     }
 
     return configNode.config;
+};
+
+const setConfigCache = (config) => {
+    const defaultFacet = forceArray(config.data.fasetter)[0];
+
+    if (!defaultFacet) {
+        logger.critical('Search config does not contain any facets!');
+    }
+
+    searchConfig = {
+        ...config,
+        defaultFacetParam: defaultFacet?.facetKey,
+        facetWithPrioHits: defaultFacet?.facetKey,
+        ufWithPrioHits: defaultFacet?.underfasetter?.[0]?.facetKey,
+    };
 };
 
 export const revalidateSearchConfigCache = () => {
@@ -135,34 +150,23 @@ export const revalidateSearchConfigCache = () => {
     );
 
     if (searchConfigHits.length === 0) {
-        logger.critical(`No search config found!`);
-        searchConfig = getLastValidConfig(searchRepoConnection);
+        logger.critical('No search config found!');
+        setConfigCache(getLastValidConfig(searchRepoConnection));
         return;
     }
 
     if (searchConfigHits.length > 1) {
-        logger.critical(`Multiple search configs found! Using oldest.`);
+        logger.critical('Multiple search configs found! Using oldest.');
     }
 
     const searchConfigNew = searchConfigHits[0];
     if (!validateConfig(searchConfigNew, searchRepoConnection)) {
-        logger.critical(`Failed to validate search facet queries!`);
-        searchConfig = getLastValidConfig(searchRepoConnection);
+        logger.critical('Failed to validate search facet queries!');
+        setConfigCache(getLastValidConfig(searchRepoConnection));
         return;
     }
 
-    const defaultFacet = forceArray(searchConfigNew.data.fasetter)[0];
-
-    if (!defaultFacet) {
-        logger.critical('Search config does not contain any facets!');
-    }
-
-    searchConfig = {
-        ...searchConfigNew,
-        defaultFacetParam: defaultFacet?.facetKey,
-        facetWithPrioHits: defaultFacet?.facetKey,
-        ufWithPrioHits: defaultFacet?.underfasetter?.[0]?.facetKey,
-    };
+    setConfigCache(searchConfigNew);
 
     logger.info('Updated search config cache!');
 };
