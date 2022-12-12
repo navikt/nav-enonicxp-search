@@ -45,22 +45,19 @@ const validateQueries = (facets, repo) => {
 };
 
 const validateFields = (fields, repo) => {
-    let isValid = true;
-
     try {
         repo.query({
             start: 0,
             count: 0,
             query: `fulltext("test", "${fields}", "OR")`,
         });
+        return true;
     } catch (e) {
         logger.error(
             `Invalid fields specified in search config: ${fields} - Error: ${e}`
         );
-        isValid = false;
+        return false;
     }
-
-    return isValid;
 };
 
 const validateKeys = (facets) => {
@@ -114,13 +111,13 @@ const validateConfig = (config, repo) => {
 };
 
 const getLastValidConfig = (repo) => {
-    const config = repo.get(searchConfigKey);
-    if (!config?.data?.fasetter) {
+    const configNode = repo.get(searchConfigKey);
+    if (!configNode?.config?.data?.fasetter) {
         logger.critical(`No valid search config found in repo!`);
         return null;
     }
 
-    return config;
+    return configNode.config;
 };
 
 export const revalidateSearchConfigCache = () => {
@@ -139,7 +136,7 @@ export const revalidateSearchConfigCache = () => {
 
     if (searchConfigHits.length === 0) {
         logger.critical(`No search config found!`);
-        searchConfig = getLastValidConfig();
+        searchConfig = getLastValidConfig(searchRepoConnection);
         return;
     }
 
@@ -150,7 +147,7 @@ export const revalidateSearchConfigCache = () => {
     const searchConfigNew = searchConfigHits[0];
     if (!validateConfig(searchConfigNew, searchRepoConnection)) {
         logger.critical(`Failed to validate search facet queries!`);
-        searchConfig = getLastValidConfig();
+        searchConfig = getLastValidConfig(searchRepoConnection);
         return;
     }
 
