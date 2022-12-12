@@ -1,11 +1,15 @@
 import { pathFilter } from '../helpers/pathFilter';
 import { forceArray } from '../../utils';
 
+// Don't match content with a future scheduled publish date
+const publishedOnlyQuerySegment = () =>
+    `publish.from < instant("${new Date().toISOString()}")`;
+
 export const createQuery = (queryString, queryParams = {}, config) => {
     const contentTypes = forceArray(config.data.contentTypes);
     const fieldsToSearch = forceArray(config.data.fields);
 
-    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND publish.from < instant("${new Date().toISOString()}") ${pathFilter}`;
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} ${pathFilter}`;
 
     return {
         start: 0,

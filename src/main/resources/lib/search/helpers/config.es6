@@ -2,22 +2,24 @@ import contentLib from '/lib/xp/content';
 import { runInContext } from '../../utils/context';
 import { logger } from '../../utils/logger';
 import { forceArray } from '../../utils';
-import { runSearchQuery } from '../runSearchQuery';
+import { getSearchRepoConnection } from './repo';
+
+const searchConfigKey = '/config';
 
 let searchConfig = null;
 
-const validateQueries = (config) => {
+const validateQueries = (facets, repo) => {
     let isValid = true;
 
-    forceArray(config.data.fasetter).forEach((facet) => {
+    forceArray(facets).forEach((facet) => {
         try {
-            runSearchQuery({
+            repo.query({
                 start: 0,
                 count: 0,
                 query: facet.ruleQuery,
             });
         } catch (e) {
-            logger.critical(
+            logger.error(
                 `Invalid query specified for facet [${facet.facetKey}] ${facet.name} - ${facet.ruleQuery}`
             );
             isValid = false;
@@ -25,14 +27,14 @@ const validateQueries = (config) => {
 
         forceArray(facet.underfasetter).forEach((uf) => {
             try {
-                runSearchQuery({
+                repo.query({
                     start: 0,
                     count: 0,
                     query: uf.ruleQuery,
                 });
             } catch (e) {
-                logger.critical(
-                    `Invalid query specified for underfacet [${facet.facetKey}/${uf.facetKey}] ${uf.name} - ${uf.ruleQuery}`
+                logger.error(
+                    `Invalid query specified for underfacet [${facet.facetKey}/${uf.facetKey}] ${uf.name}: ${uf.ruleQuery} - Error: ${e}`
                 );
                 isValid = false;
             }
@@ -42,7 +44,88 @@ const validateQueries = (config) => {
     return isValid;
 };
 
+const validateFields = (fields, repo) => {
+    let isValid = true;
+
+    try {
+        repo.query({
+            start: 0,
+            count: 0,
+            query: `fulltext("test", "${fields}", "OR")`,
+        });
+    } catch (e) {
+        logger.error(
+            `Invalid fields specified in search config: ${fields} - Error: ${e}`
+        );
+        isValid = false;
+    }
+
+    return isValid;
+};
+
+const validateKeys = (facets) => {
+    let isValid = true;
+
+    forceArray(facets).forEach((facet, index, array) => {
+        const facetKeyIsDuplicate =
+            array.findIndex((facet2) => facet.facetKey === facet2.facetKey) !==
+            index;
+
+        if (facetKeyIsDuplicate) {
+            isValid = false;
+            logger.error(
+                `Facet key is not unique: ${facet.facetKey} (${facet.name})`
+            );
+        }
+
+        forceArray(facet.underfasetter).forEach((uf, ufIndex, ufArray) => {
+            const ufKeyIsDuplicate =
+                ufArray.findIndex((uf2) => uf.facetKey === uf2.facetKey) !==
+                ufIndex;
+
+            if (ufKeyIsDuplicate) {
+                isValid = false;
+                logger.error(
+                    `Underfacet key is not unique: ${facet.facetKey}/${uf.facetKey} (${uf.name})`
+                );
+            }
+        });
+    });
+
+    return isValid;
+};
+
+const validateConfig = (config, repo) => {
+    let isValid = true;
+
+    if (!validateFields(config.data.fields, repo)) {
+        isValid = false;
+    }
+
+    if (!validateQueries(config.data.fasetter, repo)) {
+        isValid = false;
+    }
+
+    if (!validateKeys(config.data.fasetter)) {
+        isValid = false;
+    }
+
+    return isValid;
+};
+
+const getLastValidConfig = (repo) => {
+    const config = repo.get(searchConfigKey);
+    if (!config?.data?.fasetter) {
+        logger.critical(`No valid search config found in repo!`);
+        return null;
+    }
+
+    return config;
+};
+
 export const revalidateSearchConfigCache = () => {
+    const searchRepoConnection = getSearchRepoConnection();
+
     const searchConfigHits = runInContext(
         { branch: 'master' },
         () =>
@@ -56,6 +139,7 @@ export const revalidateSearchConfigCache = () => {
 
     if (searchConfigHits.length === 0) {
         logger.critical(`No search config found!`);
+        searchConfig = getLastValidConfig();
         return;
     }
 
@@ -64,8 +148,9 @@ export const revalidateSearchConfigCache = () => {
     }
 
     const searchConfigNew = searchConfigHits[0];
-    if (!validateQueries(searchConfigNew)) {
+    if (!validateConfig(searchConfigNew, searchRepoConnection)) {
         logger.critical(`Failed to validate search facet queries!`);
+        searchConfig = getLastValidConfig();
         return;
     }
 
