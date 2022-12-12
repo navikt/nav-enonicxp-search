@@ -161,14 +161,14 @@ export const revalidateSearchConfigCache = () => {
 
     const searchConfigNew = searchConfigHits[0];
     if (!validateConfig(searchConfigNew, searchRepoConnection)) {
-        logger.critical('Failed to validate search facet queries!');
+        logger.critical('Failed to validate search config!');
         setConfigCache(getLastValidConfig(searchRepoConnection));
         return;
     }
 
     setConfigCache(searchConfigNew);
 
-    logger.info('Updated search config cache!');
+    logger.info('Updated search config');
 };
 
 export const getConfig = () => {
