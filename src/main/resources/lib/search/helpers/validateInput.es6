@@ -54,12 +54,13 @@ export const validateAndTransformParams = (params) => {
 
     const { wordList, queryString } = generateSearchInput(ordTrimmed);
 
+    const facetInput = Array.isArray(f) ? f[0] : f;
     const facetData = forceArray(config.data.fasetter).find(
-        (facet) => facet.facetKey === f
+        (facet) => facet.facetKey === facetInput
     );
 
     return {
-        f: facetData ? f : config.defaultFacetParam,
+        f: facetData ? facetInput : config.defaultFacetParam,
         uf: facetData ? validUnderfacets(facetData, uf, config) : [],
         start: startValid, // Start batch
         c: validNumber(c, countMin, countMin), // End batch/count
