@@ -6,35 +6,37 @@ import { contentRepo } from '../../constants';
 import { getConfig, revalidateSearchConfigCache } from './config';
 import { logger } from '../../utils/logger';
 
-const standardCache = {
+const prioritiesAndSynonymsCache = cacheLib.newCache({
     size: 1000,
-    expire: 3600 * 24 /* One day */,
-};
+    expire: 3600 * 24, // 1 day
+});
 
-let emptySearchKeys = [];
-const cache = cacheLib.newCache(standardCache);
+const emptyHitsCache = cacheLib.newCache({
+    size: 1000,
+    expire: 60, // 1 min
+});
 
 const typesToClear = {
-    [app.name + ':search-priority']: true,
-    [app.name + ':search-api2']: true,
-    [app.name + ':synonyms']: true,
+    ['navno.nav.no.search:search-priority']: true,
+    ['navno.nav.no.search:search-api2']: true,
+    ['navno.nav.no.search:synonyms']: true,
 };
 
 const wipeAll = () => {
-    cache.clear();
+    prioritiesAndSynonymsCache.clear();
+    emptyHitsCache.clear();
 };
 
 export const getEmptySearchResult = (key, fallback) => {
-    emptySearchKeys.push(key);
-    return cache.get(key, fallback);
+    return emptyHitsCache.get(key, fallback);
 };
 
 export const getSynonymMap = () => {
-    return cache.get('synonyms', () => {
+    return prioritiesAndSynonymsCache.get('synonyms', () => {
         const synonymLists = contentLib.query({
             start: 0,
             count: 100,
-            query: 'type = "' + app.name + ':synonyms"',
+            contentTypes: ['navno.nav.no.search:synonyms'],
         }).hits;
 
         const synonymMap = {};
@@ -64,7 +66,7 @@ export const getSynonymMap = () => {
 };
 
 export const getPriorities = () => {
-    return cache.get('priorites', () => {
+    return prioritiesAndSynonymsCache.get('priorities', () => {
         let priority = [];
         let start = 0;
         let count = 1000;
@@ -72,8 +74,11 @@ export const getPriorities = () => {
             const q = contentLib.query({
                 start: start,
                 count: 1000,
-                query: `(_parentpath LIKE "*prioriterte-elementer*" OR _parentpath LIKE "*prioriterte-elementer-eksternt*") AND
-                        (type = "navno.nav.no.search:search-priority" OR type = "navno.nav.no.search:search-api2")`,
+                contentTypes: [
+                    'navno.nav.no.search:search-priority',
+                    'navno.nav.no.search:search-api2',
+                ],
+                query: '_parentpath LIKE "/content/www.nav.no/prioriterte-elementer*" OR _parentpath LIKE "/content/www.nav.no/prioriterte-elementer-eksternt*"',
             });
 
             start += 1000;
@@ -116,21 +121,14 @@ export const activateEventListener = () => {
                     asAdmin: true,
                 },
                 () => {
-                    // clear aggregation cache
-                    cache.remove('emptyaggs');
-                    // clear other empty search caches
-                    emptySearchKeys.forEach((key) => {
-                        cache.remove(key);
-                    });
-                    emptySearchKeys = [];
-
                     // wipe all on delete because we can't check the type of the deleted content
                     if (event.type === 'node.deleted') {
                         wipeAll();
                         return;
                     }
 
-                    // clear full cache if prioritized items or synonyms have changed
+                    emptyHitsCache.clear();
+
                     event.data.nodes.forEach((node) => {
                         if (
                             node.repo !== contentRepo ||
