@@ -7,9 +7,6 @@ import { runInContext } from '../../lib/utils/context';
 import { contentRepo } from '../../lib/constants';
 
 const processBucket = (type, params, parent, element) => {
-    if (!params.ord && !element.docCount) {
-        return null;
-    }
     if (type === 'fasett') {
         element.checked = params.f === element.key;
         element.default = element.checked && params.uf.length === 0;
@@ -25,6 +22,9 @@ const processBucket = (type, params, parent, element) => {
             }, []);
     } else {
         element.checked = parent.checked && params.uf.includes(element.key);
+        if (!element.docCount && !element.checked) {
+            return null;
+        }
     }
     return element;
 };
