@@ -7,7 +7,7 @@ import {
 } from '../helpers/utils';
 
 const getFuzzyWord = (word) =>
-    `${word}~${word.length > 8 ? 2 : word.length > 4 ? 1 : 0}`;
+    `${word}~${word.length > 7 ? 2 : word.length > 4 ? 1 : 0}`;
 
 const getSuggestions = (words) => {
     const suggest = __.newBean('no.nav.search.elastic.Suggest');
