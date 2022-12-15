@@ -1,6 +1,13 @@
 import { sanitize } from '/lib/xp/common';
 import { getSynonymMap } from '../helpers/cache';
-import { formatExactSearch, isExactSearch, isFormSearch } from '../helpers/utils';
+import {
+    formatExactSearch,
+    isExactSearch,
+    isFormSearch,
+} from '../helpers/utils';
+
+const getFuzzyWord = (word) =>
+    `${word}~${word.length > 7 ? 2 : word.length > 4 ? 1 : 0}`;
 
 const getSuggestions = (words) => {
     const suggest = __.newBean('no.nav.search.elastic.Suggest');
@@ -11,9 +18,18 @@ const getSuggestions = (words) => {
 const getSynonyms = (words, synonymMap) => {
     return words.reduce((acc, word) => {
         const synonyms = synonymMap[word];
-        return synonyms ? [...acc, ...synonyms.map((synonym) => `"${synonym}"`)] : acc;
+        return synonyms
+            ? [...acc, ...synonyms.map((synonym) => `"${synonym}"`)]
+            : acc;
     }, []);
 };
+
+const getInitialWords = (inputWord, queryString) => [
+    // Use fuzzy search on user input to handle misspellings etc
+    getFuzzyWord(inputWord),
+    // Make the last user-submitted word a prefix query to give results on incomplete words
+    ...(queryString.endsWith(inputWord) ? [`${inputWord}*`] : []),
+];
 
 const getWordsMap = (queryString) => {
     const synonymMap = getSynonymMap();
@@ -21,22 +37,28 @@ const getWordsMap = (queryString) => {
     analyze.text = __.nullOrValue(queryString);
 
     // Use the nb_NO analyzer to remove stop words and find stemmed version of the words
-    const wordsAnalyzedMap = __.toNativeObject(analyze.analyze()).reduce((acc, token) => {
-        const { startOffset, endOffset, term } = token;
+    const wordsAnalyzedMap = __.toNativeObject(analyze.analyze()).reduce(
+        (acc, token) => {
+            const { startOffset, endOffset, term } = token;
 
-        const originalWord = queryString.substring(startOffset, endOffset);
-        const prevWords = acc[originalWord] || [originalWord];
+            const userInputWord = queryString.substring(startOffset, endOffset);
 
-        if (prevWords.indexOf(term) === -1) {
-            return { ...acc, [originalWord]: [...prevWords, term] };
-        }
+            const prevWords =
+                acc[userInputWord] ||
+                getInitialWords(userInputWord, queryString);
 
-        if (!acc[originalWord]) {
-            return { ...acc, [originalWord]: prevWords };
-        }
+            if (!prevWords.includes(term)) {
+                return { ...acc, [userInputWord]: [...prevWords, term] };
+            }
 
-        return acc;
-    }, {});
+            if (!acc[userInputWord]) {
+                return { ...acc, [userInputWord]: prevWords };
+            }
+
+            return acc;
+        },
+        {}
+    );
 
     return Object.keys(wordsAnalyzedMap).reduce((acc, keyWord) => {
         const words = wordsAnalyzedMap[keyWord];
@@ -60,18 +82,12 @@ const getUniqueWords = (wordMap) =>
         .reduce((acc, key) => [...acc, ...wordMap[key]], [])
         .filter((word, index, array) => array.indexOf(word) === index);
 
+// The query string should should have OR logic within each word from the user and its synonyms and suggestions
+// and AND logic between each such group of words, ie (input1 | inputSynonym1) (input2 | inputSynonym2)
+// (space between each group implies AND)
 const buildFinalQueryString = (wordMap) => {
     return Object.keys(wordMap)
-        .map((word, index, array) => {
-            const words = wordMap[word];
-
-            // Insert a wildcard-version of the last user-submitted word to make this a prefix query
-            if (index === array.length - 1) {
-                words.push(`${words[0]}*`);
-            }
-
-            return `(${words.join('|')})`;
-        })
+        .map((word) => `(${wordMap[word].join('|')})`)
         .join(' ');
 };
 
@@ -93,5 +109,8 @@ export const generateSearchInput = (userInput) => {
 
     const wordsMap = getWordsMap(sanitizedTerm);
 
-    return { wordList: getUniqueWords(wordsMap), queryString: buildFinalQueryString(wordsMap) };
+    return {
+        wordList: getUniqueWords(wordsMap),
+        queryString: buildFinalQueryString(wordsMap),
+    };
 };

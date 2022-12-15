@@ -10,19 +10,12 @@ import {
 import { runSearchQuery } from './runSearchQuery';
 import { getConfig } from './helpers/config';
 import { logger } from '../utils/logger';
+import { getSearchWithoutAggregationsResult } from './helpers/cache';
 
 export const noAggregationsBatchSize = 10;
 
-export const searchWithoutAggregations = (params) => {
-    const tsStart = Date.now();
-
-    const {
-        ord,
-        start: startParam,
-        c: countParam,
-        wordList,
-        queryString,
-    } = params;
+const runSearch = (params) => {
+    const { start: startParam, c: countParam, wordList, queryString } = params;
 
     const prioritiesItems = getPrioritizedElements(queryString);
     const config = getConfig();
@@ -31,7 +24,7 @@ export const searchWithoutAggregations = (params) => {
         count: countParam,
         batchSize: noAggregationsBatchSize,
     });
-    const ESQuery = createQuery(
+    const queryParams = createQuery(
         queryString,
         {
             filters: createFilters(params, config, prioritiesItems),
@@ -41,7 +34,7 @@ export const searchWithoutAggregations = (params) => {
         config
     );
 
-    let { hits = [], total = 0 } = runSearchQuery(ESQuery, 0);
+    let { hits = [], total = 0 } = runSearchQuery(queryParams, 0);
 
     if (shouldIncludePrioHits(params, config)) {
         hits = prioritiesItems.hits.concat(hits);
@@ -65,6 +58,21 @@ export const searchWithoutAggregations = (params) => {
         };
     });
 
+    return { total, hits, prioritiesItems };
+};
+
+export const searchWithoutAggregations = (params) => {
+    const tsStart = Date.now();
+
+    const { ord, start, c: count, queryString } = params;
+
+    const cacheKey = `${ord}-${start}-${count}`;
+
+    const { hits, total, prioritiesItems } = getSearchWithoutAggregationsResult(
+        cacheKey,
+        () => runSearch(params)
+    );
+
     const tsEnd = Date.now();
     logger.info(
         `Decorator search (${
@@ -75,7 +83,7 @@ export const searchWithoutAggregations = (params) => {
     );
 
     return {
-        total: total,
-        hits: hits,
+        total,
+        hits,
     };
 };
