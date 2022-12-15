@@ -23,7 +23,7 @@ const getSynonyms = (words, synonymMap) => {
     }, []);
 };
 
-const getInitialWordArray = (inputWord, queryString) => [
+const getInitialWords = (inputWord, queryString) => [
     // Use fuzzy search on user input to handle misspellings etc
     `${inputWord}~${Math.ceil(fuzzinessPerChar * inputWord.length)}`,
     // Make the last user-submitted word a prefix query to give results on incomplete words
@@ -44,7 +44,7 @@ const getWordsMap = (queryString) => {
 
             const prevWords =
                 acc[userInputWord] ||
-                getInitialWordArray(userInputWord, queryString);
+                getInitialWords(userInputWord, queryString);
 
             if (!prevWords.includes(term)) {
                 return { ...acc, [userInputWord]: [...prevWords, term] };
