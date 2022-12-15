@@ -6,29 +6,43 @@ import { contentRepo } from '../../constants';
 import { getConfig, revalidateSearchConfigCache } from './config';
 import { logger } from '../../utils/logger';
 
-const prioritiesAndSynonymsCache = cacheLib.newCache({
-    size: 1000,
-    expire: 3600 * 24, // 1 day
-});
-
-const emptyHitsCache = cacheLib.newCache({
-    size: 1000,
-    expire: 60, // 1 min
-});
-
 const typesToClear = {
     ['navno.nav.no.search:search-priority']: true,
     ['navno.nav.no.search:search-api2']: true,
     ['navno.nav.no.search:synonyms']: true,
 };
 
-const wipeAll = () => {
-    prioritiesAndSynonymsCache.clear();
-    emptyHitsCache.clear();
+const prioritiesAndSynonymsCache = cacheLib.newCache({
+    size: 1000,
+    expire: 3600 * 24, // 1 day
+});
+
+const searchWithoutAggregationsCache = cacheLib.newCache({
+    size: 1000,
+    expire: 300,
+});
+
+const searchWithAggregationsCache = cacheLib.newCache({
+    size: 1000,
+    expire: 300,
+});
+
+const wipeSearchCache = () => {
+    searchWithoutAggregationsCache.clear();
+    searchWithAggregationsCache.clear();
 };
 
-export const getEmptySearchResult = (key, fallback) => {
-    return emptyHitsCache.get(key, fallback);
+const wipeAll = () => {
+    prioritiesAndSynonymsCache.clear();
+    wipeSearchCache();
+};
+
+export const getSearchWithoutAggregationsResult = (key, callback) => {
+    return searchWithoutAggregationsCache.get(key, callback);
+};
+
+export const getSearchWithAggregationsResult = (key, callback) => {
+    return searchWithAggregationsCache.get(key, callback);
 };
 
 export const getSynonymMap = () => {
@@ -127,7 +141,7 @@ export const activateEventListener = () => {
                         return;
                     }
 
-                    emptyHitsCache.clear();
+                    wipeSearchCache();
 
                     event.data.nodes.forEach((node) => {
                         if (

@@ -1,4 +1,3 @@
-import { getEmptySearchResult } from './helpers/cache';
 import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
 import { createQuery } from './queryBuilder/createQuery';
@@ -9,18 +8,14 @@ import { runSearchQuery } from './runSearchQuery';
 import { getConfig } from './helpers/config';
 import { getAggregations } from './helpers/aggregations';
 import { logger } from '../utils/logger';
+import { getSearchWithAggregationsResult } from './helpers/cache';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
 export const withAggregationsBatchSize = 20;
 
-export const searchWithAggregations = (params, skipCache) => {
-    const tsStart = Date.now();
-
+const runSearch = (params) => {
     const {
-        f: facet,
-        uf: underfacets,
-        ord,
         start: startParam,
         excludePrioritized,
         c: countParam,
@@ -29,13 +24,6 @@ export const searchWithAggregations = (params, skipCache) => {
         wordList,
         queryString,
     } = params;
-
-    // get empty search from cache, or fallback to trying again but with forced skip cache bit
-    if (wordList.length === 0 && !skipCache) {
-        return getEmptySearchResult(JSON.stringify(params), () =>
-            searchWithAggregations(params, true)
-        );
-    }
 
     const config = getConfig();
 
@@ -86,16 +74,40 @@ export const searchWithAggregations = (params, skipCache) => {
     // prepare the hits with highlighting and such
     hits = hits.map((hit) => createPreparedHit(hit, wordList));
 
-    let facetsLog = '';
-    if (facet) {
-        facetsLog = ` - ${facet}|${underfacets.join(', ')}`;
-    }
+    return {
+        hits,
+        total,
+        aggregations,
+        prioritiesItems,
+    };
+};
 
-    if (daterange !== -1) {
-        facetsLog += ` / ${daterange}`;
-    }
+export const searchWithAggregations = (params) => {
+    const tsStart = Date.now();
+
+    const {
+        f: facet,
+        uf: underfacets,
+        ord,
+        daterange,
+        queryString,
+        start,
+        c: count,
+        s: sort,
+        excludePrioritized,
+    } = params;
+
+    const cacheKey = `${ord}-${start}-${count}-${facet}-${underfacets}-${daterange}-${sort}-${excludePrioritized}`;
+
+    const { hits, total, aggregations, prioritiesItems } =
+        getSearchWithAggregationsResult(cacheKey, () => runSearch(params));
+
+    const facetsLog = `${facet ? ` - ${facet}|${underfacets.join(', ')}` : ''}${
+        daterange !== -1 ? ` / ${daterange}` : ''
+    }`;
 
     const tsEnd = Date.now();
+
     logger.info(
         `Full search (${
             tsEnd - tsStart

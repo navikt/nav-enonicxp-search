@@ -6,7 +6,8 @@ import {
     isFormSearch,
 } from '../helpers/utils';
 
-const fuzzinessPerChar = 1 / 5;
+const getFuzzyWord = (word) =>
+    `${word}~${word.length > 8 ? 2 : word.length > 4 ? 1 : 0}`;
 
 const getSuggestions = (words) => {
     const suggest = __.newBean('no.nav.search.elastic.Suggest');
@@ -25,7 +26,7 @@ const getSynonyms = (words, synonymMap) => {
 
 const getInitialWords = (inputWord, queryString) => [
     // Use fuzzy search on user input to handle misspellings etc
-    `${inputWord}~${Math.ceil(fuzzinessPerChar * inputWord.length)}`,
+    getFuzzyWord(inputWord),
     // Make the last user-submitted word a prefix query to give results on incomplete words
     ...(queryString.endsWith(inputWord) ? [`${inputWord}*`] : []),
 ];
