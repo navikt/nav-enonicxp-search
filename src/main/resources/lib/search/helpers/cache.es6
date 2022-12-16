@@ -146,7 +146,7 @@ export const activateEventListener = () => {
 
                 // wipe all on delete because we can't check the type of the deleted content
                 if (event.type === 'node.deleted') {
-                    wipeAll();
+                    prioritiesAndSynonymsCache.clear();
                     return;
                 }
 
