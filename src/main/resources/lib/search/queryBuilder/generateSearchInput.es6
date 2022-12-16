@@ -6,8 +6,14 @@ import {
     isFormSearch,
 } from '../helpers/utils';
 
+const fuzzynessPerChar = 1 / 4;
+const maxFuzzyness = 3;
+
 const getFuzzyWord = (word) =>
-    `${word}~${word.length > 7 ? 2 : word.length > 4 ? 1 : 0}`;
+    `${word}~${Math.min(
+        Math.floor(word.length * fuzzynessPerChar),
+        maxFuzzyness
+    )}`;
 
 const getSuggestions = (words) => {
     const suggest = __.newBean('no.nav.search.elastic.Suggest');
