@@ -1,12 +1,11 @@
 import cacheLib from '/lib/cache';
 import eventLib from '/lib/xp/event';
 import contentLib from '/lib/xp/content';
-import { runInContext } from '../../utils/context';
-import { contentRepo } from '../../constants';
+import { contentRepo, searchRepo } from '../../constants';
 import { getConfig, revalidateSearchConfigCache } from './config';
 import { logger } from '../../utils/logger';
 
-const typesToClear = {
+const prioritiesAndSynonymsTypes = {
     ['navno.nav.no.search:search-priority']: true,
     ['navno.nav.no.search:search-api2']: true,
     ['navno.nav.no.search:synonyms']: true,
@@ -19,12 +18,12 @@ const prioritiesAndSynonymsCache = cacheLib.newCache({
 
 const searchWithoutAggregationsCache = cacheLib.newCache({
     size: 1000,
-    expire: 300,
+    expire: 300, // 5 min
 });
 
 const searchWithAggregationsCache = cacheLib.newCache({
     size: 1000,
-    expire: 300,
+    expire: 300, // 5 min
 });
 
 const wipeSearchCache = () => {
@@ -122,51 +121,49 @@ export const activateEventListener = () => {
 
     isActive = true;
 
-    const searchConfigId = searchConfig._id;
-
     eventLib.listener({
-        type: '(node.pushed|node.deleted)',
+        // We only have a single branch (master) in the search repo, so we listen to created/updated
+        // for cache invalidation on this repo
+        type: '(node.pushed|node.deleted|node.created|node.updated)',
         localOnly: false,
         callback: (event) => {
-            runInContext(
-                {
-                    repository: 'com.enonic.cms.default',
-                    branch: 'master',
-                    asAdmin: true,
-                },
-                () => {
-                    // wipe all on delete because we can't check the type of the deleted content
-                    if (event.type === 'node.deleted') {
-                        wipeAll();
-                        return;
-                    }
-
-                    wipeSearchCache();
-
-                    event.data.nodes.forEach((node) => {
-                        if (
-                            node.repo !== contentRepo ||
-                            node.branch !== 'master'
-                        ) {
-                            return;
-                        }
-
-                        if (node.id === searchConfigId) {
-                            revalidateSearchConfigCache();
-                            return;
-                        }
-
-                        const content = contentLib.get({
-                            key: node.id,
-                        });
-
-                        // wipe all if the content doesn't exist, just in case
-                        if (!content || typesToClear[content.type]) {
-                            wipeAll();
-                        }
-                    });
+            event.data.nodes.forEach((node) => {
+                if (node.branch !== 'master') {
+                    return;
                 }
-            );
+
+                if (node.repo === searchRepo) {
+                    wipeSearchCache();
+                    return;
+                }
+
+                if (
+                    node.repo !== contentRepo ||
+                    event.type === 'node.created' ||
+                    event.type === 'node.updated'
+                ) {
+                    return;
+                }
+
+                if (node.id === searchConfig._id) {
+                    revalidateSearchConfigCache();
+                    return;
+                }
+
+                // Wipe on delete because we can't check the type of the deleted content
+                if (event.type === 'node.deleted') {
+                    prioritiesAndSynonymsCache.clear();
+                    return;
+                }
+
+                const content = contentLib.get({
+                    key: node.id,
+                });
+
+                if (!content || prioritiesAndSynonymsTypes[content.type]) {
+                    prioritiesAndSynonymsCache.clear();
+                }
+            });
         },
     });
 };
