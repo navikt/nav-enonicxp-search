@@ -122,7 +122,9 @@ export const activateEventListener = () => {
     isActive = true;
 
     eventLib.listener({
-        type: '(node.pushed|node.deleted)',
+        // We only have a single branch (master) in the search repo, so we listen to created/updated
+        // for cache invalidation on this repo
+        type: '(node.pushed|node.deleted|node.created|node.updated)',
         localOnly: false,
         callback: (event) => {
             event.data.nodes.forEach((node) => {
@@ -135,7 +137,11 @@ export const activateEventListener = () => {
                     return;
                 }
 
-                if (node.repo !== contentRepo) {
+                if (
+                    node.repo !== contentRepo ||
+                    event.type === 'node.created' ||
+                    event.type === 'node.updated'
+                ) {
                     return;
                 }
 
