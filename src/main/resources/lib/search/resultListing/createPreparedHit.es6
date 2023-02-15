@@ -145,6 +145,23 @@ export const getHighLight = (searchNode, wordList) => {
     };
 };
 
+const pathSegmentToAudience = {
+    person: 'person',
+    bedrift: 'employer',
+    samarbeidspartner: 'provider',
+};
+
+export const getAudienceForHit = (hit) => {
+    if (hit.data?.audience) {
+        return hit.data.audience;
+    }
+
+    // Paths from the query typically looks like this: /content/www.nav.no/<language>/<audience>/foo/bar
+    // for legacy content without the audience field, we try to get the audience from the path
+    const audienceSegment = hit._path.split('/')[4];
+    return pathSegmentToAudience[audienceSegment];
+};
+
 export const createPreparedHit = (hit, wordList) => {
     // Join the prioritised search with the result and map the contents with: highlighting,
     // href, displayName and so on
@@ -199,5 +216,6 @@ export const createPreparedHit = (hit, wordList) => {
         score: hit._score,
         rawScore: hit._rawScore,
         officeInformation: officeInformation,
+        audience: getAudienceForHit(hit),
     };
 };
