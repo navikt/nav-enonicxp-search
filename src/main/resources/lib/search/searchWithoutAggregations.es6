@@ -5,6 +5,7 @@ import { createFilters } from './queryBuilder/createFilters';
 import { getPaths } from './resultListing/getPaths';
 import {
     calculateHighlightText,
+    getAudienceForHit,
     getHighLight,
 } from './resultListing/createPreparedHit';
 import { runSearchQuery } from './runSearchQuery';
@@ -55,6 +56,7 @@ const runSearch = (params) => {
             modifiedTime: hit.modifiedTime,
             score: hit._score,
             rawScore: hit._rawScore,
+            audience: getAudienceForHit(hit, href),
         };
     });
 

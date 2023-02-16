@@ -1,7 +1,0 @@
-<content-type>
-    <display-name>Søkegrensesnitt</display-name>
-    <super-type>base:structured</super-type>
-    <is-abstract>true</is-abstract>
-    <form>
-    </form>
-</content-type>

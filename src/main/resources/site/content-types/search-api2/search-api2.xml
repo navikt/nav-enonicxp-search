@@ -2,16 +2,12 @@
     <display-name>Prioritert søk ekstern</display-name>
     <super-type>base:structured</super-type>
     <form>
-        <input type="TextLine" name="applicationName">
-            <label>Applikasjonsnavn</label>
-            <help-text>For eksempel www.nav.no eller www.helfo.no</help-text>
-        </input>
-        <input type="Tag" name="keywords">
+        <input name="keywords" type="Tag" >
             <label>Nøkkelord</label>
             <occurrences minimum="0" maximum="0"/>
         </input>
         <input name="url" type="TextLine">
-            <label>Tjenernavn</label>
+            <label>URL</label>
             <occurrences maximum="1" minimum="1"/>
             <help-text>Lim inn url til nettsted</help-text>
         </input>
@@ -22,6 +18,15 @@
         <input name="ingress" type="TextArea">
             <label>Ingress</label>
             <occurrences minimum="1" maximum="1"/>
+        </input>
+        <input name="audience" type="ComboBox">
+            <label>Målgruppe</label>
+            <occurrences minimum="0" maximum="1"/>
+            <config>
+                <option value="person">Privatperson</option>
+                <option value="employer">Arbeidsgiver</option>
+                <option value="provider">Samarbeidspartner</option>
+            </config>
         </input>
     </form>
 </content-type>

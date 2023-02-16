@@ -14,7 +14,6 @@ export const getPaths = (el) => {
     const customPath = el.data && el.data.customPath;
 
     if (
-        el.type === app.name + ':search-api' ||
         el.type === app.name + ':search-api2' ||
         el.type === 'no.nav.navno:external-link'
     ) {
@@ -45,12 +44,18 @@ export const getPaths = (el) => {
         el.type === 'media:spreadsheet' ||
         el.type === 'media:image'
     ) {
-        paths.displayPath = pageUrl({ id: el._id }).split('/').slice(0, -1).join('/');
+        paths.displayPath = pageUrl({ id: el._id })
+            .split('/')
+            .slice(0, -1)
+            .join('/');
     } else if (customPath) {
         paths.displayPath = customPath;
     } else if (paths.href.indexOf('http') === 0) {
         // find display path for absolute urls
-        paths.displayPath = paths.href.replace(/^https:\/\/(www\.)?((dev|q6)\.)?nav\.no\//, '/');
+        paths.displayPath = paths.href.replace(
+            /^https:\/\/(www\.)?((dev|q6)\.)?nav\.no\//,
+            '/'
+        );
     } else {
         // display path for everything else
         paths.displayPath = paths.href.split('/').slice(0, -1).join('/');

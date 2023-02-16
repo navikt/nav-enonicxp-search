@@ -145,15 +145,40 @@ export const getHighLight = (searchNode, wordList) => {
     };
 };
 
+const pathSegmentToAudience = {
+    person: 'person',
+    bedrift: 'employer',
+    arbeidsgiver: 'employer',
+    samarbeidspartner: 'provider',
+    samarbeid: 'provider',
+};
+
+export const getAudienceForHit = (hit, href) => {
+    if (hit.data?.audience) {
+        return hit.data.audience;
+    }
+
+    const pathSegments = href
+        .replace(/^https?:\/\/[a-zA-Z0-9-.]+\//, '')
+        .split('/');
+
+    for (const segment of pathSegments) {
+        const audience = pathSegmentToAudience[segment];
+        if (audience) {
+            return audience;
+        }
+    }
+
+    return null;
+};
+
 export const createPreparedHit = (hit, wordList) => {
     // Join the prioritised search with the result and map the contents with: highlighting,
     // href, displayName and so on
 
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
-    const paths = getPaths(hit);
-    const href = paths.href;
-    const displayPath = paths.displayPath;
+    const { href, displayPath } = getPaths(hit);
     let name = hit.displayName;
 
     let officeInformation;
@@ -199,5 +224,6 @@ export const createPreparedHit = (hit, wordList) => {
         score: hit._score,
         rawScore: hit._rawScore,
         officeInformation: officeInformation,
+        audience: getAudienceForHit(hit, href),
     };
 };
