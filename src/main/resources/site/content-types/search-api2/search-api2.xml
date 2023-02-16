@@ -7,7 +7,7 @@
             <occurrences minimum="0" maximum="0"/>
         </input>
         <input name="url" type="TextLine">
-            <label>Tjenernavn</label>
+            <label>URL</label>
             <occurrences maximum="1" minimum="1"/>
             <help-text>Lim inn url til nettsted</help-text>
         </input>
