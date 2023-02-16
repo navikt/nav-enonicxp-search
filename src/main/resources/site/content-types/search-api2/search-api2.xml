@@ -21,7 +21,7 @@
         </input>
         <input name="audience" type="ComboBox">
             <label>Målgruppe</label>
-            <occurrences minimum="0" maximum="1"/>
+            <occurrences minimum="0" maximum="0"/>
             <config>
                 <option value="person">Privatperson</option>
                 <option value="employer">Arbeidsgiver</option>
