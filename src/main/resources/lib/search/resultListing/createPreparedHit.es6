@@ -148,18 +148,26 @@ export const getHighLight = (searchNode, wordList) => {
 const pathSegmentToAudience = {
     person: 'person',
     bedrift: 'employer',
+    arbeidsgiver: 'employer',
     samarbeidspartner: 'provider',
+    samarbeid: 'provider',
 };
 
-export const getAudienceForHit = (hit) => {
+export const getAudienceForHit = (hit, href) => {
     if (hit.data?.audience) {
         return hit.data.audience;
     }
 
-    // Paths from the query typically looks like this: /content/www.nav.no/<language>/<audience>/foo/bar
-    // for legacy content without the audience field, we try to get the audience from the path
-    const audienceSegment = hit._path.split('/')[4];
-    return pathSegmentToAudience[audienceSegment];
+    const pathSegments = href.split('/');
+
+    for (const segment of pathSegments) {
+        const audience = pathSegmentToAudience[segment];
+        if (audience) {
+            return audience;
+        }
+    }
+
+    return null;
 };
 
 export const createPreparedHit = (hit, wordList) => {
@@ -168,9 +176,7 @@ export const createPreparedHit = (hit, wordList) => {
 
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
-    const paths = getPaths(hit);
-    const href = paths.href;
-    const displayPath = paths.displayPath;
+    const { href, displayPath } = getPaths(hit);
     let name = hit.displayName;
 
     let officeInformation;
@@ -216,6 +222,6 @@ export const createPreparedHit = (hit, wordList) => {
         score: hit._score,
         rawScore: hit._rawScore,
         officeInformation: officeInformation,
-        audience: getAudienceForHit(hit),
+        audience: getAudienceForHit(hit, href),
     };
 };

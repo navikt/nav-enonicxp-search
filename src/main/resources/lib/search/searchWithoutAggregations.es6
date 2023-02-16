@@ -56,7 +56,7 @@ const runSearch = (params) => {
             modifiedTime: hit.modifiedTime,
             score: hit._score,
             rawScore: hit._rawScore,
-            audience: getAudienceForHit(hit),
+            audience: getAudienceForHit(hit, href),
         };
     });
 
