@@ -158,7 +158,9 @@ export const getAudienceForHit = (hit, href) => {
         return hit.data.audience;
     }
 
-    const pathSegments = href.split('/');
+    const pathSegments = href
+        .replace(/^https?:\/\/[a-zA-Z0-9-.]+\//, '')
+        .split('/');
 
     for (const segment of pathSegments) {
         const audience = pathSegmentToAudience[segment];
