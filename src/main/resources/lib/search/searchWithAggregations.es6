@@ -44,11 +44,24 @@ const runSearch = (inputParams) => {
     // Sort buckets from most recent to oldest, and transform the keys
     // to what the frontend expects
     daterangeAggs.Tidsperiode.buckets = daterangeAggs.Tidsperiode.buckets
-        .sort((a, b) => (a.key > b.key ? -1 : 1))
+        .sort((a, b) => (a.key > b.key ? 1 : -1))
         .map((bucket, index) => ({
             ...bucket,
             key: tidsperiodeRanges[index].name,
         }));
+
+    // if (daterange !== -1) {
+    //     const daterangeBucket = daterangeAggs.Tidsperiode.buckets[daterange];
+    //     const queryParams = createDaterangeQueryParams(
+    //         inputParams,
+    //         daterangeBucket,
+    //         withAggregationsBatchSize
+    //     );
+    //     const result = runSearchQuery(queryParams, sorting);
+    //
+    //     hits = result.hits;
+    //     total = result.total;
+    // }
 
     if (shouldIncludePrioHits(inputParams)) {
         const priorityHitCount = prioritizedItems.hits.length;
