@@ -1,7 +1,7 @@
 import { pathFilter } from '../helpers/pathFilter';
 import { forceArray } from '../../utils';
 import { getConfig } from '../helpers/config';
-import { createFilters } from './createFilters';
+import { createAggregationFilters, createSearchFilters } from './createFilters';
 import { getCountAndStart } from '../helpers/utils';
 
 // Don't match content with a future scheduled publish date
@@ -71,11 +71,17 @@ const createQuery = ({ queryString, start, count, aggregations, filters }) => {
     };
 };
 
-export const createFacetsAggregationsQuery = (queryString) => {
+export const createFacetsAggregationsQuery = (
+    queryString,
+    prioritizedItems
+) => {
+    const filters = createAggregationFilters(prioritizedItems);
+
     return createQuery({
         queryString,
         start: 0,
         count: 0,
+        filters,
         aggregations: facetsAggregations,
     });
 };
@@ -87,7 +93,7 @@ export const createSearchQueryParams = (
 ) => {
     const { start: startParam, c: countParam, queryString } = params;
 
-    const filters = createFilters(params, prioritizedItems);
+    const filters = createSearchFilters(params, prioritizedItems);
 
     const { start, count } = getCountAndStart({
         start: startParam,

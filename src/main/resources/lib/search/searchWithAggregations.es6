@@ -22,10 +22,7 @@ const runSearch = (inputParams) => {
         ? EMPTY_RESULT_SET
         : getPrioritizedElements(queryString);
 
-    const facetAggregations = getFacetAggregations(
-        inputParams,
-        prioritizedItems
-    );
+    const facetAggs = getFacetAggregations(inputParams, prioritizedItems);
 
     const queryParams = createSearchQueryParams(
         inputParams,
@@ -36,27 +33,24 @@ const runSearch = (inputParams) => {
     let {
         hits,
         total,
-        aggregations: restAggs,
+        aggregations: daterangeAggs,
     } = runSearchQuery(queryParams, sorting);
 
-    const aggregations = { ...facetAggregations, ...restAggs };
+    daterangeAggs.Tidsperiode.docCount = total;
 
     if (shouldIncludePrioHits(inputParams)) {
         const priorityHitCount = prioritizedItems.hits.length;
-        aggregations.Tidsperiode.docCount += priorityHitCount;
+        daterangeAggs.Tidsperiode.docCount += priorityHitCount;
         if (daterange === -1) {
             hits = prioritizedItems.hits.concat(hits);
             total += priorityHitCount;
         }
     }
 
-    // prepare the hits with highlighting and such
-    hits = hits.map((hit) => createPreparedHit(hit, wordList));
-
     return {
-        hits,
         total,
-        aggregations,
+        hits: hits.map((hit) => createPreparedHit(hit, wordList)),
+        aggregations: { ...facetAggs, ...daterangeAggs },
         prioritiesItems: prioritizedItems,
     };
 };

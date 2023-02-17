@@ -43,7 +43,10 @@ export const getFacetAggregations = (inputParams, prioritizedItems) => {
 
     const config = getConfig();
 
-    const queryParams = createFacetsAggregationsQuery(queryString);
+    const queryParams = createFacetsAggregationsQuery(
+        queryString,
+        prioritizedItems
+    );
 
     const { aggregations } = runSearchQuery(queryParams);
 
