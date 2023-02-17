@@ -3,10 +3,8 @@ import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
 import { createQuery } from './queryBuilder/createQuery';
 import { createFilters } from './queryBuilder/createFilters';
 import { createPreparedHit } from './resultListing/createPreparedHit';
-import { getDateRanges, getDateRangeQueryString } from './helpers/dateRange';
 import { runSearchQuery } from './runSearchQuery';
 import { getConfig } from './helpers/config';
-import { getAggregations } from './helpers/aggregations';
 import { logger } from '../utils/logger';
 import { getSearchWithAggregationsResult } from './helpers/cache';
 
@@ -36,17 +34,11 @@ const runSearch = (params) => {
         count: countParam,
         batchSize: withAggregationsBatchSize,
     });
+
     const queryParams = createQuery(queryString, { start, count }, config);
-    const aggregations = getAggregations(queryParams, config);
-
     queryParams.filters = createFilters(params, config, prioritiesItems);
-    aggregations.Tidsperiode = getDateRanges(queryParams);
-    queryParams.query += getDateRangeQueryString(
-        daterange,
-        aggregations.Tidsperiode.buckets
-    );
 
-    let { hits, total } = runSearchQuery(queryParams, sorting);
+    let { hits, total, aggregations } = runSearchQuery(queryParams, sorting);
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:

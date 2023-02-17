@@ -14,6 +14,7 @@ export const createQuery = (queryString, queryParams = {}, config) => {
     return {
         start: 0,
         count: 0,
+        ...queryParams,
         query,
         contentTypes,
         aggregations: {
@@ -30,7 +31,26 @@ export const createQuery = (queryString, queryParams = {}, config) => {
                     },
                 },
             },
+            Tidsperiode: {
+                dateRange: {
+                    field: 'publish.first',
+                    format: 'dd-MM-yyy',
+                    ranges: [
+                        {
+                            from: 'now-7d',
+                        },
+                        {
+                            from: 'now-30d',
+                        },
+                        {
+                            from: 'now-12M',
+                        },
+                        {
+                            to: 'now-12M',
+                        },
+                    ],
+                },
+            },
         },
-        ...queryParams,
     };
 };
