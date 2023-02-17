@@ -1,9 +1,11 @@
 import { forceArray } from '../../utils';
 import { runSearchQuery } from '../runSearchQuery';
+import { createFacetsAggregationsQuery } from '../queryBuilder/createQuery';
+import { getConfig } from './config';
 
 // As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
 // aggregation result as a bucket with docCount = 0
-const addZeroHitsFacetsToBuckets = (buckets, facets) =>
+const addNamesAndDocCountToFacetBuckets = (buckets, facets) =>
     forceArray(facets).map((facet) => {
         const common = {
             key: facet.facetKey,
@@ -23,7 +25,10 @@ const addZeroHitsFacetsToBuckets = (buckets, facets) =>
 
         const foundUnderBuckets = foundBucket.underaggregeringer?.buckets;
         const underBuckets = foundUnderBuckets
-            ? addZeroHitsFacetsToBuckets(foundUnderBuckets, facet.underfasetter)
+            ? addNamesAndDocCountToFacetBuckets(
+                  foundUnderBuckets,
+                  facet.underfasetter
+              )
             : [];
 
         return {
@@ -33,10 +38,14 @@ const addZeroHitsFacetsToBuckets = (buckets, facets) =>
         };
     });
 
-export const getAggregations = (queryParams, config) => {
-    const { aggregations } = runSearchQuery({ ...queryParams, count: 0 });
+export const getFacetAggregations = (queryString) => {
+    const config = getConfig();
 
-    aggregations.fasetter.buckets = addZeroHitsFacetsToBuckets(
+    const queryParams = createFacetsAggregationsQuery(queryString);
+
+    const { aggregations } = runSearchQuery(queryParams);
+
+    aggregations.fasetter.buckets = addNamesAndDocCountToFacetBuckets(
         aggregations.fasetter.buckets,
         config.data.fasetter
     );

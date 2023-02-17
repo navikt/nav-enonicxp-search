@@ -1,56 +1,29 @@
-import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
+import { shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
-import { createQuery, tidsperiodeRanges } from './queryBuilder/createQuery';
-import { createFilters } from './queryBuilder/createFilters';
+import { createSearchQueryParams } from './queryBuilder/createQuery';
 import { createPreparedHit } from './resultListing/createPreparedHit';
 import { runSearchQuery } from './runSearchQuery';
-import { getConfig } from './helpers/config';
-import { getAggregations } from './helpers/aggregations';
+import { getFacetAggregations } from './helpers/aggregations';
 import { logger } from '../utils/logger';
-import { getSearchWithAggregationsResult } from './helpers/cache';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
-export const withAggregationsBatchSize = 20;
-
-const runSearch = (params) => {
+const runSearch = (inputParams) => {
     const {
-        start: startParam,
         excludePrioritized,
-        c: countParam,
         daterange,
         s: sorting,
         wordList,
         queryString,
-    } = params;
+    } = inputParams;
 
-    const config = getConfig();
-
-    const prioritiesItems = excludePrioritized
+    const prioritizedItems = excludePrioritized
         ? EMPTY_RESULT_SET
         : getPrioritizedElements(queryString);
 
-    const { start, count } = getCountAndStart({
-        start: startParam,
-        count: countParam,
-        batchSize: withAggregationsBatchSize,
-    });
-    const aggQueryParams = createQuery(
-        queryString,
-        { start, count },
-        config,
-        true
-    );
-    const facetAggregations = getAggregations(aggQueryParams, config);
+    const facetAggregations = getFacetAggregations(queryString);
 
-    const queryParams = createQuery(
-        queryString,
-        { start, count },
-        config,
-        false,
-        true
-    );
-    queryParams.filters = createFilters(params, config, prioritiesItems);
+    const queryParams = createSearchQueryParams(inputParams, prioritizedItems);
 
     let {
         hits,
@@ -60,12 +33,10 @@ const runSearch = (params) => {
 
     const aggregations = { ...facetAggregations, ...restAggs };
 
-    logger.info(JSON.stringify(aggregations));
-
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
     if (sorting === 0) {
-        const priorityHitCount = prioritiesItems.hits.length;
+        const priorityHitCount = prioritizedItems.hits.length;
 
         const firstFacet = aggregations.fasetter.buckets[0];
         if (firstFacet?.docCount) {
@@ -76,10 +47,10 @@ const runSearch = (params) => {
             }
         }
 
-        if (shouldIncludePrioHits(params, config)) {
+        if (shouldIncludePrioHits(inputParams)) {
             aggregations.Tidsperiode.docCount += priorityHitCount;
             if (daterange === -1) {
-                hits = prioritiesItems.hits.concat(hits);
+                hits = prioritizedItems.hits.concat(hits);
                 total += priorityHitCount;
             }
         }
@@ -92,7 +63,7 @@ const runSearch = (params) => {
         hits,
         total,
         aggregations,
-        prioritiesItems,
+        prioritiesItems: prioritizedItems,
     };
 };
 
@@ -134,6 +105,5 @@ export const searchWithAggregations = (params) => {
         total,
         hits,
         aggregations,
-        prioritized: [],
     };
 };

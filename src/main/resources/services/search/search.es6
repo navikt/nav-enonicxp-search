@@ -1,10 +1,7 @@
 import { validateAndTransformParams } from '../../lib/search/helpers/validateInput';
-import {
-    searchWithAggregations,
-    withAggregationsBatchSize,
-} from '../../lib/search/searchWithAggregations';
+import { searchWithAggregations } from '../../lib/search/searchWithAggregations';
 import { runInContext } from '../../lib/utils/context';
-import { contentRepo } from '../../lib/constants';
+import { contentRepo, withAggregationsBatchSize } from '../../lib/constants';
 
 const processBucket = (type, params, parent, element) => {
     if (type === 'fasett') {
@@ -77,7 +74,6 @@ export const get = (req) => {
             fasettKey: facetChecked?.key,
             aggregations,
             hits: result.hits,
-            prioritized: result.prioritized,
         },
         contentType: 'application/json',
     };

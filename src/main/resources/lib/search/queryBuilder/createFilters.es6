@@ -1,4 +1,7 @@
-export const createFilters = (params, config, prioritiesItems) => {
+import { getConfig } from '../helpers/config';
+
+export const createFilters = (params, prioritiesItems) => {
+    const config = getConfig();
     const { f: facetKey, uf: underfacetKeys } = params;
 
     const filters = {

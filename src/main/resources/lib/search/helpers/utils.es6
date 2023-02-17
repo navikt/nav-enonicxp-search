@@ -1,3 +1,5 @@
+import { getConfig } from './config';
+
 export const isExactSearch = (queryString) =>
     (queryString.startsWith('"') && queryString.endsWith('"')) ||
     (queryString.startsWith("'") && queryString.endsWith("'"));
@@ -15,9 +17,10 @@ export const getCountAndStart = ({ start, count, batchSize }) => {
 };
 
 // Prioritized elements should be included with the first batch for queries for the first facet + underfacet
-export const shouldIncludePrioHits = (params, config) => {
+export const shouldIncludePrioHits = (params) => {
     const { f, uf, ord, start } = params;
-    const { facetWithPrioHits, ufWithPrioHits } = config;
+
+    const { facetWithPrioHits, ufWithPrioHits } = getConfig();
 
     return (
         !isFormSearch(ord) &&
