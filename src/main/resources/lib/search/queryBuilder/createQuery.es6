@@ -31,7 +31,7 @@ const tidsperiodeAggregations = {
     Tidsperiode: {
         dateRange: {
             field: 'publish.first',
-            format: 'dd-MM-yyy',
+            format: 'yyyy-MM-dd',
             ranges: tidsperiodeRanges,
         },
     },

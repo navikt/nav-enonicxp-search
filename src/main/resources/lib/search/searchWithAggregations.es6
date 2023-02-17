@@ -1,6 +1,9 @@
 import { shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
-import { createSearchQueryParams } from './queryBuilder/createQuery';
+import {
+    createSearchQueryParams,
+    tidsperiodeRanges,
+} from './queryBuilder/createQuery';
 import { createPreparedHit } from './resultListing/createPreparedHit';
 import { runSearchQuery } from './runSearchQuery';
 import { getFacetAggregations } from './helpers/aggregations';
@@ -37,6 +40,15 @@ const runSearch = (inputParams) => {
     } = runSearchQuery(queryParams, sorting);
 
     daterangeAggs.Tidsperiode.docCount = total;
+
+    // Sort buckets from most recent to oldest, and transform the keys
+    // to what the frontend expects
+    daterangeAggs.Tidsperiode.buckets = daterangeAggs.Tidsperiode.buckets
+        .sort((a, b) => (a.key > b.key ? -1 : 1))
+        .map((bucket, index) => ({
+            ...bucket,
+            key: tidsperiodeRanges[index].name,
+        }));
 
     if (shouldIncludePrioHits(inputParams)) {
         const priorityHitCount = prioritizedItems.hits.length;
