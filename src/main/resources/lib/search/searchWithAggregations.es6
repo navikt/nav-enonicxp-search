@@ -1,10 +1,11 @@
 import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
-import { createQuery } from './queryBuilder/createQuery';
+import { createQuery, tidsperiodeRanges } from './queryBuilder/createQuery';
 import { createFilters } from './queryBuilder/createFilters';
 import { createPreparedHit } from './resultListing/createPreparedHit';
 import { runSearchQuery } from './runSearchQuery';
 import { getConfig } from './helpers/config';
+import { getAggregations } from './helpers/aggregations';
 import { logger } from '../utils/logger';
 import { getSearchWithAggregationsResult } from './helpers/cache';
 
@@ -34,11 +35,32 @@ const runSearch = (params) => {
         count: countParam,
         batchSize: withAggregationsBatchSize,
     });
+    const aggQueryParams = createQuery(
+        queryString,
+        { start, count },
+        config,
+        true
+    );
+    const facetAggregations = getAggregations(aggQueryParams, config);
 
-    const queryParams = createQuery(queryString, { start, count }, config);
+    const queryParams = createQuery(
+        queryString,
+        { start, count },
+        config,
+        false,
+        true
+    );
     queryParams.filters = createFilters(params, config, prioritiesItems);
 
-    let { hits, total, aggregations } = runSearchQuery(queryParams, sorting);
+    let {
+        hits,
+        total,
+        aggregations: restAggs,
+    } = runSearchQuery(queryParams, sorting);
+
+    const aggregations = { ...facetAggregations, ...restAggs };
+
+    logger.info(JSON.stringify(aggregations));
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
@@ -91,8 +113,8 @@ export const searchWithAggregations = (params) => {
 
     const cacheKey = `${ord}-${start}-${count}-${facet}-${underfacets}-${daterange}-${sort}-${excludePrioritized}`;
 
-    const { hits, total, aggregations, prioritiesItems } =
-        getSearchWithAggregationsResult(cacheKey, () => runSearch(params));
+    const { hits, total, aggregations, prioritiesItems } = runSearch(params);
+    // getSearchWithAggregationsResult(cacheKey, () => runSearch(params));
 
     const facetsLog = `${facet ? ` - ${facet}|${underfacets.join(', ')}` : ''}${
         daterange !== -1 ? ` / ${daterange}` : ''

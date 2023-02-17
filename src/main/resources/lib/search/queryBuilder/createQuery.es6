@@ -5,7 +5,32 @@ import { forceArray } from '../../utils';
 const publishedOnlyQuerySegment = () =>
     `publish.from < instant("${new Date().toISOString()}")`;
 
-export const createQuery = (queryString, queryParams = {}, config) => {
+export const tidsperiodeRanges = [
+    {
+        name: 'Siste 7 dager',
+        from: 'now-7d',
+    },
+    {
+        name: 'Siste 30 dager',
+        from: 'now-30d',
+    },
+    {
+        name: 'Siste 12 måneder',
+        from: 'now-12M',
+    },
+    {
+        name: 'Eldre enn 12 måneder',
+        to: 'now-12M',
+    },
+];
+
+export const createQuery = (
+    queryString,
+    queryParams = {},
+    config,
+    withFacets,
+    withTidsperiode
+) => {
     const contentTypes = forceArray(config.data.contentTypes);
     const fieldsToSearch = forceArray(config.data.fields);
 
@@ -14,43 +39,34 @@ export const createQuery = (queryString, queryParams = {}, config) => {
     return {
         start: 0,
         count: 0,
-        ...queryParams,
         query,
         contentTypes,
         aggregations: {
-            fasetter: {
-                terms: {
-                    field: 'facets.facet',
-                },
-                aggregations: {
-                    underaggregeringer: {
-                        terms: {
-                            field: 'facets.underfacets',
-                            size: 30,
+            ...(withFacets && {
+                fasetter: {
+                    terms: {
+                        field: 'facets.facet',
+                    },
+                    aggregations: {
+                        underaggregeringer: {
+                            terms: {
+                                field: 'facets.underfacets',
+                                size: 30,
+                            },
                         },
                     },
                 },
-            },
-            Tidsperiode: {
-                dateRange: {
-                    field: 'publish.first',
-                    format: 'dd-MM-yyy',
-                    ranges: [
-                        {
-                            from: 'now-7d',
-                        },
-                        {
-                            from: 'now-30d',
-                        },
-                        {
-                            from: 'now-12M',
-                        },
-                        {
-                            to: 'now-12M',
-                        },
-                    ],
+            }),
+            ...(withTidsperiode && {
+                Tidsperiode: {
+                    dateRange: {
+                        field: 'publish.first',
+                        format: 'dd-MM-yyy',
+                        ranges: tidsperiodeRanges,
+                    },
                 },
-            },
+            }),
         },
+        ...queryParams,
     };
 };

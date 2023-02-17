@@ -1,6 +1,5 @@
-import { forceArray, getUnixTimeFromDateTimeString } from '../utils';
+import { getUnixTimeFromDateTimeString } from '../utils';
 import { getSearchRepoConnection } from './helpers/repo';
-import { getConfig } from './helpers/config';
 
 const oneYear = 1000 * 3600 * 24 * 365;
 
@@ -52,38 +51,6 @@ const resultWithCustomScoreWeights = (result) => ({
         .sort((a, b) => b._score - a._score),
 });
 
-// As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
-// aggregation result as a bucket with docCount = 0
-const addZeroHitsFacetsToBuckets = (buckets, facets) =>
-    forceArray(facets).map((facet) => {
-        const common = {
-            key: facet.facetKey,
-            name: facet.name,
-        };
-
-        const foundBucket = buckets.find((bucket) => {
-            return bucket.key.toLowerCase() === facet.facetKey.toLowerCase();
-        });
-        if (!foundBucket) {
-            return {
-                ...common,
-                docCount: 0,
-                underaggregeringer: { buckets: [] },
-            };
-        }
-
-        const foundUnderBuckets = foundBucket.underaggregeringer?.buckets;
-        const underBuckets = foundUnderBuckets
-            ? addZeroHitsFacetsToBuckets(foundUnderBuckets, facet.underfasetter)
-            : [];
-
-        return {
-            ...common,
-            docCount: foundBucket.docCount,
-            underaggregeringer: { buckets: underBuckets },
-        };
-    });
-
 export const runSearchQuery = (queryParams, sort) => {
     const repo = getSearchRepoConnection();
 
@@ -107,12 +74,6 @@ export const runSearchQuery = (queryParams, sort) => {
     });
 
     const result = { ...queryResult, hits: hits };
-
-    const config = getConfig();
-    result.aggregations.fasetter.buckets = addZeroHitsFacetsToBuckets(
-        result.aggregations.fasetter.buckets,
-        config.data.fasetter
-    );
 
     if (sort !== 0) {
         return result;
