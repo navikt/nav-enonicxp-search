@@ -1,9 +1,9 @@
-import { pathFilter } from '../helpers/pathFilter';
 import { forceArray } from '../../utils';
 import { getConfig } from '../helpers/config';
 import { createCommonFilters, createSearchFilters } from './createFilters';
 import { getCountAndStart } from '../helpers/utils';
-import { getDaterangeQueryStringFromBucket } from '../helpers/daterange';
+import { getDaterangeQueryStringFromBucket } from '../helpers/dateRange';
+import { logger } from '../../utils/logger';
 
 // Don't match content with a future scheduled publish date
 const publishedOnlyQuerySegment = () =>
@@ -54,14 +54,24 @@ const facetsAggregations = {
     },
 };
 
-const createQuery = ({ queryString, start, count, aggregations, filters }) => {
+const createQuery = ({
+    queryString,
+    start,
+    count,
+    aggregations,
+    filters,
+    extraQuerySegment,
+}) => {
     const config = getConfig();
 
     const contentTypes = forceArray(config.data.contentTypes);
     const fieldsToSearch = forceArray(config.data.fields);
 
-    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} ${pathFilter}`;
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()}${
+        extraQuerySegment ? ` AND ${extraQuerySegment}` : ''
+    }`;
 
+    logger.info(query);
     return {
         start,
         count,
@@ -118,7 +128,7 @@ export const createDaterangeQueryParams = (
 ) => {
     const { start: startParam, c: countParam, queryString } = params;
 
-    const filters = createCommonFilters();
+    const filters = createSearchFilters(params);
 
     const { start, count } = getCountAndStart({
         start: startParam,
@@ -129,7 +139,8 @@ export const createDaterangeQueryParams = (
     const daterangeQuery = getDaterangeQueryStringFromBucket(daterangeBucket);
 
     return createQuery({
-        queryString: `${queryString} AND ${daterangeQuery}`,
+        queryString,
+        extraQuerySegment: daterangeQuery,
         start,
         count,
         filters,

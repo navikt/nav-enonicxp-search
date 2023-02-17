@@ -1,6 +1,7 @@
 import { shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
 import {
+    createDaterangeQueryParams,
     createSearchQueryParams,
     tidsperiodeRanges,
 } from './queryBuilder/createQuery';
@@ -50,18 +51,19 @@ const runSearch = (inputParams) => {
             key: tidsperiodeRanges[index].name,
         }));
 
-    // if (daterange !== -1) {
-    //     const daterangeBucket = daterangeAggs.Tidsperiode.buckets[daterange];
-    //     const queryParams = createDaterangeQueryParams(
-    //         inputParams,
-    //         daterangeBucket,
-    //         withAggregationsBatchSize
-    //     );
-    //     const result = runSearchQuery(queryParams, sorting);
-    //
-    //     hits = result.hits;
-    //     total = result.total;
-    // }
+    if (daterange !== -1) {
+        const daterangeBucket = daterangeAggs.Tidsperiode.buckets[daterange];
+
+        const queryParams = createDaterangeQueryParams(
+            inputParams,
+            daterangeBucket,
+            withAggregationsBatchSize
+        );
+        const result = runSearchQuery(queryParams, sorting);
+
+        hits = result.hits;
+        total = result.total;
+    }
 
     if (shouldIncludePrioHits(inputParams)) {
         const priorityHitCount = prioritizedItems.hits.length;
