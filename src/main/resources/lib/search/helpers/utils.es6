@@ -18,12 +18,13 @@ export const getCountAndStart = ({ start, count, batchSize }) => {
 
 // Prioritized elements should be included with the first batch for queries for the first facet + underfacet
 export const shouldIncludePrioHits = (params) => {
-    const { f, uf, ord, start } = params;
+    const { f, uf, ord, start, s: sorting } = params;
 
     const { facetWithPrioHits, ufWithPrioHits } = getConfig();
 
     return (
         !isFormSearch(ord) &&
+        sorting === 0 &&
         f === facetWithPrioHits &&
         (uf.length === 0 || (uf.length === 1 && uf[0] === ufWithPrioHits)) &&
         start === 0

@@ -38,7 +38,9 @@ const addNamesAndDocCountToFacetBuckets = (buckets, facets) =>
         };
     });
 
-export const getFacetAggregations = (queryString) => {
+export const getFacetAggregations = (inputParams, prioritizedItems) => {
+    const { queryString, s: sorting } = inputParams;
+
     const config = getConfig();
 
     const queryParams = createFacetsAggregationsQuery(queryString);
@@ -49,6 +51,21 @@ export const getFacetAggregations = (queryString) => {
         aggregations.fasetter.buckets,
         config.data.fasetter
     );
+
+    // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
+    // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
+    if (sorting === 0) {
+        const priorityHitCount = prioritizedItems.hits.length;
+
+        const firstFacet = aggregations.fasetter.buckets[0];
+        if (firstFacet?.docCount) {
+            firstFacet.docCount += priorityHitCount;
+            const firstUnderFacet = firstFacet.underaggregeringer.buckets[0];
+            if (firstUnderFacet?.docCount) {
+                firstUnderFacet.docCount += priorityHitCount;
+            }
+        }
+    }
 
     return aggregations;
 };

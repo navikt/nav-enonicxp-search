@@ -3,7 +3,6 @@ import { forceArray } from '../../utils';
 import { getConfig } from '../helpers/config';
 import { createFilters } from './createFilters';
 import { getCountAndStart } from '../helpers/utils';
-import { withAggregationsBatchSize } from '../../constants';
 
 // Don't match content with a future scheduled publish date
 const publishedOnlyQuerySegment = () =>
@@ -81,7 +80,11 @@ export const createFacetsAggregationsQuery = (queryString) => {
     });
 };
 
-export const createSearchQueryParams = (params, prioritizedItems) => {
+export const createSearchQueryParams = (
+    params,
+    prioritizedItems,
+    batchSize
+) => {
     const { start: startParam, c: countParam, queryString } = params;
 
     const filters = createFilters(params, prioritizedItems);
@@ -89,7 +92,7 @@ export const createSearchQueryParams = (params, prioritizedItems) => {
     const { start, count } = getCountAndStart({
         start: startParam,
         count: countParam,
-        batchSize: withAggregationsBatchSize,
+        batchSize,
     });
 
     return createQuery({

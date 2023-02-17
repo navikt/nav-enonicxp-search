@@ -5,6 +5,7 @@ import { createPreparedHit } from './resultListing/createPreparedHit';
 import { runSearchQuery } from './runSearchQuery';
 import { getFacetAggregations } from './helpers/aggregations';
 import { logger } from '../utils/logger';
+import { withAggregationsBatchSize } from '../constants';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
@@ -21,9 +22,16 @@ const runSearch = (inputParams) => {
         ? EMPTY_RESULT_SET
         : getPrioritizedElements(queryString);
 
-    const facetAggregations = getFacetAggregations(queryString);
+    const facetAggregations = getFacetAggregations(
+        inputParams,
+        prioritizedItems
+    );
 
-    const queryParams = createSearchQueryParams(inputParams, prioritizedItems);
+    const queryParams = createSearchQueryParams(
+        inputParams,
+        prioritizedItems,
+        withAggregationsBatchSize
+    );
 
     let {
         hits,
@@ -33,26 +41,12 @@ const runSearch = (inputParams) => {
 
     const aggregations = { ...facetAggregations, ...restAggs };
 
-    // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
-    // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
-    if (sorting === 0) {
+    if (shouldIncludePrioHits(inputParams)) {
         const priorityHitCount = prioritizedItems.hits.length;
-
-        const firstFacet = aggregations.fasetter.buckets[0];
-        if (firstFacet?.docCount) {
-            firstFacet.docCount += priorityHitCount;
-            const firstUnderFacet = firstFacet.underaggregeringer.buckets[0];
-            if (firstUnderFacet?.docCount) {
-                firstUnderFacet.docCount += priorityHitCount;
-            }
-        }
-
-        if (shouldIncludePrioHits(inputParams)) {
-            aggregations.Tidsperiode.docCount += priorityHitCount;
-            if (daterange === -1) {
-                hits = prioritizedItems.hits.concat(hits);
-                total += priorityHitCount;
-            }
+        aggregations.Tidsperiode.docCount += priorityHitCount;
+        if (daterange === -1) {
+            hits = prioritizedItems.hits.concat(hits);
+            total += priorityHitCount;
         }
     }
 

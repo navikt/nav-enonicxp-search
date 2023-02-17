@@ -1,7 +1,5 @@
-import { getCountAndStart, shouldIncludePrioHits } from './helpers/utils';
+import { shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
-import { createQuery } from './queryBuilder/createQuery';
-import { createFilters } from './queryBuilder/createFilters';
 import { getPaths } from './resultListing/getPaths';
 import {
     calculateHighlightText,
@@ -9,35 +7,25 @@ import {
     getHighLight,
 } from './resultListing/createPreparedHit';
 import { runSearchQuery } from './runSearchQuery';
-import { getConfig } from './helpers/config';
 import { logger } from '../utils/logger';
 import { getSearchWithoutAggregationsResult } from './helpers/cache';
-
-export const noAggregationsBatchSize = 10;
+import { noAggregationsBatchSize } from '../constants';
+import { createSearchQueryParams } from './queryBuilder/createQuery';
 
 const runSearch = (params) => {
-    const { start: startParam, c: countParam, wordList, queryString } = params;
+    const { wordList, queryString } = params;
 
     const prioritiesItems = getPrioritizedElements(queryString);
-    const config = getConfig();
-    const { start, count } = getCountAndStart({
-        start: startParam,
-        count: countParam,
-        batchSize: noAggregationsBatchSize,
-    });
-    const queryParams = createQuery(
-        queryString,
-        {
-            filters: createFilters(params, config, prioritiesItems),
-            start,
-            count,
-        },
-        config
+
+    const queryParams = createSearchQueryParams(
+        params,
+        prioritiesItems,
+        noAggregationsBatchSize
     );
 
-    let { hits = [], total = 0 } = runSearchQuery(queryParams, 0);
+    let { hits, total } = runSearchQuery(queryParams, 0);
 
-    if (shouldIncludePrioHits(params, config)) {
+    if (shouldIncludePrioHits(params)) {
         hits = prioritiesItems.hits.concat(hits);
         total += prioritiesItems.hits.length;
     }
