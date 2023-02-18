@@ -23,7 +23,7 @@ const runSearch = (params) => {
         noAggregationsBatchSize
     );
 
-    let { hits, total } = runSearchQuery(queryParams, 0);
+    let { hits, total } = runSearchQuery(queryParams, true);
 
     if (shouldIncludePrioHits(params)) {
         hits = prioritiesItems.hits.concat(hits);
