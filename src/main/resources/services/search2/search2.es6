@@ -14,14 +14,13 @@ export const get = (req) => {
         () => searchWithoutAggregations(params)
     );
 
-    const { c: count, s: sorting, ord } = params;
+    const { c: count, s, ord } = params;
 
     return {
         body: {
             c: count,
             isMore: count * noAggregationsBatchSize < result.total,
-            isSortDate: sorting === 1,
-            s: sorting,
+            s,
             word: ord,
             total: result.total,
             hits: result.hits,

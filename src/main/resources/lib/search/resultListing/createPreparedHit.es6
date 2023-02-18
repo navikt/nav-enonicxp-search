@@ -147,8 +147,13 @@ export const getHighLight = (searchNode, wordList) => {
 
 const pathSegmentToAudience = {
     person: 'person',
+    samegiella: 'person',
+    'work-and-stay-in-norway': 'person',
+    'benefits-and-services': 'person',
+    'rules-and-regulations': 'person',
     bedrift: 'employer',
     arbeidsgiver: 'employer',
+    employers: 'employer',
     samarbeidspartner: 'provider',
     samarbeid: 'provider',
 };

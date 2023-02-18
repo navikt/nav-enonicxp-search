@@ -59,10 +59,12 @@ export const getPrioritizedElements = (queryString) => {
         }
         return list;
     }, []);
+
     const ids = hits
         .map(({ _id }) => _id)
         .concat(priorityIds)
         .filter((value, index, self) => self.indexOf(value) === index); // Filter duplicates
+
     // return hits, and full list pri items
     return {
         ids,
