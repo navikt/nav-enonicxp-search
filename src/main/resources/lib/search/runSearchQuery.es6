@@ -9,7 +9,7 @@ import {
     SortParam,
     withAggregationsBatchSize,
 } from '../constants';
-import { processDaterangeAggregations } from './helpers/dateRange';
+import { processDaterangeAggregations } from './helpers/daterangeAggregations';
 import { shouldIncludePrioHits } from './helpers/utils';
 import { logger } from '../utils/logger';
 

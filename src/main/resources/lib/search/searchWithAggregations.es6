@@ -1,7 +1,7 @@
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
 import { createPreparedHit } from './resultListing/createPreparedHit';
 import { runFullSearchQuery } from './runSearchQuery';
-import { getFacetAggregations } from './helpers/aggregations';
+import { getFacetAggregations } from './helpers/facetAggregations';
 import { logger } from '../utils/logger';
 import { DaterangeParam, withAggregationsBatchSize } from '../constants';
 

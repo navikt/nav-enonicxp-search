@@ -5,7 +5,7 @@ import { getCountAndStart } from '../helpers/utils';
 import {
     getDaterangeQueryStringFromBucket,
     daterangeAggregationsRanges,
-} from '../helpers/dateRange';
+} from '../helpers/daterangeAggregations';
 import { pathFilter } from '../helpers/pathFilter';
 import { DaterangeParam, SortParam } from '../../constants';
 
@@ -45,6 +45,7 @@ const createQuery = ({
     count,
     aggregations,
     filters,
+    sort,
     additionalQuerySegment,
 }) => {
     const config = getConfig();
@@ -62,6 +63,7 @@ const createQuery = ({
         query,
         contentTypes,
         aggregations,
+        sort,
         filters,
     };
 };
