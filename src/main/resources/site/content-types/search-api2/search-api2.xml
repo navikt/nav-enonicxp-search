@@ -2,7 +2,7 @@
     <display-name>Prioritert søk ekstern</display-name>
     <super-type>base:structured</super-type>
     <form>
-        <input name="keywords" type="Tag" >
+        <input name="keywords" type="Tag">
             <label>Nøkkelord</label>
             <occurrences minimum="0" maximum="0"/>
         </input>

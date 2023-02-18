@@ -1,6 +1,6 @@
 import { forceArray } from '../../utils';
 import { getConfig } from '../helpers/config';
-import { createCommonFilters, createSearchFilters } from './createFilters';
+import { commonFilters, createSearchFilters } from './createFilters';
 import { getCountAndStart } from '../helpers/utils';
 import {
     getDaterangeQueryStringFromBucket,
@@ -68,11 +68,8 @@ const createQuery = ({
     };
 };
 
-export const createFacetsAggregationsQuery = (
-    queryString,
-    prioritizedItems
-) => {
-    const filters = createCommonFilters(prioritizedItems);
+export const createFacetsAggregationsQuery = (queryString) => {
+    const filters = commonFilters();
 
     return createQuery({
         queryString,
@@ -83,11 +80,7 @@ export const createFacetsAggregationsQuery = (
     });
 };
 
-export const createSearchQueryParams = (
-    params,
-    prioritizedItems,
-    batchSize
-) => {
+export const createSearchQueryParams = (params, batchSize) => {
     const {
         start: startParam,
         c: countParam,
@@ -96,7 +89,7 @@ export const createSearchQueryParams = (
         daterange,
     } = params;
 
-    const filters = createSearchFilters(params, prioritizedItems);
+    const filters = createSearchFilters(params);
 
     // If the query is for a specific daterange, we need to do an additional query later to retrieve the content
     // In this case the present query will only be for aggregations, so we optimize by not returning any results

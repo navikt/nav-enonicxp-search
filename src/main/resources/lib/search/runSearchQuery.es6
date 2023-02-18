@@ -82,34 +82,20 @@ export const runSearchQuery = (queryParams, withCustomWeights) => {
     return withCustomWeights ? resultWithCustomScoreWeights(result) : result;
 };
 
-export const runFullSearchQuery = (
-    inputParams,
-    prioritizedItems,
-    batchSize
-) => {
+export const runFullSearchQuery = (inputParams, batchSize) => {
     const { daterange, s: sorting } = inputParams;
 
     const withCustomWeights = sorting === SortParam.BestMatch;
-    const priorityHitCount = prioritizedItems.hits.length;
 
-    const queryParams = createSearchQueryParams(
-        inputParams,
-        prioritizedItems,
-        batchSize
-    );
+    const queryParams = createSearchQueryParams(inputParams, batchSize);
 
     const result = runSearchQuery(queryParams, withCustomWeights);
     const { aggregations } = result;
 
     aggregations.Tidsperiode = processDaterangeAggregations(result);
-    aggregations.Tidsperiode.docCount += priorityHitCount;
 
     if (daterange === DaterangeParam.All) {
-        return {
-            ...result,
-            hits: [...prioritizedItems.hits, ...result.hits],
-            total: result.total + priorityHitCount,
-        };
+        return result;
     }
 
     const daterangeBucket = aggregations.Tidsperiode.buckets[daterange];

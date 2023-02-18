@@ -1,6 +1,6 @@
 import { getConfig } from '../helpers/config';
 
-export const createCommonFilters = (prioritiesItems) => ({
+export const commonFilters = () => ({
     boolean: {
         must: [],
         mustNot: [
@@ -16,16 +16,6 @@ export const createCommonFilters = (prioritiesItems) => ({
                     values: [true],
                 },
             },
-            ...(prioritiesItems?.ids.length > 0
-                ? [
-                      {
-                          hasValue: {
-                              field: 'contentId',
-                              values: prioritiesItems.ids,
-                          },
-                      },
-                  ]
-                : []),
         ],
     },
     notExists: [
@@ -35,11 +25,11 @@ export const createCommonFilters = (prioritiesItems) => ({
     ],
 });
 
-export const createSearchFilters = (params, prioritiesItems) => {
+export const createSearchFilters = (params) => {
     const config = getConfig();
     const { f: facetKey, uf: underfacetKeys } = params;
 
-    const filters = createCommonFilters(prioritiesItems);
+    const filters = commonFilters();
 
     if (facetKey) {
         filters.boolean.must.push({

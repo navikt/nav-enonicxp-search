@@ -5,13 +5,9 @@ import { contentRepo, searchRepo } from '../../constants';
 import { getConfig, revalidateSearchConfigCache } from './config';
 import { logger } from '../../utils/logger';
 
-const prioritiesAndSynonymsTypes = {
-    ['navno.nav.no.search:search-priority']: true,
-    ['navno.nav.no.search:search-api2']: true,
-    ['navno.nav.no.search:synonyms']: true,
-};
+const synonymsContentType = 'navno.nav.no.search:synonyms';
 
-const prioritiesAndSynonymsCache = cacheLib.newCache({
+const synonymsCache = cacheLib.newCache({
     size: 1000,
     expire: 3600 * 24, // 1 day
 });
@@ -32,7 +28,7 @@ const wipeSearchCache = () => {
 };
 
 const wipeAll = () => {
-    prioritiesAndSynonymsCache.clear();
+    synonymsCache.clear();
     wipeSearchCache();
 };
 
@@ -45,11 +41,11 @@ export const getSearchWithAggregationsResult = (key, callback) => {
 };
 
 export const getSynonymMap = () => {
-    return prioritiesAndSynonymsCache.get('synonyms', () => {
+    return synonymsCache.get('synonyms', () => {
         const synonymLists = contentLib.query({
             start: 0,
             count: 100,
-            contentTypes: ['navno.nav.no.search:synonyms'],
+            contentTypes: [synonymsContentType],
         }).hits;
 
         const synonymMap = {};
@@ -75,34 +71,6 @@ export const getSynonymMap = () => {
         });
 
         return synonymMap;
-    });
-};
-
-export const getPriorities = () => {
-    return prioritiesAndSynonymsCache.get('priorities', () => {
-        let priority = [];
-        let start = 0;
-        let count = 1000;
-        while (count === 1000) {
-            const q = contentLib.query({
-                start: start,
-                count: 1000,
-                contentTypes: [
-                    'navno.nav.no.search:search-priority',
-                    'navno.nav.no.search:search-api2',
-                ],
-                query: '_parentpath LIKE "/content/www.nav.no/prioriterte-elementer*" OR _parentpath LIKE "/content/www.nav.no/prioriterte-elementer-eksternt*"',
-            });
-
-            start += 1000;
-            count = q.count;
-            priority = priority.concat(
-                q.hits.map((el) => {
-                    return el._id;
-                })
-            );
-        }
-        return priority;
     });
 };
 
@@ -152,7 +120,7 @@ export const activateEventListener = () => {
 
                 // Wipe on delete because we can't check the type of the deleted content
                 if (event.type === 'node.deleted') {
-                    prioritiesAndSynonymsCache.clear();
+                    synonymsCache.clear();
                     return;
                 }
 
@@ -160,8 +128,8 @@ export const activateEventListener = () => {
                     key: node.id,
                 });
 
-                if (!content || prioritiesAndSynonymsTypes[content.type]) {
-                    prioritiesAndSynonymsCache.clear();
+                if (!content || content.type === synonymsContentType) {
+                    synonymsCache.clear();
                 }
             });
         },
