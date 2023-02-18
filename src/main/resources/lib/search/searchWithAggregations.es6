@@ -5,6 +5,7 @@ import { getFacetAggregations } from './helpers/facetAggregations';
 import { logger } from '../utils/logger';
 import { DaterangeParam, withAggregationsBatchSize } from '../constants';
 import { shouldIncludePrioHits } from './helpers/utils';
+import { getSearchWithAggregationsResult } from './helpers/cache';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
@@ -51,8 +52,8 @@ export const searchWithAggregations = (params) => {
 
     const cacheKey = `${ord}-${start}-${count}-${facet}-${underfacets}-${daterange}-${sort}-${excludePrioritized}`;
 
-    const { hits, total, aggregations, prioritizedItems } = runSearch(params);
-    // getSearchWithAggregationsResult(cacheKey, () => runSearch(params));
+    const { hits, total, aggregations, prioritizedItems } =
+        getSearchWithAggregationsResult(cacheKey, () => runSearch(params));
 
     const facetsLog = `${facet ? ` - ${facet}|${underfacets.join(', ')}` : ''}${
         daterange !== DaterangeParam.All ? ` / ${daterange}` : ''
