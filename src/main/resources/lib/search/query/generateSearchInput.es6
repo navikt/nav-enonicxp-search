@@ -1,13 +1,20 @@
 import { sanitize } from '/lib/xp/common';
 import { getSynonymMap } from '../helpers/cache';
-import {
-    formatExactSearch,
-    isExactSearch,
-    isFormSearch,
-} from '../helpers/utils';
 
 const fuzzynessPerChar = 1 / 4;
 const maxFuzzyness = 3;
+
+// Matches form numbers
+const isFormSearch = (ord) => {
+    return /^\d\d-\d\d\.\d\d$/.test(ord);
+};
+
+const isExactSearch = (queryString) =>
+    (queryString.startsWith('"') && queryString.endsWith('"')) ||
+    (queryString.startsWith("'") && queryString.endsWith("'"));
+
+const formatExactSearch = (queryString) =>
+    `"${queryString.replace(/["']/g, '')}"`;
 
 const getFuzzyWord = (word) =>
     `${word}~${Math.min(

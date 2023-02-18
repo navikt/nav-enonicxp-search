@@ -1,7 +1,7 @@
 import { forceArray } from '../../utils';
-import { runSearchQuery } from '../runSearchQuery';
-import { createFacetsAggregationsQuery } from '../queryBuilder/createQuery';
-import { getConfig } from './config';
+import { runSearchQuery } from './runSearchQuery';
+import { createFacetsAggregationsQuery } from './createQuery';
+import { getConfig } from '../helpers/config';
 
 // As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
 // aggregation result as a bucket with docCount = 0

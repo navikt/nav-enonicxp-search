@@ -1,6 +1,6 @@
-import { createPreparedHit } from './resultListing/createPreparedHit';
-import { runFullSearchQuery } from './runSearchQuery';
-import { getFacetAggregations } from './helpers/facetAggregations';
+import { createPreparedHit } from './result/createPreparedHit';
+import { runFullSearchQuery } from './query/runSearchQuery';
+import { getFacetAggregations } from './query/facetAggregations';
 import { logger } from '../utils/logger';
 import { DaterangeParam, withAggregationsBatchSize } from '../constants';
 import { getSearchWithAggregationsResult } from './helpers/cache';

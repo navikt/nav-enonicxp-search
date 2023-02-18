@@ -1,5 +1,5 @@
 import nodeLib from '/lib/xp/node';
-import { contentRepo, searchRepo } from '../../constants';
+import { contentRepo, searchRepo } from '../constants';
 
 export const getContentRepoConnection = () =>
     nodeLib.connect({

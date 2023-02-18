@@ -1,17 +1,20 @@
 import { forceArray } from '../../utils';
 import { getConfig } from '../helpers/config';
 import { commonFilters, createSearchFilters } from './createFilters';
-import { getCountAndStart } from '../helpers/utils';
 import {
     getDaterangeQueryStringFromBucket,
     daterangeAggregationsRanges,
-} from '../helpers/daterangeAggregations';
-import { pathFilter } from '../helpers/pathFilter';
+} from './daterangeAggregations';
+import { excludedPathsQuerySegment } from './excludedPaths';
 import { DaterangeParam, SortParam } from '../../constants';
 
 // Don't match content with a future scheduled publish date
 const publishedOnlyQuerySegment = () =>
     `publish.from < instant("${new Date().toISOString()}")`;
+
+const getCountAndStart = ({ start, count, batchSize }) => {
+    return { start: start * batchSize, count: (count - start) * batchSize };
+};
 
 const daterangeAggregations = {
     Tidsperiode: {
@@ -53,7 +56,7 @@ const createQuery = ({
     const contentTypes = forceArray(config.data.contentTypes);
     const fieldsToSearch = forceArray(config.data.fields);
 
-    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} AND ${pathFilter} ${
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} AND ${excludedPathsQuerySegment} ${
         additionalQuerySegment ? `AND ${additionalQuerySegment}` : ''
     }`;
 

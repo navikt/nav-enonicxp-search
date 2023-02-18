@@ -1,14 +1,14 @@
-import { getPaths } from './resultListing/getPaths';
+import { getPaths } from './result/getPaths';
 import {
     calculateHighlightText,
     getAudienceForHit,
     getHighLight,
-} from './resultListing/createPreparedHit';
-import { runSearchQuery } from './runSearchQuery';
+} from './result/createPreparedHit';
+import { runSearchQuery } from './query/runSearchQuery';
 import { logger } from '../utils/logger';
 import { getSearchWithoutAggregationsResult } from './helpers/cache';
 import { noAggregationsBatchSize } from '../constants';
-import { createSearchQueryParams } from './queryBuilder/createQuery';
+import { createSearchQueryParams } from './query/createQuery';
 
 const runSearch = (params) => {
     const { wordList } = params;

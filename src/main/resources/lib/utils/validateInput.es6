@@ -1,7 +1,7 @@
-import { generateSearchInput } from '../queryBuilder/generateSearchInput';
-import { getConfig } from './config';
-import { forceArray } from '../../utils';
-import { DaterangeParam, SortParam } from '../../constants';
+import { generateSearchInput } from '../search/query/generateSearchInput';
+import { getConfig } from '../search/helpers/config';
+import { forceArray } from './index';
+import { DaterangeParam, SortParam } from '../constants';
 
 const validNumber = (
     rawValue,

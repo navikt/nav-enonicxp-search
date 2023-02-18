@@ -2,7 +2,7 @@ import contentLib from '/lib/xp/content';
 import { runInContext } from '../../utils/context';
 import { logger } from '../../utils/logger';
 import { forceArray } from '../../utils';
-import { getSearchRepoConnection } from './repo';
+import { getSearchRepoConnection } from '../../utils/repo';
 
 const searchConfigKey = '/config';
 

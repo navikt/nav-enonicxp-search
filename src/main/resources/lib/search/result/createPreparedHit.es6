@@ -1,4 +1,4 @@
-import { getContentRepoConnection } from '../helpers/repo';
+import { getContentRepoConnection } from '../../utils/repo';
 import { getPaths } from './getPaths';
 
 export const calculateHighlightText = (highLight) => {

@@ -1,4 +1,4 @@
-import { validateAndTransformParams } from '../../lib/search/helpers/validateInput';
+import { validateAndTransformParams } from '../../lib/utils/validateInput';
 import { searchWithAggregations } from '../../lib/search/searchWithAggregations';
 import { runInContext } from '../../lib/utils/context';
 import { contentRepo, withAggregationsBatchSize } from '../../lib/constants';
