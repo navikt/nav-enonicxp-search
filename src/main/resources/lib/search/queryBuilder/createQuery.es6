@@ -127,7 +127,12 @@ export const createDaterangeQueryParams = (
     daterangeBucket,
     batchSize
 ) => {
-    const { start: startParam, c: countParam, queryString } = params;
+    const {
+        start: startParam,
+        c: countParam,
+        queryString,
+        s: sorting,
+    } = params;
 
     const filters = createSearchFilters(params);
 
@@ -145,5 +150,9 @@ export const createDaterangeQueryParams = (
         start,
         count,
         filters,
+        sort:
+            sorting === SortParam.Date
+                ? 'publish.first DESC, createdTime DESC'
+                : undefined,
     });
 };

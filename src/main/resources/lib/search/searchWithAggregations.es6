@@ -4,15 +4,16 @@ import { runFullSearchQuery } from './runSearchQuery';
 import { getFacetAggregations } from './helpers/facetAggregations';
 import { logger } from '../utils/logger';
 import { DaterangeParam, withAggregationsBatchSize } from '../constants';
+import { shouldIncludePrioHits } from './helpers/utils';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
 const runSearch = (inputParams) => {
-    const { excludePrioritized, wordList, queryString } = inputParams;
+    const { wordList, queryString } = inputParams;
 
-    const prioritizedItems = excludePrioritized
-        ? EMPTY_RESULT_SET
-        : getPrioritizedElements(queryString);
+    const prioritizedItems = shouldIncludePrioHits(inputParams)
+        ? getPrioritizedElements(queryString)
+        : EMPTY_RESULT_SET;
 
     const facetAggregations = getFacetAggregations(
         inputParams,

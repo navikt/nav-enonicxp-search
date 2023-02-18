@@ -10,7 +10,6 @@ import {
     withAggregationsBatchSize,
 } from '../constants';
 import { processDaterangeAggregations } from './helpers/daterangeAggregations';
-import { shouldIncludePrioHits } from './helpers/utils';
 import { logger } from '../utils/logger';
 
 const oneYear = 1000 * 3600 * 24 * 365;
@@ -90,38 +89,32 @@ export const runFullSearchQuery = (
 ) => {
     const { daterange, s: sorting } = inputParams;
 
+    const withCustomWeights = sorting === SortParam.BestMatch;
+    const priorityHitCount = prioritizedItems.hits.length;
+
     const queryParams = createSearchQueryParams(
         inputParams,
         prioritizedItems,
         batchSize
     );
 
-    const withCustomWeights = sorting === SortParam.BestMatch;
-    const withPrioritizedHits = shouldIncludePrioHits(inputParams);
-    const priorityHitCount = prioritizedItems.hits.length;
-
     const result = runSearchQuery(queryParams, withCustomWeights);
     const { aggregations } = result;
 
     aggregations.Tidsperiode = processDaterangeAggregations(result);
-
-    if (withPrioritizedHits) {
-        aggregations.Tidsperiode.docCount += priorityHitCount;
-    }
+    aggregations.Tidsperiode.docCount += priorityHitCount;
 
     if (daterange === DaterangeParam.All) {
-        return withPrioritizedHits
-            ? {
-                  ...result,
-                  hits: [...prioritizedItems.hits, ...result.hits],
-                  total: result.total + priorityHitCount,
-              }
-            : result;
+        return {
+            ...result,
+            hits: [...prioritizedItems.hits, ...result.hits],
+            total: result.total + priorityHitCount,
+        };
     }
 
     const daterangeBucket = aggregations.Tidsperiode.buckets[daterange];
     if (!daterangeBucket) {
-        logger.info('No daterange bucket');
+        logger.critical(`No daterange bucket found for ${daterange}!`);
         return result;
     }
 
@@ -130,8 +123,6 @@ export const runFullSearchQuery = (
         daterangeBucket,
         withAggregationsBatchSize
     );
-
-    logger.info(JSON.stringify(daterangeQueryParams));
 
     const daterangeResult = runSearchQuery(
         daterangeQueryParams,
