@@ -1,15 +1,12 @@
 import { shouldIncludePrioHits } from './helpers/utils';
 import { getPrioritizedElements } from './queryBuilder/getPrioritizedElements';
-import {
-    createDaterangeQueryParams,
-    createSearchQueryParams,
-    tidsperiodeRanges,
-} from './queryBuilder/createQuery';
+import { createDaterangeQueryParams } from './queryBuilder/createQuery';
 import { createPreparedHit } from './resultListing/createPreparedHit';
 import { runSearchQuery, runSearchQuery2 } from './runSearchQuery';
 import { getFacetAggregations } from './helpers/aggregations';
 import { logger } from '../utils/logger';
-import { withAggregationsBatchSize } from '../constants';
+import { DaterangeParam, withAggregationsBatchSize } from '../constants';
+import { daterangeAggregationsRanges } from './helpers/dateRange';
 
 const EMPTY_RESULT_SET = { ids: [], hits: [], count: 0, total: 0 };
 
@@ -46,10 +43,10 @@ const runSearch = (inputParams) => {
         .sort((a, b) => (a.key > b.key ? 1 : -1))
         .map((bucket, index) => ({
             ...bucket,
-            key: tidsperiodeRanges[index].name,
+            key: daterangeAggregationsRanges[index].name,
         }));
 
-    if (daterange !== -1) {
+    if (daterange !== DaterangeParam.All) {
         const daterangeBucket = daterangeAggs.Tidsperiode.buckets[daterange];
 
         const queryParams = createDaterangeQueryParams(
@@ -66,7 +63,7 @@ const runSearch = (inputParams) => {
     if (shouldIncludePrioHits(inputParams)) {
         const priorityHitCount = prioritizedItems.hits.length;
         daterangeAggs.Tidsperiode.docCount += priorityHitCount;
-        if (daterange === -1) {
+        if (daterange === DaterangeParam.All) {
             hits = prioritizedItems.hits.concat(hits);
             total += priorityHitCount;
         }
@@ -101,7 +98,7 @@ export const searchWithAggregations = (params) => {
     // getSearchWithAggregationsResult(cacheKey, () => runSearch(params));
 
     const facetsLog = `${facet ? ` - ${facet}|${underfacets.join(', ')}` : ''}${
-        daterange !== -1 ? ` / ${daterange}` : ''
+        daterange !== DaterangeParam.All ? ` / ${daterange}` : ''
     }`;
 
     const tsEnd = Date.now();

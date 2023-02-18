@@ -7,3 +7,11 @@ export const SortParam = Object.freeze({
     BestMatch: 0,
     Date: 1,
 });
+
+export const DaterangeParam = Object.freeze({
+    All: -1,
+    OlderThan12M: 0,
+    NewerThan12M: 1,
+    NewerThan30D: 2,
+    NewerThan7D: 3,
+});

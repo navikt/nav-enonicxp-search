@@ -2,7 +2,10 @@ import { forceArray } from '../../utils';
 import { getConfig } from '../helpers/config';
 import { createCommonFilters, createSearchFilters } from './createFilters';
 import { getCountAndStart } from '../helpers/utils';
-import { getDaterangeQueryStringFromBucket } from '../helpers/dateRange';
+import {
+    getDaterangeQueryStringFromBucket,
+    daterangeAggregationsRanges,
+} from '../helpers/dateRange';
 import { pathFilter } from '../helpers/pathFilter';
 import { SortParam } from '../../constants';
 
@@ -10,31 +13,12 @@ import { SortParam } from '../../constants';
 const publishedOnlyQuerySegment = () =>
     `publish.from < instant("${new Date().toISOString()}")`;
 
-export const tidsperiodeRanges = [
-    {
-        name: 'Eldre enn 12 måneder',
-        to: 'now-12M',
-    },
-    {
-        name: 'Siste 12 måneder',
-        from: 'now-12M',
-    },
-    {
-        name: 'Siste 30 dager',
-        from: 'now-30d',
-    },
-    {
-        name: 'Siste 7 dager',
-        from: 'now-7d',
-    },
-];
-
 const tidsperiodeAggregations = {
     Tidsperiode: {
         dateRange: {
             field: 'publish.first',
             format: 'yyyy-MM-dd',
-            ranges: tidsperiodeRanges,
+            ranges: daterangeAggregationsRanges,
         },
     },
 };
