@@ -7,13 +7,13 @@ import {
     daterangeAggregationsRanges,
 } from '../helpers/dateRange';
 import { pathFilter } from '../helpers/pathFilter';
-import { SortParam } from '../../constants';
+import { DaterangeParam, SortParam } from '../../constants';
 
 // Don't match content with a future scheduled publish date
 const publishedOnlyQuerySegment = () =>
     `publish.from < instant("${new Date().toISOString()}")`;
 
-const tidsperiodeAggregations = {
+const daterangeAggregations = {
     Tidsperiode: {
         dateRange: {
             field: 'publish.first',
@@ -45,15 +45,15 @@ const createQuery = ({
     count,
     aggregations,
     filters,
-    extraQuerySegment,
+    additionalQuerySegment,
 }) => {
     const config = getConfig();
 
     const contentTypes = forceArray(config.data.contentTypes);
     const fieldsToSearch = forceArray(config.data.fields);
 
-    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} AND ${pathFilter}${
-        extraQuerySegment ? ` AND ${extraQuerySegment}` : ''
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} AND ${pathFilter} ${
+        additionalQuerySegment ? `AND ${additionalQuerySegment}` : ''
     }`;
 
     return {
@@ -91,21 +91,27 @@ export const createSearchQueryParams = (
         c: countParam,
         queryString,
         s: sorting,
+        daterange,
     } = params;
 
     const filters = createSearchFilters(params, prioritizedItems);
 
-    const { start, count } = getCountAndStart({
-        start: startParam,
-        count: countParam,
-        batchSize,
-    });
+    // If the query is for a specific daterange, we need to do an additional query later to retrieve the content
+    // In this case the present query will only be for aggregations, so we optimize by not returning any results
+    const { start, count } =
+        daterange === DaterangeParam.All
+            ? getCountAndStart({
+                  start: startParam,
+                  count: countParam,
+                  batchSize,
+              })
+            : { start: 0, count: 0 };
 
     return createQuery({
         queryString,
         start,
         count,
-        aggregations: tidsperiodeAggregations,
+        aggregations: daterangeAggregations,
         filters,
         sort:
             sorting === SortParam.Date
@@ -133,7 +139,7 @@ export const createDaterangeQueryParams = (
 
     return createQuery({
         queryString,
-        extraQuerySegment: daterangeQuery,
+        additionalQuerySegment: daterangeQuery,
         start,
         count,
         filters,

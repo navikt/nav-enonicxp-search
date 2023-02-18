@@ -13,9 +13,3 @@ export const getUnixTimeFromDateTimeString = (datetime) => {
     const validDateTime = datetime.split('.')[0];
     return new Date(validDateTime).getTime();
 };
-
-export const recordToSet = (record) =>
-    Object.values(record).reduce(
-        (acc, value) => ({ ...acc, [value]: true }),
-        {}
-    );

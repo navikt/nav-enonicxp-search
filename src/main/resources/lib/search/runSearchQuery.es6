@@ -1,7 +1,17 @@
 import { getUnixTimeFromDateTimeString } from '../utils';
 import { getSearchRepoConnection } from './helpers/repo';
-import { createSearchQueryParams } from './queryBuilder/createQuery';
-import { SortParam } from '../constants';
+import {
+    createDaterangeQueryParams,
+    createSearchQueryParams,
+} from './queryBuilder/createQuery';
+import {
+    DaterangeParam,
+    SortParam,
+    withAggregationsBatchSize,
+} from '../constants';
+import { processDaterangeAggregations } from './helpers/dateRange';
+import { shouldIncludePrioHits } from './helpers/utils';
+import { logger } from '../utils/logger';
 
 const oneYear = 1000 * 3600 * 24 * 365;
 
@@ -53,17 +63,10 @@ const resultWithCustomScoreWeights = (result) => ({
         .sort((a, b) => b._score - a._score),
 });
 
-export const runSearchQuery = (queryParams, sort) => {
+export const runSearchQuery = (queryParams, withCustomWeights) => {
     const repo = getSearchRepoConnection();
 
-    const queryResult = repo.query(
-        sort === 0
-            ? queryParams
-            : {
-                  ...queryParams,
-                  sort: 'publish.first DESC, createdTime DESC',
-              }
-    );
+    const queryResult = repo.query(queryParams);
 
     const hits = queryResult.hits.map((hit) => {
         const searchNode = repo.get(hit.id);
@@ -75,21 +78,65 @@ export const runSearchQuery = (queryParams, sort) => {
         };
     });
 
-    const result = { ...queryResult, hits: hits };
+    const result = { ...queryResult, hits };
 
-    if (sort === SortParam.BestMatch) {
-        return resultWithCustomScoreWeights(result);
-    }
-
-    return result;
+    return withCustomWeights ? resultWithCustomScoreWeights(result) : result;
 };
 
-export const runSearchQuery2 = (inputParams, prioritizedItems, batchSize) => {
+export const runFullSearchQuery = (
+    inputParams,
+    prioritizedItems,
+    batchSize
+) => {
+    const { daterange, s: sorting } = inputParams;
+
     const queryParams = createSearchQueryParams(
         inputParams,
         prioritizedItems,
         batchSize
     );
 
-    return runSearchQuery(queryParams);
+    const withCustomWeights = sorting === SortParam.BestMatch;
+    const withPrioritizedHits = shouldIncludePrioHits(inputParams);
+    const priorityHitCount = prioritizedItems.hits.length;
+
+    const result = runSearchQuery(queryParams, withCustomWeights);
+    const { aggregations } = result;
+
+    aggregations.Tidsperiode = processDaterangeAggregations(result);
+
+    if (withPrioritizedHits) {
+        aggregations.Tidsperiode.docCount += priorityHitCount;
+    }
+
+    if (daterange === DaterangeParam.All) {
+        return withPrioritizedHits
+            ? {
+                  ...result,
+                  hits: [...prioritizedItems.hits, ...result.hits],
+                  total: result.total + priorityHitCount,
+              }
+            : result;
+    }
+
+    const daterangeBucket = aggregations.Tidsperiode.buckets[daterange];
+    if (!daterangeBucket) {
+        logger.info('No daterange bucket');
+        return result;
+    }
+
+    const daterangeQueryParams = createDaterangeQueryParams(
+        inputParams,
+        daterangeBucket,
+        withAggregationsBatchSize
+    );
+
+    logger.info(JSON.stringify(daterangeQueryParams));
+
+    const daterangeResult = runSearchQuery(
+        daterangeQueryParams,
+        withCustomWeights
+    );
+
+    return { ...daterangeResult, aggregations };
 };

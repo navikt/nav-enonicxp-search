@@ -31,3 +31,25 @@ export const getDaterangeQueryStringFromBucket = (bucket) => {
 
     return query.join(' AND ');
 };
+
+export const processDaterangeAggregations = (result) => {
+    const { aggregations, total } = result;
+    const { Tidsperiode } = aggregations;
+
+    if (!Tidsperiode) {
+        return { docCount: 0, buckets: [] };
+    }
+
+    Tidsperiode.docCount = total;
+
+    // Sort buckets from most recent to oldest ranges, and transform the keys
+    // to what the frontend expects
+    Tidsperiode.buckets = Tidsperiode.buckets
+        .sort((a, b) => (a.key > b.key ? 1 : -1))
+        .map((bucket, index) => ({
+            ...bucket,
+            key: daterangeAggregationsRanges[index].name,
+        }));
+
+    return Tidsperiode;
+};
