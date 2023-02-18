@@ -4,6 +4,7 @@ import { createCommonFilters, createSearchFilters } from './createFilters';
 import { getCountAndStart } from '../helpers/utils';
 import { getDaterangeQueryStringFromBucket } from '../helpers/dateRange';
 import { pathFilter } from '../helpers/pathFilter';
+import { SortParam } from '../../constants';
 
 // Don't match content with a future scheduled publish date
 const publishedOnlyQuerySegment = () =>
@@ -101,7 +102,12 @@ export const createSearchQueryParams = (
     prioritizedItems,
     batchSize
 ) => {
-    const { start: startParam, c: countParam, queryString } = params;
+    const {
+        start: startParam,
+        c: countParam,
+        queryString,
+        s: sorting,
+    } = params;
 
     const filters = createSearchFilters(params, prioritizedItems);
 
@@ -117,6 +123,10 @@ export const createSearchQueryParams = (
         count,
         aggregations: tidsperiodeAggregations,
         filters,
+        sort:
+            sorting === SortParam.Date
+                ? 'publish.first DESC, createdTime DESC'
+                : undefined,
     });
 };
 

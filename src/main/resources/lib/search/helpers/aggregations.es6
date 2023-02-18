@@ -2,6 +2,7 @@ import { forceArray } from '../../utils';
 import { runSearchQuery } from '../runSearchQuery';
 import { createFacetsAggregationsQuery } from '../queryBuilder/createQuery';
 import { getConfig } from './config';
+import { SortParam } from '../../constants';
 
 // As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
 // aggregation result as a bucket with docCount = 0
@@ -57,7 +58,7 @@ export const getFacetAggregations = (inputParams, prioritizedItems) => {
 
     // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
     // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
-    if (sorting === 0) {
+    if (sorting === SortParam.BestMatch) {
         const priorityHitCount = prioritizedItems.hits.length;
 
         const firstFacet = aggregations.fasetter.buckets[0];

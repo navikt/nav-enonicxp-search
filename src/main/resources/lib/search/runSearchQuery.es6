@@ -1,5 +1,7 @@
 import { getUnixTimeFromDateTimeString } from '../utils';
 import { getSearchRepoConnection } from './helpers/repo';
+import { createSearchQueryParams } from './queryBuilder/createQuery';
+import { SortParam } from '../constants';
 
 const oneYear = 1000 * 3600 * 24 * 365;
 
@@ -75,9 +77,19 @@ export const runSearchQuery = (queryParams, sort) => {
 
     const result = { ...queryResult, hits: hits };
 
-    if (sort !== 0) {
-        return result;
+    if (sort === SortParam.BestMatch) {
+        return resultWithCustomScoreWeights(result);
     }
 
-    return resultWithCustomScoreWeights(result);
+    return result;
+};
+
+export const runSearchQuery2 = (inputParams, prioritizedItems, batchSize) => {
+    const queryParams = createSearchQueryParams(
+        inputParams,
+        prioritizedItems,
+        batchSize
+    );
+
+    return runSearchQuery(queryParams);
 };

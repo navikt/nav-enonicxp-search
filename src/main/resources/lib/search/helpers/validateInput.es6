@@ -2,6 +2,7 @@ import { isFormSearch } from './utils';
 import { generateSearchInput } from '../queryBuilder/generateSearchInput';
 import { getConfig } from './config';
 import { forceArray } from '../../utils';
+import { SortParam } from '../../constants';
 
 const validNumber = (
     rawValue,
@@ -32,6 +33,11 @@ const validUnderfacets = (facetData, ufInput) => {
         validUfArray.some((validUf) => validUf === uf)
     );
 };
+
+const validSorting = (sorting) =>
+    sorting === SortParam.BestMatch || sorting === SortParam.Date
+        ? sorting
+        : SortParam.BestMatch;
 
 export const validateAndTransformParams = (params) => {
     const {
@@ -64,7 +70,7 @@ export const validateAndTransformParams = (params) => {
         uf: facetData ? validUnderfacets(facetData, uf, config) : [],
         start: startValid, // Start batch
         c: validNumber(c, countMin, countMin), // End batch/count
-        s: validNumber(s, 0, 0, 1), // Sorting (0: by best match, 1: by date)
+        s: validSorting(s),
         daterange: validNumber(daterange, -1, -1, 3), // Date range (-1: all, 0: > 12 months, 1: < 12 months, 2: < 30 days, 3: < 7 days)
         excludePrioritized: excludePrioritized === 'true' || isFormSearch(ord),
         ord: ordTrimmed,

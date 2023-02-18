@@ -6,7 +6,7 @@ import {
     tidsperiodeRanges,
 } from './queryBuilder/createQuery';
 import { createPreparedHit } from './resultListing/createPreparedHit';
-import { runSearchQuery } from './runSearchQuery';
+import { runSearchQuery, runSearchQuery2 } from './runSearchQuery';
 import { getFacetAggregations } from './helpers/aggregations';
 import { logger } from '../utils/logger';
 import { withAggregationsBatchSize } from '../constants';
@@ -28,17 +28,15 @@ const runSearch = (inputParams) => {
 
     const facetAggs = getFacetAggregations(inputParams, prioritizedItems);
 
-    const queryParams = createSearchQueryParams(
-        inputParams,
-        prioritizedItems,
-        withAggregationsBatchSize
-    );
-
     let {
         hits,
         total,
         aggregations: daterangeAggs,
-    } = runSearchQuery(queryParams, sorting);
+    } = runSearchQuery2(
+        inputParams,
+        prioritizedItems,
+        withAggregationsBatchSize
+    );
 
     daterangeAggs.Tidsperiode.docCount = total;
 

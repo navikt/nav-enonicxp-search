@@ -59,13 +59,12 @@ export const get = (req) => {
         (bucket) => bucket.checked
     );
 
-    const { c: count, s: sorting, daterange, ord } = params;
+    const { c: count, s, daterange, ord } = params;
 
     return {
         body: {
             c: count,
-            isSortDate: sorting === 0,
-            s: sorting,
+            s,
             daterange,
             isMore: count * withAggregationsBatchSize < result.total,
             word: ord,

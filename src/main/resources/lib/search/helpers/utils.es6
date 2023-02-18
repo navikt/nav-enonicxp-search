@@ -1,4 +1,5 @@
 import { getConfig } from './config';
+import { SortParam } from '../../constants';
 
 export const isExactSearch = (queryString) =>
     (queryString.startsWith('"') && queryString.endsWith('"')) ||
@@ -24,7 +25,7 @@ export const shouldIncludePrioHits = (params) => {
 
     return (
         !isFormSearch(ord) &&
-        sorting === 0 &&
+        sorting === SortParam.BestMatch &&
         f === facetWithPrioHits &&
         (uf.length === 0 || (uf.length === 1 && uf[0] === ufWithPrioHits)) &&
         start === 0
