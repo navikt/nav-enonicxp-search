@@ -3,7 +3,7 @@ import { getConfig } from '../helpers/config';
 import { createCommonFilters, createSearchFilters } from './createFilters';
 import { getCountAndStart } from '../helpers/utils';
 import { getDaterangeQueryStringFromBucket } from '../helpers/dateRange';
-import { logger } from '../../utils/logger';
+import { pathFilter } from '../helpers/pathFilter';
 
 // Don't match content with a future scheduled publish date
 const publishedOnlyQuerySegment = () =>
@@ -67,11 +67,10 @@ const createQuery = ({
     const contentTypes = forceArray(config.data.contentTypes);
     const fieldsToSearch = forceArray(config.data.fields);
 
-    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()}${
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} AND ${pathFilter}${
         extraQuerySegment ? ` AND ${extraQuerySegment}` : ''
     }`;
 
-    logger.info(query);
     return {
         start,
         count,
