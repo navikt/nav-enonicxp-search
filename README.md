@@ -11,16 +11,16 @@ Backend for søket på nav.no. Enonic XP applikasjon som må installeres sammen 
 
 ## Lokal utvikling
 
-Se [nav-enonicxp](https://github.com/navikt/nav-enonicxp) for hvordan komme i gang med utvikling av Enonic XP appene våre.
+Se [nav-enonicxp](https://github.com/navikt/nav-enonicxp) for hvordan komme i gang med utvikling av XP-appene våre.
 
-Obs: For at søket skal fungere er man nødt til å legge hunspell inn i XP.
+Obs: For at søket skal fungere er man nødt til å legge hunspell inn i XP:
 ```
 cp hunspell $XP_HOME/repo/index/conf/
 ```
 
 ## Deploy
 
-Deployes med custom actions runner: [nav-enonicxp-search-actions-runner](https://github.com/navikt/nav-enonicxp-search-actions-runner)
+Deployes med self-hosted actions runner: [nav-enonicxp-search-actions-runner](https://github.com/navikt/nav-enonicxp-search-actions-runner)
 
 ### Testmiljøer
 
