@@ -1,5 +1,5 @@
 <content-type>
-    <display-name>Prioritert søk intern (Ikke lengre i bruk)</display-name>
+    <display-name>Prioritert søk intern (Obs: Ikke lengre i bruk)</display-name>
     <super-type>base:structured</super-type>
     <is-abstract>true</is-abstract>
     <form>

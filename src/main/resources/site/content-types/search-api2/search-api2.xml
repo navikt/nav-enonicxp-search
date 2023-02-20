@@ -1,5 +1,6 @@
 <content-type>
-    <display-name>Prioritert søk ekstern</display-name>
+    <display-name>Eksternt innhold til søket</display-name>
+    <description>Innhold utenfra Enonic som skal indekseres i søket på nav.no</description>
     <super-type>base:structured</super-type>
     <form>
         <input name="keywords" type="Tag">
@@ -9,7 +10,7 @@
         <input name="url" type="TextLine">
             <label>URL</label>
             <occurrences maximum="1" minimum="1"/>
-            <help-text>Lim inn url til nettsted</help-text>
+            <help-text>Sett inn url til nettsted</help-text>
         </input>
         <input name="text" type="TextArea">
             <label>Fritekst</label>
