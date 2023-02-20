@@ -16,6 +16,12 @@ const getCountAndStart = ({ start, count, batchSize }) => {
     return { start: start * batchSize, count: (count - start) * batchSize };
 };
 
+// Sort by date if sorting is set to date, or query is empty
+const getSortString = (params) =>
+    params.s === SortParam.Date || !params.queryString
+        ? 'publish.first DESC, createdTime DESC'
+        : undefined;
+
 const daterangeAggregations = {
     Tidsperiode: {
         dateRange: {
@@ -84,13 +90,7 @@ export const createFacetsAggregationsQuery = (queryString) => {
 };
 
 export const createSearchQueryParams = (params, batchSize) => {
-    const {
-        start: startParam,
-        c: countParam,
-        queryString,
-        s: sorting,
-        daterange,
-    } = params;
+    const { start: startParam, c: countParam, queryString, daterange } = params;
 
     const filters = createSearchFilters(params);
 
@@ -111,10 +111,7 @@ export const createSearchQueryParams = (params, batchSize) => {
         count,
         aggregations: daterangeAggregations,
         filters,
-        sort:
-            sorting === SortParam.Date
-                ? 'publish.first DESC, createdTime DESC'
-                : undefined,
+        sort: getSortString(params),
     });
 };
 
@@ -123,12 +120,7 @@ export const createDaterangeQueryParams = (
     daterangeBucket,
     batchSize
 ) => {
-    const {
-        start: startParam,
-        c: countParam,
-        queryString,
-        s: sorting,
-    } = params;
+    const { start: startParam, c: countParam, queryString } = params;
 
     const filters = createSearchFilters(params);
 
@@ -146,9 +138,6 @@ export const createDaterangeQueryParams = (
         start,
         count,
         filters,
-        sort:
-            sorting === SortParam.Date
-                ? 'publish.first DESC, createdTime DESC'
-                : undefined,
+        sort: getSortString(params),
     });
 };
