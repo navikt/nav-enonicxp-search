@@ -1,4 +1,4 @@
-const excludePaths = [
+export const excludedPathsQuerySegment = [
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/noindex/*',
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/for-kommunen/sosiale-tjenester-i-nav-kontoret2*',
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/for-kommunen/kvalifiseringsprogrammet2*',
@@ -7,8 +7,6 @@ const excludePaths = [
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/for-kommunen/okonomisk-stonad-sosialhjelp*',
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/for-kommunen/barn-og-unge2*',
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/for-kommunen/satsingsomrader2*',
-];
-
-export const pathFilter = excludePaths
+]
     .map((path) => `contentPath NOT LIKE "${path}"`)
     .join(' AND ');

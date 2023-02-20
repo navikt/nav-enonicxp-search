@@ -1,8 +1,7 @@
 import { forceArray } from '../../utils';
-import { runSearchQuery } from '../runSearchQuery';
-import { createFacetsAggregationsQuery } from '../queryBuilder/createQuery';
-import { getConfig } from './config';
-import { SortParam } from '../../constants';
+import { runSearchQuery } from './runSearchQuery';
+import { createFacetsAggregationsQuery } from './createQuery';
+import { getConfig } from '../helpers/config';
 
 // As the aggregated result don't show hits for buckets containing zero hits, we need to manually add them to the
 // aggregation result as a bucket with docCount = 0
@@ -39,15 +38,12 @@ const addNamesAndDocCountToFacetBuckets = (buckets, facets) =>
         };
     });
 
-export const getFacetAggregations = (inputParams, prioritizedItems) => {
-    const { queryString, s: sorting } = inputParams;
+export const getFacetAggregations = (inputParams) => {
+    const { queryString } = inputParams;
 
     const config = getConfig();
 
-    const queryParams = createFacetsAggregationsQuery(
-        queryString,
-        prioritizedItems
-    );
+    const queryParams = createFacetsAggregationsQuery(queryString);
 
     const { aggregations } = runSearchQuery(queryParams);
 
@@ -55,21 +51,6 @@ export const getFacetAggregations = (inputParams, prioritizedItems) => {
         aggregations.fasetter.buckets,
         config.data.fasetter
     );
-
-    // The first facet and its first child facet ("Innhold -> Informasjon") should have a prioritized
-    // set of hits added (when sorted by best match). Handle this and update the relevant aggregation counters:
-    if (sorting === SortParam.BestMatch) {
-        const priorityHitCount = prioritizedItems.hits.length;
-
-        const firstFacet = aggregations.fasetter.buckets[0];
-        if (firstFacet?.docCount) {
-            firstFacet.docCount += priorityHitCount;
-            const firstUnderFacet = firstFacet.underaggregeringer.buckets[0];
-            if (firstUnderFacet?.docCount) {
-                firstUnderFacet.docCount += priorityHitCount;
-            }
-        }
-    }
 
     return aggregations;
 };

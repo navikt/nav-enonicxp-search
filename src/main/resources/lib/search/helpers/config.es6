@@ -2,7 +2,7 @@ import contentLib from '/lib/xp/content';
 import { runInContext } from '../../utils/context';
 import { logger } from '../../utils/logger';
 import { forceArray } from '../../utils';
-import { getSearchRepoConnection } from './repo';
+import { getSearchRepoConnection } from '../../utils/repo';
 
 const searchConfigKey = '/config';
 
@@ -130,8 +130,6 @@ const setConfigCache = (config) => {
     searchConfig = {
         ...config,
         defaultFacetParam: defaultFacet?.facetKey,
-        facetWithPrioHits: defaultFacet?.facetKey,
-        ufWithPrioHits: defaultFacet?.underfasetter?.[0]?.facetKey,
     };
 };
 

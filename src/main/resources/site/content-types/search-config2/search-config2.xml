@@ -1,5 +1,5 @@
 <content-type xmlns="urn:enonic:xp:model:1.0">
-    <display-name>Søkekonfigurasjon (fasetter)</display-name>
+    <display-name>Oppsett for søket på nav.no</display-name>
     <description>Skal bare finnes 1 av denne</description>
     <super-type>base:structured</super-type>
     <is-abstract>true</is-abstract>

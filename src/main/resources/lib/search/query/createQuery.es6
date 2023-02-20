@@ -1,17 +1,26 @@
 import { forceArray } from '../../utils';
 import { getConfig } from '../helpers/config';
-import { createCommonFilters, createSearchFilters } from './createFilters';
-import { getCountAndStart } from '../helpers/utils';
+import { commonFilters, createSearchFilters } from './createFilters';
 import {
     getDaterangeQueryStringFromBucket,
     daterangeAggregationsRanges,
-} from '../helpers/daterangeAggregations';
-import { pathFilter } from '../helpers/pathFilter';
+} from './daterangeAggregations';
+import { excludedPathsQuerySegment } from './excludedPaths';
 import { DaterangeParam, SortParam } from '../../constants';
 
 // Don't match content with a future scheduled publish date
 const publishedOnlyQuerySegment = () =>
     `publish.from < instant("${new Date().toISOString()}")`;
+
+const getCountAndStart = ({ start, count, batchSize }) => {
+    return { start: start * batchSize, count: (count - start) * batchSize };
+};
+
+// Sort by date if sorting is set to date, or query is empty
+const getSortString = (params) =>
+    params.s === SortParam.Date || !params.queryString
+        ? 'publish.first DESC, createdTime DESC'
+        : undefined;
 
 const daterangeAggregations = {
     Tidsperiode: {
@@ -53,7 +62,7 @@ const createQuery = ({
     const contentTypes = forceArray(config.data.contentTypes);
     const fieldsToSearch = forceArray(config.data.fields);
 
-    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} AND ${pathFilter} ${
+    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} AND ${excludedPathsQuerySegment} ${
         additionalQuerySegment ? `AND ${additionalQuerySegment}` : ''
     }`;
 
@@ -68,11 +77,8 @@ const createQuery = ({
     };
 };
 
-export const createFacetsAggregationsQuery = (
-    queryString,
-    prioritizedItems
-) => {
-    const filters = createCommonFilters(prioritizedItems);
+export const createFacetsAggregationsQuery = (queryString) => {
+    const filters = commonFilters();
 
     return createQuery({
         queryString,
@@ -83,20 +89,10 @@ export const createFacetsAggregationsQuery = (
     });
 };
 
-export const createSearchQueryParams = (
-    params,
-    prioritizedItems,
-    batchSize
-) => {
-    const {
-        start: startParam,
-        c: countParam,
-        queryString,
-        s: sorting,
-        daterange,
-    } = params;
+export const createSearchQueryParams = (params, batchSize) => {
+    const { start: startParam, c: countParam, queryString, daterange } = params;
 
-    const filters = createSearchFilters(params, prioritizedItems);
+    const filters = createSearchFilters(params);
 
     // If the query is for a specific daterange, we need to do an additional query later to retrieve the content
     // In this case the present query will only be for aggregations, so we optimize by not returning any results
@@ -115,10 +111,7 @@ export const createSearchQueryParams = (
         count,
         aggregations: daterangeAggregations,
         filters,
-        sort:
-            sorting === SortParam.Date
-                ? 'publish.first DESC, createdTime DESC'
-                : undefined,
+        sort: getSortString(params),
     });
 };
 
@@ -127,12 +120,7 @@ export const createDaterangeQueryParams = (
     daterangeBucket,
     batchSize
 ) => {
-    const {
-        start: startParam,
-        c: countParam,
-        queryString,
-        s: sorting,
-    } = params;
+    const { start: startParam, c: countParam, queryString } = params;
 
     const filters = createSearchFilters(params);
 
@@ -150,9 +138,6 @@ export const createDaterangeQueryParams = (
         start,
         count,
         filters,
-        sort:
-            sorting === SortParam.Date
-                ? 'publish.first DESC, createdTime DESC'
-                : undefined,
+        sort: getSortString(params),
     });
 };

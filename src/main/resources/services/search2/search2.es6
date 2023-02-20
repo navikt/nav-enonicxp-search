@@ -1,4 +1,4 @@
-import { validateAndTransformParams } from '../../lib/search/helpers/validateInput';
+import { validateAndTransformParams } from '../../lib/utils/validateInput';
 import {
     noAggregationsBatchSize,
     searchWithoutAggregations,

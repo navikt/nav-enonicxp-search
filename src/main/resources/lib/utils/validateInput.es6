@@ -1,8 +1,7 @@
-import { isFormSearch } from './utils';
-import { generateSearchInput } from '../queryBuilder/generateSearchInput';
-import { getConfig } from './config';
-import { forceArray } from '../../utils';
-import { DaterangeParam, SortParam } from '../../constants';
+import { generateSearchInput } from '../search/query/generateSearchInput';
+import { getConfig } from '../search/helpers/config';
+import { forceArray } from './index';
+import { DaterangeParam, SortParam } from '../constants';
 
 const validNumber = (
     rawValue,
@@ -35,16 +34,7 @@ const validUnderfacets = (facetData, ufInput) => {
 };
 
 export const validateAndTransformParams = (params) => {
-    const {
-        f,
-        uf,
-        ord = '',
-        start,
-        excludePrioritized,
-        c,
-        daterange,
-        s,
-    } = params;
+    const { f, uf, ord = '', start, c, daterange, s } = params;
     const config = getConfig();
 
     // Support max 200 characters for the search term
@@ -77,7 +67,6 @@ export const validateAndTransformParams = (params) => {
             DaterangeParam.All,
             DaterangeParam.NewerThan7D
         ),
-        excludePrioritized: excludePrioritized === 'true' || isFormSearch(ord),
         ord: ordTrimmed,
         queryString,
         wordList,

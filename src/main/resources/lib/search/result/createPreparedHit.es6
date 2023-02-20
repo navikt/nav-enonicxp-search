@@ -1,4 +1,4 @@
-import { getContentRepoConnection } from '../helpers/repo';
+import { getContentRepoConnection } from '../../utils/repo';
 import { getPaths } from './getPaths';
 
 export const calculateHighlightText = (highLight) => {
@@ -178,9 +178,6 @@ export const getAudienceForHit = (hit, href) => {
 };
 
 export const createPreparedHit = (hit, wordList) => {
-    // Join the prioritised search with the result and map the contents with: highlighting,
-    // href, displayName and so on
-
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
     const { href, displayPath } = getPaths(hit);
@@ -218,7 +215,6 @@ export const createPreparedHit = (hit, wordList) => {
     }
 
     return {
-        priority: !!hit.priority,
         displayName: name,
         href: href,
         displayPath: displayPath,

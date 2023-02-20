@@ -1,6 +1,7 @@
 <content-type>
-    <display-name>Prioritert søk intern</display-name>
+    <display-name>Prioritert søk intern (Obs: Ikke lengre i bruk)</display-name>
     <super-type>base:structured</super-type>
+    <is-abstract>true</is-abstract>
     <form>
         <input name="content" type="ContentSelector">
             <label>Velg innhold</label>

@@ -17,8 +17,7 @@ export const getPaths = (el) => {
         el.type === app.name + ':search-api2' ||
         el.type === 'no.nav.navno:external-link'
     ) {
-        paths.href = el.data.host || el.data.url;
-        // href for media/files
+        paths.href = el.data.url;
     } else if (
         el.type === 'media:document' ||
         el.type === 'media:spreadsheet' ||
