@@ -34,6 +34,7 @@ const runSearch = (params) => {
             score: hit._score,
             rawScore: hit._rawScore,
             audience: getAudienceForHit(hit, href),
+            language: hit.language,
         };
     });
 

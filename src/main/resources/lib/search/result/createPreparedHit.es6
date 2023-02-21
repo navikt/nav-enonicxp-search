@@ -226,5 +226,6 @@ export const createPreparedHit = (hit, wordList) => {
         rawScore: hit._rawScore,
         officeInformation: officeInformation,
         audience: getAudienceForHit(hit, href),
+        language: hit.language,
     };
 };
