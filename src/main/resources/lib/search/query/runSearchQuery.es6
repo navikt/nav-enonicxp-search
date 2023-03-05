@@ -22,8 +22,6 @@ export const runSearchQuery = (queryParams, withCustomWeights) => {
         return {
             ...searchNode,
             _score: hit.score,
-            _id: searchNode.contentId || searchNode._id,
-            _path: searchNode.contentPath || searchNode._path,
         };
     });
 

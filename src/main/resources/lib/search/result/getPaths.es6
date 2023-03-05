@@ -24,7 +24,7 @@ export const getPaths = (el) => {
         el.type === 'media:image'
     ) {
         paths.href = attachmentUrl({
-            id: el._id,
+            id: el.contentId,
         });
     } else if (customPath) {
         paths.href = pageUrl({
@@ -33,7 +33,7 @@ export const getPaths = (el) => {
         });
     } else {
         paths.href = pageUrl({
-            id: el._id,
+            id: el.contentId,
             type: 'absolute',
         });
     }
@@ -43,7 +43,7 @@ export const getPaths = (el) => {
         el.type === 'media:spreadsheet' ||
         el.type === 'media:image'
     ) {
-        paths.displayPath = pageUrl({ id: el._id })
+        paths.displayPath = pageUrl({ id: el.contentId })
             .split('/')
             .slice(0, -1)
             .join('/');

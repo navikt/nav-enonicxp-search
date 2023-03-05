@@ -128,7 +128,7 @@ const highLightFragment = (searchText, wordList) => {
 
 export const getHighLight = (searchNode, wordList) => {
     if (searchNode.type === 'media:document') {
-        const media = getContentRepoConnection().get(searchNode._id);
+        const media = getContentRepoConnection().get(searchNode.contentId);
         if (media && media.attachment) {
             return {
                 text: highLightFragment(media.attachment.text || '', wordList),
@@ -180,8 +180,9 @@ export const getAudienceForHit = (hit, href) => {
 export const createPreparedHit = (hit, wordList) => {
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
-    const { href, displayPath } = getPaths(hit);
-    let name = hit.displayName;
+
+    const { href, displayPath, displayName } = hit;
+    let name = displayName;
 
     let officeInformation;
     if (hit.type === 'no.nav.navno:office-information') {
@@ -215,7 +216,7 @@ export const createPreparedHit = (hit, wordList) => {
     }
 
     return {
-        displayName: name,
+        displayName,
         href: href,
         displayPath: displayPath,
         highlight: highlightText,
