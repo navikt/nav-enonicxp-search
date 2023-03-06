@@ -1,5 +1,4 @@
 import { getContentRepoConnection } from '../../utils/repo';
-import { getPaths } from './getPaths';
 
 export const calculateHighlightText = (highLight) => {
     if (highLight.ingress.highlighted) {
@@ -177,55 +176,51 @@ export const getAudienceForHit = (hit, href) => {
     return null;
 };
 
+const getAudienceReception = (hit) => {
+    if (
+        hit.data.kontaktinformasjon?.publikumsmottak?.besoeksadresse?.type !==
+        'stedsadresse'
+    ) {
+        return null;
+    }
+
+    const { postnummer, poststed, gatenavn, husnummer } =
+        hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse;
+    const base = [gatenavn, husnummer, postnummer, poststed].filter(
+        (item) => item !== undefined
+    );
+
+    const post = base.slice(Math.max(base.length - 2, 0)).join(' ');
+    const address = base.slice(0, base.length - 2).join(' ');
+
+    return `${address}, ${post}`;
+};
+
+const getPhone = (hit) => hit.data.kontaktinformasjon?.telefonnummer || null;
+
+const getOfficeInformation = (hit) => {
+    return {
+        phone: getPhone(hit),
+        audienceReception: getAudienceReception(hit),
+    };
+};
+
 export const createPreparedHit = (hit, wordList) => {
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
 
-    const { href, displayPath, displayName } = hit;
-    let name = displayName;
-
-    let officeInformation;
-    if (hit.type === 'no.nav.navno:office-information') {
-        name = hit.data.enhet.navn ? hit.data.enhet.navn : hit.displayName;
-        let audienceReception = null;
-        if (
-            hit.data.kontaktinformasjon &&
-            hit.data.kontaktinformasjon.publikumsmottak &&
-            hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse &&
-            hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse.type ===
-                'stedsadresse'
-        ) {
-            const { postnummer, poststed, gatenavn, husnummer } =
-                hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse;
-            const base = [gatenavn, husnummer, postnummer, poststed].filter(
-                (item) => item !== undefined
-            );
-
-            const post = base.slice(Math.max(base.length - 2, 0)).join(' ');
-            const address = base.slice(0, base.length - 2).join(' ');
-            audienceReception = `${address}, ${post}`;
-        }
-        officeInformation = {
-            phone:
-                hit.data.kontaktinformasjon &&
-                hit.data.kontaktinformasjon.telefonnummer
-                    ? hit.data.kontaktinformasjon.telefonnummer
-                    : '',
-            audienceReception,
-        };
-    }
+    const { href, displayName } = hit;
 
     return {
         displayName,
         href: href,
-        displayPath: displayPath,
         highlight: highlightText,
         publish: hit.publish,
         createdTime: hit.createdTime,
         modifiedTime: hit.modifiedTime,
         score: hit._score,
         rawScore: hit._rawScore,
-        officeInformation: officeInformation,
+        officeInformation: getOfficeInformation(hit),
         audience: getAudienceForHit(hit, href),
         language: hit.language,
     };
