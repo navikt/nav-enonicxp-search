@@ -157,12 +157,12 @@ const pathSegmentToAudience = {
     samarbeid: 'provider',
 };
 
-export const getAudienceForHit = (hit, href) => {
+export const getAudienceForHit = (hit) => {
     if (hit.data?.audience) {
         return hit.data.audience;
     }
 
-    const pathSegments = href
+    const pathSegments = hit.href
         .replace(/^https?:\/\/[a-zA-Z0-9-.]+\//, '')
         .split('/');
 
@@ -209,11 +209,9 @@ export const createPreparedHit = (hit, wordList) => {
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
 
-    const { href, displayName } = hit;
-
     return {
-        displayName,
-        href: href,
+        displayName: hit.displayName,
+        href: hit.href,
         highlight: highlightText,
         publish: hit.publish,
         createdTime: hit.createdTime,
@@ -221,7 +219,7 @@ export const createPreparedHit = (hit, wordList) => {
         score: hit._score,
         rawScore: hit._rawScore,
         officeInformation: getOfficeInformation(hit),
-        audience: getAudienceForHit(hit, href),
+        audience: getAudienceForHit(hit),
         language: hit.language,
     };
 };

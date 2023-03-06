@@ -31,7 +31,7 @@ const runSearch = (params) => {
             modifiedTime: hit.modifiedTime,
             score: hit._score,
             rawScore: hit._rawScore,
-            audience: getAudienceForHit(hit, hit.href),
+            audience: getAudienceForHit(hit),
             language: hit.language,
         };
     });
