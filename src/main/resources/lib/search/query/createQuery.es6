@@ -8,9 +8,11 @@ import {
 import { excludedPathsQuerySegment } from './excludedPaths';
 import { DaterangeParam, SortParam } from '../../constants';
 
-// Don't match content with a future scheduled publish date
-const publishedOnlyQuerySegment = () =>
-    `publish.from < instant("${new Date().toISOString()}")`;
+// Don't match content with a publish range not matching the present time
+const publishedOnlyQuerySegment = () => {
+    const now = new Date().toISOString();
+    return `publish.from < instant("${now}") AND (publish.to NOT LIKE "*" OR publish.to > instant("${now}"))`;
+};
 
 const getCountAndStart = ({ start, count, batchSize }) => {
     return { start: start * batchSize, count: (count - start) * batchSize };
