@@ -199,6 +199,10 @@ const getAudienceReception = (hit) => {
 const getPhone = (hit) => hit.data.kontaktinformasjon?.telefonnummer || null;
 
 const getOfficeInformation = (hit) => {
+    if (hit.type !== 'no.nav.navno:office-information') {
+        return null;
+    }
+
     return {
         phone: getPhone(hit),
         audienceReception: getAudienceReception(hit),
