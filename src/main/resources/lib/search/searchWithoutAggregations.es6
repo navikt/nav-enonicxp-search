@@ -1,4 +1,3 @@
-import { getPaths } from './result/getPaths';
 import {
     calculateHighlightText,
     getAudienceForHit,
@@ -23,17 +22,16 @@ const runSearch = (params) => {
     hits = hits.map((hit) => {
         const highLight = getHighLight(hit, wordList);
         const highlightText = calculateHighlightText(highLight);
-        const href = getPaths(hit).href;
 
         return {
             displayName: hit.displayName,
-            href: href,
+            href: hit.href,
             highlight: highlightText,
             publish: hit.publish,
             modifiedTime: hit.modifiedTime,
             score: hit._score,
             rawScore: hit._rawScore,
-            audience: getAudienceForHit(hit, href),
+            audience: getAudienceForHit(hit),
             language: hit.language,
         };
     });

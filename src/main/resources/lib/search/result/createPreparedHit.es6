@@ -1,5 +1,4 @@
 import { getContentRepoConnection } from '../../utils/repo';
-import { getPaths } from './getPaths';
 
 export const calculateHighlightText = (highLight) => {
     if (highLight.ingress.highlighted) {
@@ -128,7 +127,7 @@ const highLightFragment = (searchText, wordList) => {
 
 export const getHighLight = (searchNode, wordList) => {
     if (searchNode.type === 'media:document') {
-        const media = getContentRepoConnection().get(searchNode._id);
+        const media = getContentRepoConnection().get(searchNode.contentId);
         if (media && media.attachment) {
             return {
                 text: highLightFragment(media.attachment.text || '', wordList),
@@ -158,12 +157,12 @@ const pathSegmentToAudience = {
     samarbeid: 'provider',
 };
 
-export const getAudienceForHit = (hit, href) => {
+export const getAudienceForHit = (hit) => {
     if (hit.data?.audience) {
         return hit.data.audience;
     }
 
-    const pathSegments = href
+    const pathSegments = hit.href
         .replace(/^https?:\/\/[a-zA-Z0-9-.]+\//, '')
         .split('/');
 
@@ -177,55 +176,54 @@ export const getAudienceForHit = (hit, href) => {
     return null;
 };
 
-export const createPreparedHit = (hit, wordList) => {
-    const highLight = getHighLight(hit, wordList);
-    const highlightText = calculateHighlightText(highLight);
-    const { href, displayPath } = getPaths(hit);
-    let name = hit.displayName;
+const getAudienceReception = (hit) => {
+    if (
+        hit.data.kontaktinformasjon?.publikumsmottak?.besoeksadresse?.type !==
+        'stedsadresse'
+    ) {
+        return null;
+    }
 
-    let officeInformation;
-    if (hit.type === 'no.nav.navno:office-information') {
-        name = hit.data.enhet.navn ? hit.data.enhet.navn : hit.displayName;
-        let audienceReception = null;
-        if (
-            hit.data.kontaktinformasjon &&
-            hit.data.kontaktinformasjon.publikumsmottak &&
-            hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse &&
-            hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse.type ===
-                'stedsadresse'
-        ) {
-            const { postnummer, poststed, gatenavn, husnummer } =
-                hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse;
-            const base = [gatenavn, husnummer, postnummer, poststed].filter(
-                (item) => item !== undefined
-            );
+    const { postnummer, poststed, gatenavn, husnummer } =
+        hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse;
+    const base = [gatenavn, husnummer, postnummer, poststed].filter(
+        (item) => item !== undefined
+    );
 
-            const post = base.slice(Math.max(base.length - 2, 0)).join(' ');
-            const address = base.slice(0, base.length - 2).join(' ');
-            audienceReception = `${address}, ${post}`;
-        }
-        officeInformation = {
-            phone:
-                hit.data.kontaktinformasjon &&
-                hit.data.kontaktinformasjon.telefonnummer
-                    ? hit.data.kontaktinformasjon.telefonnummer
-                    : '',
-            audienceReception,
-        };
+    const post = base.slice(Math.max(base.length - 2, 0)).join(' ');
+    const address = base.slice(0, base.length - 2).join(' ');
+
+    return `${address}, ${post}`;
+};
+
+const getPhone = (hit) => hit.data.kontaktinformasjon?.telefonnummer || null;
+
+const getOfficeInformation = (hit) => {
+    if (hit.type !== 'no.nav.navno:office-information') {
+        return null;
     }
 
     return {
-        displayName: name,
-        href: href,
-        displayPath: displayPath,
+        phone: getPhone(hit),
+        audienceReception: getAudienceReception(hit),
+    };
+};
+
+export const createPreparedHit = (hit, wordList) => {
+    const highLight = getHighLight(hit, wordList);
+    const highlightText = calculateHighlightText(highLight);
+
+    return {
+        displayName: hit.displayName,
+        href: hit.href,
         highlight: highlightText,
         publish: hit.publish,
         createdTime: hit.createdTime,
         modifiedTime: hit.modifiedTime,
         score: hit._score,
         rawScore: hit._rawScore,
-        officeInformation: officeInformation,
-        audience: getAudienceForHit(hit, href),
+        officeInformation: getOfficeInformation(hit),
+        audience: getAudienceForHit(hit),
         language: hit.language,
     };
 };
