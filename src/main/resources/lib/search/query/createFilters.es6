@@ -23,6 +23,11 @@ export const commonFilters = () => ({
             field: 'data.externalProductUrl',
         },
     ],
+    exists: [
+        {
+            field: 'href',
+        },
+    ],
 });
 
 export const createSearchFilters = (params) => {
