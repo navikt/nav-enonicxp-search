@@ -20,8 +20,6 @@ cp hunspell $XP_HOME/repo/index/conf/
 
 ## Deploy
 
-Deployes med self-hosted actions runner: [nav-enonicxp-search-actions-runner](https://github.com/navikt/nav-enonicxp-search-actions-runner)
-
 ### Testmiljøer
 
 Start deploy via workflow dispatch:
