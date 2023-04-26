@@ -1,7 +1,7 @@
 apiVersion: nais.io/v1
 kind: Naisjob
 metadata:
-  name: xp-navno-deploy
+  name: xp-navno-search-deploy
   namespace: personbruker
   labels:
     team: personbruker
