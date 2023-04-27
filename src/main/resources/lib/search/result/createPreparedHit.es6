@@ -178,14 +178,18 @@ export const getAudienceForHit = (hit) => {
 
 const getAudienceReception = (hit) => {
     if (
-        hit.data.kontaktinformasjon?.publikumsmottak?.besoeksadresse?.type !==
+        hit.data.brukerkontakt?.publikumsmottak?.besoeksadresse?.type !==
         'stedsadresse'
     ) {
         return null;
     }
 
-    const { postnummer, poststed, gatenavn, husnummer } =
-        hit.data.kontaktinformasjon.publikumsmottak.besoeksadresse;
+    const {
+        postnummer,
+        poststed,
+        gatenavn,
+        husnummer,
+    } = hit.data.brukerkontakt.publikumsmottak.besoeksadresse;
     const base = [gatenavn, husnummer, postnummer, poststed].filter(
         (item) => item !== undefined
     );
@@ -196,15 +200,13 @@ const getAudienceReception = (hit) => {
     return `${address}, ${post}`;
 };
 
-const getPhone = (hit) => hit.data.kontaktinformasjon?.telefonnummer || null;
-
 const getOfficeInformation = (hit) => {
-    if (hit.type !== 'no.nav.navno:office-information') {
+    if (hit.type !== 'no.nav.navno:office-branch') {
         return null;
     }
 
     return {
-        phone: getPhone(hit),
+        phone: '55 55 33 33',
         audienceReception: getAudienceReception(hit),
     };
 };
