@@ -177,19 +177,16 @@ export const getAudienceForHit = (hit) => {
 };
 
 const getAudienceReception = (hit) => {
-    if (
-        hit.data.brukerkontakt?.publikumsmottak?.besoeksadresse?.type !==
-        'stedsadresse'
-    ) {
+    // Need to cater to both new and old office structure from NORG
+    const besoeksadresse =
+        hit.data.brukerkontakt?.publikumsmottak?.besoeksadresse ||
+        hit.data.kontaktinformasjon?.publikumsmottak?.besoeksadresse;
+
+    if (besoeksadresse?.type !== 'stedsadresse') {
         return null;
     }
 
-    const {
-        postnummer,
-        poststed,
-        gatenavn,
-        husnummer,
-    } = hit.data.brukerkontakt.publikumsmottak.besoeksadresse;
+    const { postnummer, poststed, gatenavn, husnummer } = besoeksadresse;
     const base = [gatenavn, husnummer, postnummer, poststed].filter(
         (item) => item !== undefined
     );
@@ -200,15 +197,20 @@ const getAudienceReception = (hit) => {
     return `${address}, ${post}`;
 };
 
-const getOfficeInformation = (hit) => {
-    if (hit.type !== 'no.nav.navno:office-branch') {
-        return null;
-    }
+const getPhone = (hit) =>
+    hit.data.kontaktinformasjon?.telefonnummer || '55 55 33 33';
 
-    return {
-        phone: '55 55 33 33',
-        audienceReception: getAudienceReception(hit),
-    };
+const getOfficeInformation = (hit) => {
+    if (
+        (hit.type === 'no.nav.navno:office-information' &&
+            hit.data.enhet.type !== 'LOKAL') ||
+        hit.type === 'no.nav.navno:office-branch'
+    ) {
+        return {
+            phone: getPhone(hit),
+            audienceReception: getAudienceReception(hit),
+        };
+    }
 };
 
 export const createPreparedHit = (hit, wordList) => {
