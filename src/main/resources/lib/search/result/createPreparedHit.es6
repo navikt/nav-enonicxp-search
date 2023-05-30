@@ -135,6 +135,14 @@ export const getHighLight = (searchNode, wordList) => {
             };
         }
     }
+
+    if (!searchNode.data) {
+        log.info(
+            `Search node missing data! ${JSON.stringify(searchNode.data)}`
+        );
+        return { text: '', ingress: '' };
+    }
+
     return {
         text: highLightFragment(searchNode.data.text || '', wordList),
         ingress: highLightFragment(
