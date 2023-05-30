@@ -17,13 +17,19 @@ export const runSearchQuery = (queryParams, withCustomWeights) => {
 
     const queryResult = repo.query(queryParams);
 
-    const hits = queryResult.hits.map((hit) => {
+    const hits = queryResult.hits.reduce((acc, hit) => {
         const searchNode = repo.get(hit.id);
-        return {
-            ...searchNode,
-            _score: hit.score,
-        };
-    });
+        if (searchNode) {
+            acc.push({
+                ...searchNode,
+                _score: hit.score,
+            });
+        } else {
+            log.info(`Search node not found?! ${JSON.stringify(hit)}`);
+        }
+
+        return acc;
+    }, []);
 
     const result = { ...queryResult, hits };
 
