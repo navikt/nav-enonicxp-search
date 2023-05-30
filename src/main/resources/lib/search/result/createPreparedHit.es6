@@ -159,7 +159,9 @@ const pathSegmentToAudience = {
 
 export const getAudienceForHit = (hit) => {
     if (hit.data?.audience) {
-        return hit.data.audience;
+        return typeof hit.data.audience === 'string'
+            ? hit.data.audience
+            : hit.data.audience._selected;
     }
 
     const pathSegments = hit.href
