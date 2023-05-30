@@ -25,7 +25,7 @@ export const runSearchQuery = (queryParams, withCustomWeights) => {
                 _score: hit.score,
             });
         } else {
-            log.info(`Search node not found?! ${JSON.stringify(hit)}`);
+            logger.error(`Search node not found - ${JSON.stringify(hit)}`);
         }
 
         return acc;
