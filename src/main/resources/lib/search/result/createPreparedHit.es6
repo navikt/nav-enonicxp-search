@@ -135,6 +135,7 @@ export const getHighLight = (searchNode, wordList) => {
             };
         }
     }
+
     return {
         text: highLightFragment(searchNode.data.text || '', wordList),
         ingress: highLightFragment(
