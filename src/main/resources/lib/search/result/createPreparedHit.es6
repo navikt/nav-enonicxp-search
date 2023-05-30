@@ -137,9 +137,7 @@ export const getHighLight = (searchNode, wordList) => {
     }
 
     if (!searchNode.data) {
-        log.info(
-            `Search node missing data! ${JSON.stringify(searchNode.data)}`
-        );
+        log.info(`Search node missing data! ${JSON.stringify(searchNode)}`);
         return { text: '', ingress: '' };
     }
 
