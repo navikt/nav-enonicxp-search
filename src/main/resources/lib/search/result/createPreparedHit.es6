@@ -27,7 +27,6 @@ export const shouldHidePublishDate = (hit) => {
         `${CONTENT_TYPE_PREFIX}:themed-article-page`,
         `${CONTENT_TYPE_PREFIX}:content-page-with-sidemenus`,
         `${CONTENT_TYPE_PREFIX}:tools-page`,
-        `${CONTENT_TYPE_PREFIX}:current-topic-page`,
     ].includes(hit.type);
 };
 
