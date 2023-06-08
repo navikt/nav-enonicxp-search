@@ -18,6 +18,13 @@ export const calculateHighlightText = (highLight) => {
     return '';
 };
 
+export const shouldHideModifiedDate = (hit) => {
+    return [
+        `${CONTENT_TYPE_PREFIX}:overview`,
+        `${CONTENT_TYPE_PREFIX}:forms-overview`,
+    ].includes(hit.type);
+};
+
 export const shouldHidePublishDate = (hit) => {
     return [
         `${CONTENT_TYPE_PREFIX}:situation-page`,
@@ -27,6 +34,8 @@ export const shouldHidePublishDate = (hit) => {
         `${CONTENT_TYPE_PREFIX}:themed-article-page`,
         `${CONTENT_TYPE_PREFIX}:content-page-with-sidemenus`,
         `${CONTENT_TYPE_PREFIX}:tools-page`,
+        `${CONTENT_TYPE_PREFIX}:overview`,
+        `${CONTENT_TYPE_PREFIX}:forms-overview`,
     ].includes(hit.type);
 };
 
@@ -247,5 +256,6 @@ export const createPreparedHit = (hit, wordList) => {
         audience: getAudienceForHit(hit),
         language: hit.language,
         hidePublishDate: shouldHidePublishDate(hit),
+        hideModifiedDate: shouldHideModifiedDate(hit),
     };
 };
