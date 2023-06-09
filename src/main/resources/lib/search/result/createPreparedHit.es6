@@ -1,5 +1,7 @@
 import { getContentRepoConnection } from '../../utils/repo';
 
+const CONTENT_TYPE_PREFIX = 'no.nav.navno';
+
 export const calculateHighlightText = (highLight) => {
     if (highLight.ingress.highlighted) {
         return highLight.ingress.text;
@@ -14,6 +16,27 @@ export const calculateHighlightText = (highLight) => {
         return highLight.text.text;
     }
     return '';
+};
+
+export const shouldHideModifiedDate = (hit) => {
+    return [
+        `${CONTENT_TYPE_PREFIX}:overview`,
+        `${CONTENT_TYPE_PREFIX}:forms-overview`,
+    ].includes(hit.type);
+};
+
+export const shouldHidePublishDate = (hit) => {
+    return [
+        `${CONTENT_TYPE_PREFIX}:situation-page`,
+        `${CONTENT_TYPE_PREFIX}:office-branch`,
+        `${CONTENT_TYPE_PREFIX}:guide-page`,
+        `${CONTENT_TYPE_PREFIX}:generic-page`,
+        `${CONTENT_TYPE_PREFIX}:themed-article-page`,
+        `${CONTENT_TYPE_PREFIX}:content-page-with-sidemenus`,
+        `${CONTENT_TYPE_PREFIX}:tools-page`,
+        `${CONTENT_TYPE_PREFIX}:overview`,
+        `${CONTENT_TYPE_PREFIX}:forms-overview`,
+    ].includes(hit.type);
 };
 
 /*
@@ -232,5 +255,7 @@ export const createPreparedHit = (hit, wordList) => {
         officeInformation: getOfficeInformation(hit),
         audience: getAudienceForHit(hit),
         language: hit.language,
+        hidePublishDate: shouldHidePublishDate(hit),
+        hideModifiedDate: shouldHideModifiedDate(hit),
     };
 };

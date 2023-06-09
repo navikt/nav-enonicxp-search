@@ -2,6 +2,8 @@ import {
     calculateHighlightText,
     getAudienceForHit,
     getHighLight,
+    shouldHidePublishDate,
+    shouldHideModifiedDate,
 } from './result/createPreparedHit';
 import { runSearchQuery } from './query/runSearchQuery';
 import { logger } from '../utils/logger';
@@ -33,6 +35,8 @@ const runSearch = (params) => {
             rawScore: hit._rawScore,
             audience: getAudienceForHit(hit),
             language: hit.language,
+            hidePublishDate: shouldHidePublishDate(hit),
+            hideModifiedDate: shouldHideModifiedDate(hit),
         };
     });
 
