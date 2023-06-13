@@ -188,6 +188,10 @@ export const getAudienceForHit = (hit) => {
             : hit.data.audience._selected;
     }
 
+    if (!hit.href) {
+        return null;
+    }
+
     const pathSegments = hit.href
         .replace(/^https?:\/\/[a-zA-Z0-9-.]+\//, '')
         .split('/');

@@ -1,4 +1,5 @@
 import { getUnixTimeFromDateTimeString } from '../../utils';
+import { getAudienceForHit } from './createPreparedHit';
 
 const oneYear = 1000 * 3600 * 24 * 365;
 
@@ -6,14 +7,14 @@ export const resultWithCustomScoreWeights = (result) => ({
     ...result,
     hits: result.hits
         .map((hit) => {
-            const { data, language, modifiedTime, _score } = hit;
+            const { language, modifiedTime, _score } = hit;
 
             const _nonZeroScore = _score || 0.01;
 
             let scoreFactor = 1;
 
             // Pages targeted towards private individuals should be weighted higher
-            if (data?.audience === 'person') {
+            if (getAudienceForHit(hit) === 'person') {
                 scoreFactor *= 1.25;
             }
 
