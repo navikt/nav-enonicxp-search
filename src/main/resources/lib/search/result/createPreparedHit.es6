@@ -244,7 +244,7 @@ export const createPreparedHit = (hit, wordList) => {
     const highlightText = calculateHighlightText(highLight);
 
     return {
-        displayName: hit.displayName,
+        displayName: hit.data?.title || hit.displayName,
         href: hit.href,
         highlight: highlightText,
         publish: hit.publish,
