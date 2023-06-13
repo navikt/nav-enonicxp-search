@@ -26,7 +26,7 @@ const runSearch = (params) => {
         const highlightText = calculateHighlightText(highLight);
 
         return {
-            displayName: hit.displayName,
+            displayName: hit.data?.title || hit.displayName,
             href: hit.href,
             highlight: highlightText,
             publish: hit.publish,
