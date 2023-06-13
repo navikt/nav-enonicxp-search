@@ -6,10 +6,9 @@ export const resultWithCustomScoreWeights = (result) => ({
     ...result,
     hits: result.hits
         .map((hit) => {
-            const { _score: _rawScore, data, language, modifiedTime } = hit;
-            if (!_rawScore) {
-                return hit;
-            }
+            const { data, language, modifiedTime, _score } = hit;
+
+            const _nonZeroScore = _score || 0.01;
 
             let scoreFactor = 1;
 
@@ -43,8 +42,8 @@ export const resultWithCustomScoreWeights = (result) => ({
 
             return {
                 ...hit,
-                _score: _rawScore * scoreFactor,
-                _rawScore,
+                _score: _nonZeroScore * scoreFactor,
+                _rawScore: _score,
             };
         })
         .sort((a, b) => b._score - a._score),

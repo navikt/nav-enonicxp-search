@@ -37,9 +37,9 @@ export const runSearchQuery = (queryParams, withCustomWeights) => {
 };
 
 export const runFullSearchQuery = (inputParams, batchSize) => {
-    const { daterange, s: sorting, queryString } = inputParams;
+    const { daterange, s: sorting } = inputParams;
 
-    const withCustomWeights = sorting === SortParam.BestMatch && !!queryString;
+    const withCustomWeights = sorting === SortParam.BestMatch;
 
     const queryParams = createSearchQueryParams(inputParams, batchSize);
 
