@@ -19,10 +19,17 @@ const getCountAndStart = ({ start, count, batchSize }) => {
 };
 
 // Sort by date if sorting is set to date, or query is empty
-const getSortString = (params) =>
-    params.s === SortParam.Date || !params.queryString
-        ? 'publish.first DESC, createdTime DESC'
-        : undefined;
+const getSortString = (params) => {
+    if (params.s === SortParam.Date) {
+        return 'publish.first DESC, createdTime DESC';
+    }
+
+    if (!params.queryString) {
+        return 'x.no-nav-navno.searchOrder.searchOrder DESC, publish.first DESC, createdTime DESC';
+    }
+
+    return undefined;
+};
 
 const daterangeAggregations = {
     Tidsperiode: {
