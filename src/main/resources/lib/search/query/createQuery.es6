@@ -25,7 +25,7 @@ const getSortString = (params) => {
     }
 
     if (!params.queryString) {
-        return 'x.no-nav-navno.searchOrder.searchOrder DESC, publish.first DESC, createdTime DESC';
+        return 'x.no-nav-navno.searchOrder.searchOrder ASC, publish.first DESC, createdTime DESC';
     }
 
     return undefined;
