@@ -101,6 +101,9 @@ export const activateEventListener = () => {
                 }
 
                 if (node.repo === searchRepo) {
+                    logger.info(
+                        `Wiping search cache - ${JSON.stringify(node)}`
+                    );
                     wipeSearchCache();
                     return;
                 }
