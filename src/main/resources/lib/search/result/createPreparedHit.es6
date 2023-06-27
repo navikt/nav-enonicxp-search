@@ -287,14 +287,30 @@ const getHref = (hit) => {
     return `https://www-2.ekstern.dev.nav.no${path}`;
 };
 
+const getDisplayName = (hit) => {
+    const displayNameBase = hit.data?.title || hit.displayName;
+
+    if (hit.type !== 'no.nav.navno:form-details') {
+        return displayNameBase;
+    }
+
+    const formNumbers = forceArray(hit.data.formNumbers);
+    if (formNumbers.length === 0) {
+        return displayNameBase;
+    }
+
+    return `${displayNameBase} (${formNumbers.join(', ')})`;
+};
+
 export const createPreparedHit = (hit, wordList) => {
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
 
     const href = getHref(hit);
+    const displayName = getDisplayName(hit);
 
     return {
-        displayName: hit.data?.title || hit.displayName,
+        displayName,
         href,
         highlight: highlightText,
         publish: hit.publish,
