@@ -1,4 +1,5 @@
 import { getContentRepoConnection } from '../../utils/repo';
+import { forceArray } from '../../utils';
 
 const CONTENT_TYPE_PREFIX = 'no.nav.navno';
 
@@ -243,13 +244,58 @@ const getOfficeInformation = (hit) => {
     }
 };
 
+const getHref = (hit) => {
+    if (hit.type !== 'no.nav.navno:form-details') {
+        return hit.href;
+    }
+
+    const application = forceArray(hit.data?.formType).find(
+        (formType) => formType._selected === 'application'
+    );
+    if (!application) {
+        return null;
+    }
+
+    const variation = forceArray(application.variations)[0];
+    if (!variation) {
+        return null;
+    }
+
+    const selectedLink = variation.link?._selected;
+    if (!selectedLink) {
+        return null;
+    }
+
+    if (selectedLink === 'external') {
+        return variation.link.external?.url;
+    }
+
+    const targetContentId = variation.link.internal?.target;
+    if (!targetContentId) {
+        return null;
+    }
+
+    const content = getContentRepoConnection().get(targetContentId);
+    if (!content) {
+        return null;
+    }
+
+    const path =
+        content.data.customPath ||
+        content._path.replace(/^\/content\/www\.nav\.no/, '');
+
+    return `https://www-2.ekstern.dev.nav.no${path}`;
+};
+
 export const createPreparedHit = (hit, wordList) => {
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
 
+    const href = getHref(hit);
+
     return {
         displayName: hit.data?.title || hit.displayName,
-        href: hit.href,
+        href,
         highlight: highlightText,
         publish: hit.publish,
         createdTime: hit.createdTime,
