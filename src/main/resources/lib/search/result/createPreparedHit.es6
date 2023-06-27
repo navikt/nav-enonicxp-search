@@ -1,5 +1,6 @@
 import { getContentRepoConnection } from '../../utils/repo';
 import { forceArray } from '../../utils';
+import { logger } from '../../utils/logger';
 
 const CONTENT_TYPE_PREFIX = 'no.nav.navno';
 
@@ -253,16 +254,19 @@ const getHref = (hit) => {
         (formType) => formType._selected === 'application'
     );
     if (!application) {
+        logger.info(`Application not found for ${hit.contentPath}`);
         return null;
     }
 
     const variation = forceArray(application.variations)[0];
     if (!variation) {
+        logger.info(`Variation not found for ${hit.contentPath}`);
         return null;
     }
 
     const selectedLink = variation.link?._selected;
     if (!selectedLink) {
+        logger.info(`Link selection not found for ${hit.contentPath}`);
         return null;
     }
 
@@ -272,11 +276,13 @@ const getHref = (hit) => {
 
     const targetContentId = variation.link.internal?.target;
     if (!targetContentId) {
+        logger.info(`targetContentId not found for ${hit.contentPath}`);
         return null;
     }
 
     const content = getContentRepoConnection().get(targetContentId);
     if (!content) {
+        logger.info(`Content not found for ${hit.contentPath}`);
         return null;
     }
 
