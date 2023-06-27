@@ -252,7 +252,7 @@ const getHref = (hit) => {
 
     const application = forceArray(hit.data?.formType).find(
         (formType) => formType._selected === 'application'
-    );
+    )?.application;
     if (!application) {
         logger.info(`Application not found for ${hit.contentPath}`);
         return null;
