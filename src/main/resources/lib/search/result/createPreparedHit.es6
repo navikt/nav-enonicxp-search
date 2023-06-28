@@ -193,6 +193,10 @@ export const getAudienceForHit = (hit) => {
         return null;
     }
 
+    if (hit.type === 'no.nav.navno:form-details') {
+        return null;
+    }
+
     const pathSegments = hit.href
         .replace(/^https?:\/\/[a-zA-Z0-9-.]+\//, '')
         .split('/');
@@ -202,10 +206,6 @@ export const getAudienceForHit = (hit) => {
         if (audience) {
             return audience;
         }
-    }
-
-    if (hit.type === 'no.nav.navno:form-details') {
-        return 'person';
     }
 
     return null;
