@@ -1,6 +1,5 @@
 import { getContentRepoConnection } from '../../utils/repo';
 import { forceArray } from '../../utils';
-import { logger } from '../../utils/logger';
 
 const CONTENT_TYPE_PREFIX = 'no.nav.navno';
 
@@ -205,6 +204,10 @@ export const getAudienceForHit = (hit) => {
         }
     }
 
+    if (hit.type === 'no.nav.navno:form-details') {
+        return 'person';
+    }
+
     return null;
 };
 
@@ -245,54 +248,6 @@ const getOfficeInformation = (hit) => {
     }
 };
 
-const getHref = (hit) => {
-    if (hit.type !== 'no.nav.navno:form-details') {
-        return hit.href;
-    }
-
-    const application = forceArray(hit.data?.formType).find(
-        (formType) => formType._selected === 'application'
-    )?.application;
-    if (!application) {
-        logger.info(`Application not found for ${hit.contentPath}`);
-        return null;
-    }
-
-    const variation = forceArray(application.variations)[0];
-    if (!variation) {
-        logger.info(`Variation not found for ${hit.contentPath}`);
-        return null;
-    }
-
-    const selectedLink = variation.link?._selected;
-    if (!selectedLink) {
-        logger.info(`Link selection not found for ${hit.contentPath}`);
-        return null;
-    }
-
-    if (selectedLink === 'external') {
-        return variation.link.external?.url;
-    }
-
-    const targetContentId = variation.link.internal?.target;
-    if (!targetContentId) {
-        logger.info(`targetContentId not found for ${hit.contentPath}`);
-        return null;
-    }
-
-    const content = getContentRepoConnection().get(targetContentId);
-    if (!content) {
-        logger.info(`Content not found for ${hit.contentPath}`);
-        return null;
-    }
-
-    const path =
-        content.data.customPath ||
-        content._path.replace(/^\/content\/www\.nav\.no/, '');
-
-    return `https://www-2.ekstern.dev.nav.no${path}`;
-};
-
 const getDisplayName = (hit) => {
     const displayNameBase = hit.data?.title || hit.displayName;
 
@@ -312,12 +267,11 @@ export const createPreparedHit = (hit, wordList) => {
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
 
-    const href = getHref(hit);
     const displayName = getDisplayName(hit);
 
     return {
         displayName,
-        href,
+        href: hit.href,
         highlight: highlightText,
         publish: hit.publish,
         createdTime: hit.createdTime,
