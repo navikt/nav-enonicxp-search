@@ -4,6 +4,7 @@ import {
     getHighLight,
     shouldHidePublishDate,
     shouldHideModifiedDate,
+    getDisplayName,
 } from './result/createPreparedHit';
 import { runSearchQuery } from './query/runSearchQuery';
 import { logger } from '../utils/logger';
@@ -26,7 +27,7 @@ const runSearch = (params) => {
         const highlightText = calculateHighlightText(highLight);
 
         return {
-            displayName: hit.data?.title || hit.displayName,
+            displayName: getDisplayName(hit),
             href: hit.href,
             highlight: highlightText,
             publish: hit.publish,

@@ -248,7 +248,7 @@ const getOfficeInformation = (hit) => {
     }
 };
 
-const getDisplayName = (hit) => {
+export const getDisplayName = (hit) => {
     const displayNameBase = hit.data?.title || hit.displayName;
 
     if (hit.type !== 'no.nav.navno:form-details') {
@@ -267,10 +267,8 @@ export const createPreparedHit = (hit, wordList) => {
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
 
-    const displayName = getDisplayName(hit);
-
     return {
-        displayName,
+        displayName: getDisplayName(hit),
         href: hit.href,
         highlight: highlightText,
         publish: hit.publish,
