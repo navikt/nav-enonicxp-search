@@ -1,4 +1,5 @@
 import { getContentRepoConnection } from '../../utils/repo';
+import { forceArray } from '../../utils';
 
 const CONTENT_TYPE_PREFIX = 'no.nav.navno';
 
@@ -192,6 +193,10 @@ export const getAudienceForHit = (hit) => {
         return null;
     }
 
+    if (hit.type === 'no.nav.navno:form-details') {
+        return null;
+    }
+
     const pathSegments = hit.href
         .replace(/^https?:\/\/[a-zA-Z0-9-.]+\//, '')
         .split('/');
@@ -243,12 +248,29 @@ const getOfficeInformation = (hit) => {
     }
 };
 
+const getDisplayName = (hit) => {
+    const displayNameBase = hit.data?.title || hit.displayName;
+
+    if (hit.type !== 'no.nav.navno:form-details') {
+        return displayNameBase;
+    }
+
+    const formNumbers = forceArray(hit.data.formNumbers);
+    if (formNumbers.length === 0) {
+        return displayNameBase;
+    }
+
+    return `${displayNameBase} (${formNumbers.join(', ')})`;
+};
+
 export const createPreparedHit = (hit, wordList) => {
     const highLight = getHighLight(hit, wordList);
     const highlightText = calculateHighlightText(highLight);
 
+    const displayName = getDisplayName(hit);
+
     return {
-        displayName: hit.data?.title || hit.displayName,
+        displayName,
         href: hit.href,
         highlight: highlightText,
         publish: hit.publish,
