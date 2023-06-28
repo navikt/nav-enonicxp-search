@@ -3,7 +3,7 @@ import { forceArray } from '../../utils';
 
 const CONTENT_TYPE_PREFIX = 'no.nav.navno';
 
-export const calculateHighlightText = (highLight) => {
+const calculateHighlightText = (highLight) => {
     if (highLight.ingress.highlighted) {
         return highLight.ingress.text;
     }
@@ -19,14 +19,14 @@ export const calculateHighlightText = (highLight) => {
     return '';
 };
 
-export const shouldHideModifiedDate = (hit) => {
+const shouldHideModifiedDate = (hit) => {
     return [
         `${CONTENT_TYPE_PREFIX}:overview`,
         `${CONTENT_TYPE_PREFIX}:forms-overview`,
     ].includes(hit.type);
 };
 
-export const shouldHidePublishDate = (hit) => {
+const shouldHidePublishDate = (hit) => {
     return [
         `${CONTENT_TYPE_PREFIX}:situation-page`,
         `${CONTENT_TYPE_PREFIX}:office-branch`,
@@ -149,7 +149,7 @@ const highLightFragment = (searchText, wordList) => {
     };
 };
 
-export const getHighLight = (searchNode, wordList) => {
+const getHighLight = (searchNode, wordList) => {
     if (searchNode.type === 'media:document') {
         const media = getContentRepoConnection().get(searchNode.contentId);
         if (media && media.attachment) {
@@ -248,7 +248,7 @@ const getOfficeInformation = (hit) => {
     }
 };
 
-export const getDisplayName = (hit) => {
+const getDisplayName = (hit) => {
     const displayNameBase = hit.data?.title || hit.displayName;
 
     if (hit.type !== 'no.nav.navno:form-details') {
