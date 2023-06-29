@@ -183,17 +183,23 @@ const pathSegmentToAudience = {
 };
 
 export const getAudienceForHit = (hit) => {
-    if (hit.data?.audience) {
-        return typeof hit.data.audience === 'string'
-            ? hit.data.audience
-            : hit.data.audience._selected;
+    const audience = hit.data?.audience;
+
+    if (audience) {
+        if (typeof audience === 'string') {
+            return [audience];
+        }
+
+        if (Array.isArray(audience)) {
+            return audience;
+        }
+
+        if (audience._selected) {
+            return forceArray(audience._selected);
+        }
     }
 
     if (!hit.href) {
-        return null;
-    }
-
-    if (hit.type === 'no.nav.navno:form-details') {
         return null;
     }
 
@@ -202,9 +208,9 @@ export const getAudienceForHit = (hit) => {
         .split('/');
 
     for (const segment of pathSegments) {
-        const audience = pathSegmentToAudience[segment];
-        if (audience) {
-            return audience;
+        const audienceFromPath = pathSegmentToAudience[segment];
+        if (audienceFromPath) {
+            return [audienceFromPath];
         }
     }
 
@@ -249,7 +255,8 @@ const getOfficeInformation = (hit) => {
 };
 
 const getDisplayName = (hit) => {
-    const displayNameBase = hit.data?.title || hit.displayName;
+    const displayNameBase =
+        hit.data?.longTitle || hit.data?.title || hit.displayName;
 
     if (hit.type !== 'no.nav.navno:form-details') {
         return displayNameBase;
