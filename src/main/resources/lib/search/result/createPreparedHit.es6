@@ -249,7 +249,8 @@ const getOfficeInformation = (hit) => {
 };
 
 const getDisplayName = (hit) => {
-    const displayNameBase = hit.data?.title || hit.displayName;
+    const displayNameBase =
+        hit.data?.longTitle || hit.data?.title || hit.displayName;
 
     if (hit.type !== 'no.nav.navno:form-details') {
         return displayNameBase;
