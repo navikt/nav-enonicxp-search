@@ -210,7 +210,7 @@ export const getAudienceForHit = (hit) => {
     for (const segment of pathSegments) {
         const audienceFromPath = pathSegmentToAudience[segment];
         if (audienceFromPath) {
-            return audienceFromPath;
+            return [audienceFromPath];
         }
     }
 
