@@ -4,9 +4,14 @@ import { getSynonymMap } from '../helpers/cache';
 const fuzzynessPerChar = 1 / 4;
 const maxFuzzyness = 3;
 
-// Matches form numbers
-const isFormSearch = (ord) => {
-    return /^\d\d-\d\d\.\d\d$/.test(ord);
+// Matches on form number-like queries and returns the full valid form number if match found
+const getCompleteFormNumberIfFormSearch = (ord) => {
+    const match = /^(nav.?)?([0-9]{2}).?([0-9]{2}).?([0-9]{2})$/.exec(ord);
+    if (!match) {
+        return null;
+    }
+
+    return `"nav ${match[2]}-${match[3]}.${match[4]}"`;
 };
 
 const isExactSearch = (queryString) =>
@@ -109,8 +114,9 @@ export const generateSearchInput = (userInput) => {
         return { wordList: [], queryString: '' };
     }
 
-    if (isFormSearch(userInput)) {
-        return { wordList: [userInput], queryString: userInput };
+    const formNumber = getCompleteFormNumberIfFormSearch(userInput);
+    if (formNumber) {
+        return { wordList: [formNumber], queryString: formNumber };
     }
 
     const sanitizedTerm = sanitize(userInput);

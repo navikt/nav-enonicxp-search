@@ -38,7 +38,7 @@ export const validateAndTransformParams = (params) => {
     const config = getConfig();
 
     // Support max 200 characters for the search term
-    const ordTrimmed = ord.substring(0, 200).trim();
+    const ordTrimmed = ord.substring(0, 200).trim().toLowerCase();
 
     const startValid = validNumber(start, 0);
     const countMin = startValid + 1; // end batch must be at least one step above the start batch
