@@ -11,7 +11,7 @@ const getCompleteFormNumberIfFormSearch = (ord) => {
         return null;
     }
 
-    return `nav ${match[2]}-${match[3]}.${match[4]}`;
+    return `"nav ${match[2]}-${match[3]}.${match[4]}"`;
 };
 
 const isExactSearch = (queryString) =>
