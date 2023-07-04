@@ -7,6 +7,7 @@ import {
 } from './daterangeAggregations';
 import { DaterangeParam, SortParam } from '../../constants';
 import { logger } from '../../utils/logger';
+import { createDslQuery } from './dslQuery';
 
 const getCountAndStart = ({ start, count, batchSize }) => {
     return { start: start * batchSize, count: (count - start) * batchSize };
@@ -49,45 +50,6 @@ const facetsAggregations = {
             },
         },
     },
-};
-
-const createDslQuery = (queryString, fieldsToSearch, additionalQuery) => {
-    const now = new Date().toISOString();
-
-    return {
-        boolean: {
-            must: [
-                {
-                    ...(queryString
-                        ? {
-                              fulltext: {
-                                  fields: fieldsToSearch,
-                                  query: queryString,
-                                  operator: 'AND',
-                              },
-                          }
-                        : { matchAll: {} }),
-                },
-                additionalQuery,
-            ],
-            mustNot: [
-                {
-                    range: {
-                        field: 'publish.from',
-                        type: 'dateTime',
-                        gt: now,
-                    },
-                },
-                {
-                    range: {
-                        field: 'publish.to',
-                        type: 'dateTime',
-                        lt: now,
-                    },
-                },
-            ],
-        },
-    };
 };
 
 const createQuery = ({

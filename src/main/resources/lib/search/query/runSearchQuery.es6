@@ -3,16 +3,11 @@ import {
     createDaterangeQueryParams,
     createSearchQueryParams,
 } from './createQuery';
-import {
-    DaterangeParam,
-    SortParam,
-    withAggregationsBatchSize,
-} from '../../constants';
+import { DaterangeParam, withAggregationsBatchSize } from '../../constants';
 import { processDaterangeAggregations } from './daterangeAggregations';
 import { logger } from '../../utils/logger';
-import { resultWithCustomScoreWeights } from '../result/customWeights';
 
-export const runSearchQuery = (queryParams, withCustomWeights) => {
+export const runSearchQuery = (queryParams) => {
     const repo = getSearchRepoConnection();
 
     const queryResult = repo.query(queryParams);
@@ -31,19 +26,15 @@ export const runSearchQuery = (queryParams, withCustomWeights) => {
         return acc;
     }, []);
 
-    const result = { ...queryResult, hits };
-
-    return withCustomWeights ? resultWithCustomScoreWeights(result) : result;
+    return { ...queryResult, hits };
 };
 
 export const runFullSearchQuery = (inputParams, batchSize) => {
-    const { daterange, s: sorting, queryString } = inputParams;
-
-    const withCustomWeights = sorting === SortParam.BestMatch && !!queryString;
+    const { daterange } = inputParams;
 
     const queryParams = createSearchQueryParams(inputParams, batchSize);
 
-    const result = runSearchQuery(queryParams, withCustomWeights);
+    const result = runSearchQuery(queryParams);
     const { aggregations } = result;
 
     aggregations.Tidsperiode = processDaterangeAggregations(result);
@@ -64,10 +55,7 @@ export const runFullSearchQuery = (inputParams, batchSize) => {
         withAggregationsBatchSize
     );
 
-    const daterangeResult = runSearchQuery(
-        daterangeQueryParams,
-        withCustomWeights
-    );
+    const daterangeResult = runSearchQuery(daterangeQueryParams);
 
     return { ...daterangeResult, aggregations };
 };
