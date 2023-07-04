@@ -100,6 +100,23 @@ export const createDslQuery = (
                     },
                 },
 
+                // Boost the most relevant/up-to-date content types
+                {
+                    in: {
+                        field: 'type',
+                        values: [
+                            'no.nav.navno:content-page-with-sidemenus',
+                            'no.nav.navno:situation-page',
+                            'no.nav.navno:guide-page',
+                            'no.nav.navno:generic-page',
+                            'no.nav.navno:themed-article-page',
+                            'no.nav.navno:overview',
+                            'no.nav.navno:forms-overview',
+                        ],
+                        boost: 2,
+                    },
+                },
+
                 // This block is for boosting only, and should match all
                 {
                     matchAll: {},
