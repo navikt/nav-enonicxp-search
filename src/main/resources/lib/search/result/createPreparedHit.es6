@@ -19,25 +19,29 @@ const calculateHighlightText = (highLight) => {
     return '';
 };
 
+const shouldHideModifiedDateSet = new Set([
+    `${CONTENT_TYPE_PREFIX}:overview`,
+    `${CONTENT_TYPE_PREFIX}:forms-overview`,
+]);
+
 const shouldHideModifiedDate = (hit) => {
-    return [
-        `${CONTENT_TYPE_PREFIX}:overview`,
-        `${CONTENT_TYPE_PREFIX}:forms-overview`,
-    ].includes(hit.type);
+    return shouldHideModifiedDateSet.has(hit.type);
 };
 
+const shouldHidePublishDateSet = new Set([
+    `${CONTENT_TYPE_PREFIX}:situation-page`,
+    `${CONTENT_TYPE_PREFIX}:office-branch`,
+    `${CONTENT_TYPE_PREFIX}:guide-page`,
+    `${CONTENT_TYPE_PREFIX}:generic-page`,
+    `${CONTENT_TYPE_PREFIX}:themed-article-page`,
+    `${CONTENT_TYPE_PREFIX}:content-page-with-sidemenus`,
+    `${CONTENT_TYPE_PREFIX}:tools-page`,
+    `${CONTENT_TYPE_PREFIX}:overview`,
+    `${CONTENT_TYPE_PREFIX}:forms-overview`,
+]);
+
 const shouldHidePublishDate = (hit) => {
-    return [
-        `${CONTENT_TYPE_PREFIX}:situation-page`,
-        `${CONTENT_TYPE_PREFIX}:office-branch`,
-        `${CONTENT_TYPE_PREFIX}:guide-page`,
-        `${CONTENT_TYPE_PREFIX}:generic-page`,
-        `${CONTENT_TYPE_PREFIX}:themed-article-page`,
-        `${CONTENT_TYPE_PREFIX}:content-page-with-sidemenus`,
-        `${CONTENT_TYPE_PREFIX}:tools-page`,
-        `${CONTENT_TYPE_PREFIX}:overview`,
-        `${CONTENT_TYPE_PREFIX}:forms-overview`,
-    ].includes(hit.type);
+    return shouldHidePublishDateSet.has(hit.type);
 };
 
 /*

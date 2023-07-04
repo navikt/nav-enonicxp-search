@@ -22,14 +22,26 @@ export const getDaterangeQueryStringFromBucket = (bucket) => {
     const query = [];
 
     if (to) {
-        query.push(`publish.first <= dateTime("${to}")`);
+        query.push({
+            range: {
+                field: 'publish.from',
+                type: 'dateTime',
+                lte: to,
+            },
+        });
     }
 
     if (from) {
-        query.push(`publish.first > dateTime("${from}")`);
+        query.push({
+            range: {
+                field: 'publish.first',
+                type: 'dateTime',
+                gt: from,
+            },
+        });
     }
 
-    return query.join(' AND ');
+    return query;
 };
 
 export const processDaterangeAggregations = (result) => {

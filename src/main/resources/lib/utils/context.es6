@@ -1,4 +1,4 @@
-import contextLib from '/lib/xp/context';
+import * as contextLib from '/lib/xp/context';
 
 const adminContextOptions = {
     user: {

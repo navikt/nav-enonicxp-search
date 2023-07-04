@@ -2,7 +2,7 @@ log.info('Search-app: Started running main');
 
 import './lib/polyfills';
 
-import clusterLib from '/lib/xp/cluster';
+import * as clusterLib from '/lib/xp/cluster';
 import { runInContext } from './lib/utils/context';
 import { activateEventListener } from './lib/search/helpers/cache';
 

@@ -13,7 +13,7 @@ const runSearch = (params) => {
         noAggregationsBatchSize
     );
 
-    let { hits, total } = runSearchQuery(queryParams, true);
+    let { hits, total } = runSearchQuery(queryParams);
 
     hits = hits.map((hit) => {
         return createPreparedHit(hit, wordList);

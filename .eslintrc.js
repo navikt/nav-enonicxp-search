@@ -32,7 +32,6 @@ module.exports = {
         'no-empty': 'off',
         'arrow-body-style': 'off',
         'no-param-reassign': 'off',
-        'no-unsafe-optional-chaining': 'off',
     },
     globals: {
         require: true,
@@ -40,14 +39,12 @@ module.exports = {
         exports: true,
         resolve: true,
         app: true,
-        fetch: true,
-        document: true,
-        window: true,
+        module: true,
         __: true,
     },
     overrides: [
         {
-            files: ['*.html', '*.ftl', '*.xml'],
+            files: ['*.xml'],
             rules: {
                 'max-len': 'off',
             },
@@ -55,6 +52,9 @@ module.exports = {
     ],
     parserOptions: {
         ecmaVersion: 2020,
+    },
+    env: {
+        es6: true,
     },
     settings: {
         'import/resolver': {

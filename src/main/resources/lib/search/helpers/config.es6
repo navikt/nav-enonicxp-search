@@ -1,4 +1,4 @@
-import contentLib from '/lib/xp/content';
+import * as contentLib from '/lib/xp/content';
 import { runInContext } from '../../utils/context';
 import { logger } from '../../utils/logger';
 import { forceArray } from '../../utils';
