@@ -1,6 +1,6 @@
-import cacheLib from '/lib/cache';
-import eventLib from '/lib/xp/event';
-import contentLib from '/lib/xp/content';
+import * as cacheLib from '/lib/cache';
+import * as eventLib from '/lib/xp/event';
+import * as contentLib from '/lib/xp/content';
 import { contentRepo, searchRepo } from '../../constants';
 import { getConfig, revalidateSearchConfigCache } from './config';
 import { logger } from '../../utils/logger';
