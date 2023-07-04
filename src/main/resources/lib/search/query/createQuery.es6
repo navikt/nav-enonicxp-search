@@ -8,30 +8,6 @@ import {
 import { DaterangeParam, SortParam } from '../../constants';
 import { logger } from '../../utils/logger';
 
-// Don't match content with a publish range not matching the present time
-const publishedOnlyFilter = () => {
-    const now = new Date().toISOString();
-
-    return [
-        {
-            range: {
-                field: 'publish.from',
-                type: 'dateTime',
-                lt: now,
-            },
-        },
-        {
-            range: {
-                field: 'publish.to',
-                type: 'dateTime',
-                gt: now,
-            },
-        },
-    ];
-
-    // return `publish.from < instant("${now}") AND (publish.to NOT LIKE "*" OR publish.to > instant("${now}"))`;
-};
-
 const getCountAndStart = ({ start, count, batchSize }) => {
     return { start: start * batchSize, count: (count - start) * batchSize };
 };
@@ -76,9 +52,10 @@ const facetsAggregations = {
 };
 
 const createDslQuery = (queryString, fieldsToSearch, additionalQuery) => {
+    const now = new Date().toISOString();
+
     return {
         boolean: {
-            filter: [publishedOnlyFilter()],
             must: [
                 {
                     ...(queryString
@@ -92,6 +69,22 @@ const createDslQuery = (queryString, fieldsToSearch, additionalQuery) => {
                         : { matchAll: {} }),
                 },
                 additionalQuery,
+            ],
+            mustNot: [
+                {
+                    range: {
+                        field: 'publish.from',
+                        type: 'dateTime',
+                        gt: now,
+                    },
+                },
+                {
+                    range: {
+                        field: 'publish.to',
+                        type: 'dateTime',
+                        lt: now,
+                    },
+                },
             ],
         },
     };
