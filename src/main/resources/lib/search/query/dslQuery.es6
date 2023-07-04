@@ -88,14 +88,14 @@ export const createDslQuery = (
                 {
                     range: {
                         field: 'modifiedTime',
-                        gt: oneYearAgo,
+                        lt: oneYearAgo,
                         boost: 0.5,
                     },
                 },
                 {
                     range: {
                         field: 'modifiedTime',
-                        gt: twoYearsAgo,
+                        lt: twoYearsAgo,
                         boost: 0.25,
                     },
                 },
@@ -113,7 +113,7 @@ export const createDslQuery = (
                             'no.nav.navno:overview',
                             'no.nav.navno:forms-overview',
                         ],
-                        boost: 2,
+                        boost: 5,
                     },
                 },
 

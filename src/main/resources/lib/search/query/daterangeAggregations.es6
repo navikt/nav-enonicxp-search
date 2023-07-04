@@ -29,7 +29,6 @@ export const getDaterangeQueryStringFromBucket = (bucket) => {
                 lte: to,
             },
         });
-        // query.push(`publish.first <= dateTime("${to}")`);
     }
 
     if (from) {
@@ -40,7 +39,6 @@ export const getDaterangeQueryStringFromBucket = (bucket) => {
                 gt: from,
             },
         });
-        // query.push(`publish.first > dateTime("${from}")`);
     }
 
     return query;
