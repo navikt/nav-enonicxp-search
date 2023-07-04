@@ -5,13 +5,31 @@ import {
     getDaterangeQueryStringFromBucket,
     daterangeAggregationsRanges,
 } from './daterangeAggregations';
-import { excludedPathsQuerySegment } from './excludedPaths';
 import { DaterangeParam, SortParam } from '../../constants';
+import { logger } from '../../utils/logger';
 
 // Don't match content with a publish range not matching the present time
-const publishedOnlyQuerySegment = () => {
+const publishedOnlyFilter = () => {
     const now = new Date().toISOString();
-    return `publish.from < instant("${now}") AND (publish.to NOT LIKE "*" OR publish.to > instant("${now}"))`;
+
+    return [
+        {
+            range: {
+                field: 'publish.from',
+                type: 'dateTime',
+                lt: now,
+            },
+        },
+        {
+            range: {
+                field: 'publish.to',
+                type: 'dateTime',
+                gt: now,
+            },
+        },
+    ];
+
+    // return `publish.from < instant("${now}") AND (publish.to NOT LIKE "*" OR publish.to > instant("${now}"))`;
 };
 
 const getCountAndStart = ({ start, count, batchSize }) => {
@@ -57,6 +75,28 @@ const facetsAggregations = {
     },
 };
 
+const createDslQuery = (queryString, fieldsToSearch, additionalQuery) => {
+    return {
+        boolean: {
+            filter: [publishedOnlyFilter()],
+            must: [
+                {
+                    ...(queryString
+                        ? {
+                              fulltext: {
+                                  fields: fieldsToSearch,
+                                  query: queryString,
+                                  operator: 'AND',
+                              },
+                          }
+                        : { matchAll: {} }),
+                },
+                additionalQuery,
+            ],
+        },
+    };
+};
+
 const createQuery = ({
     queryString,
     start,
@@ -64,21 +104,25 @@ const createQuery = ({
     aggregations,
     filters,
     sort,
-    additionalQuerySegment,
+    additionalQuery,
 }) => {
     const config = getConfig();
 
     const contentTypes = forceArray(config.data.contentTypes);
     const fieldsToSearch = forceArray(config.data.fields);
 
-    const query = `fulltext('${fieldsToSearch}', '${queryString}', 'AND') AND ${publishedOnlyQuerySegment()} AND ${excludedPathsQuerySegment} ${
-        additionalQuerySegment ? `AND ${additionalQuerySegment}` : ''
-    }`;
+    const dslQuery = createDslQuery(
+        queryString,
+        fieldsToSearch,
+        additionalQuery
+    );
+
+    logger.info(`Query: ${JSON.stringify(dslQuery)}`);
 
     return {
         start,
         count,
-        query,
+        query: dslQuery,
         contentTypes,
         aggregations,
         sort,
@@ -143,7 +187,7 @@ export const createDaterangeQueryParams = (
 
     return createQuery({
         queryString,
-        additionalQuerySegment: daterangeQuery,
+        additionalQuery: daterangeQuery,
         start,
         count,
         filters,

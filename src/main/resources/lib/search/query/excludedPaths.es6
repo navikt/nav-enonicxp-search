@@ -1,5 +1,4 @@
 export const excludedPathsQuerySegment = [
-    '/content/www.nav.no/no/nav-og-samfunn/samarbeid/noindex/*',
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/for-kommunen/sosiale-tjenester-i-nav-kontoret2*',
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/for-kommunen/kvalifiseringsprogrammet2*',
     '/content/www.nav.no/no/nav-og-samfunn/samarbeid/for-kommunen/boligsosialt-arbeid2*',
