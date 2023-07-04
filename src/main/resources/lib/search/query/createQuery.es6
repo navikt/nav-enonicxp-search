@@ -6,7 +6,6 @@ import {
     daterangeAggregationsRanges,
 } from './daterangeAggregations';
 import { DaterangeParam, SortParam } from '../../constants';
-import { logger } from '../../utils/logger';
 import { createDslQuery } from './dslQuery';
 
 const getCountAndStart = ({ start, count, batchSize }) => {
@@ -71,8 +70,6 @@ const createQuery = ({
         fieldsToSearch,
         additionalQuery
     );
-
-    logger.info(`Query: ${JSON.stringify(dslQuery)}`);
 
     return {
         start,
