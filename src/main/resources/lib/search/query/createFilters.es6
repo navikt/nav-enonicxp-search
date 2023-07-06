@@ -18,11 +18,6 @@ export const commonFilters = () => ({
             },
         ],
     },
-    notExists: [
-        {
-            field: 'data.externalProductUrl',
-        },
-    ],
     exists: [
         {
             field: 'href',
