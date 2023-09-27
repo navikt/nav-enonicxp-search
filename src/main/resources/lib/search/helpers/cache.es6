@@ -1,9 +1,11 @@
 import * as cacheLib from '/lib/cache';
 import * as eventLib from '/lib/xp/event';
 import * as contentLib from '/lib/xp/content';
+import { sanitize } from '/lib/xp/common';
 import { contentRepo, searchRepo } from '../../constants';
 import { getConfig, revalidateSearchConfigCache } from './config';
 import { logger } from '../../utils/logger';
+import { forceArray } from '../../utils';
 
 const synonymsContentType = 'navno.nav.no.search:synonyms';
 
@@ -51,18 +53,22 @@ export const getSynonymMap = () => {
         const synonymMap = {};
         synonymLists.forEach((synonymList) => {
             synonymList.data.synonyms.forEach((s) => {
-                s.synonym.forEach((word) => {
+                const synonymArray = forceArray(s.synonym);
+
+                synonymArray.forEach((word) => {
+                    const sanitizedWord = sanitize(word);
+
                     // add all if its a new word
-                    if (!synonymMap[word]) {
-                        synonymMap[word] = [].concat(s.synonym);
+                    if (!synonymMap[sanitizedWord]) {
+                        synonymMap[sanitizedWord] = [].concat(synonymArray);
                     } else {
                         // only add new unique words if it already exists
                         s.synonym.forEach((syn) => {
                             if (
-                                syn !== word &&
-                                synonymMap[word].indexOf(syn) === -1
+                                syn !== sanitizedWord &&
+                                synonymMap[sanitizedWord].indexOf(syn) === -1
                             ) {
-                                synonymMap[word].push(syn);
+                                synonymMap[sanitizedWord].push(syn);
                             }
                         });
                     }
