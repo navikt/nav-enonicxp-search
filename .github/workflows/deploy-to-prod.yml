@@ -1,7 +1,4 @@
 name: Deploy to prod
-on:
-  release:
-    types: [released]
 
 jobs:
   build:

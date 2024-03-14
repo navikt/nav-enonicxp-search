@@ -1,7 +1,9 @@
+# Ikke lengre i bruk
+Denne er nå erstattet av ny backend for søket på nav.no: https://github.com/navikt/navno-search-api
+
+
+
 # NAV.no - Enonic XP Search
-[![Deploy to prod](https://github.com/navikt/nav-enonicxp-search/actions/workflows/deploy-to-prod.yml/badge.svg)](https://github.com/navikt/nav-enonicxp-search/actions/workflows/deploy-to-prod.yml)
-[![Deploy to dev](https://github.com/navikt/nav-enonicxp-search/actions/workflows/deploy-to-dev.yml/badge.svg)](https://github.com/navikt/nav-enonicxp-search/actions/workflows/deploy-to-dev.yml)
-[![Deploy to dev2/q6](https://github.com/navikt/nav-enonicxp-search/actions/workflows/deploy-to-q6.yml/badge.svg)](https://github.com/navikt/nav-enonicxp-search/actions/workflows/deploy-to-q6.yml)
 
 Backend for søket på nav.no. Enonic XP applikasjon som må installeres sammen med [nav-enonicxp](https://github.com/navikt/nav-enonicxp).
 
